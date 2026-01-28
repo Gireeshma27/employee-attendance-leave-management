@@ -1,0 +1,130 @@
+'use client';
+
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import {
+  LayoutDashboard,
+  Clock,
+  Calendar,
+  Users,
+  LogOut,
+  Menu,
+  X,
+  BarChart3,
+} from 'lucide-react';
+import { useState } from 'react';
+
+export function DashboardLayout({ children, role = 'employee' }) {
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const pathname = usePathname();
+
+  const getSidebarLinks = () => {
+    const commonLinks = [
+      { href: `/employee/dashboard`, label: 'Dashboard', icon: LayoutDashboard },
+      { href: `/employee/attendance`, label: 'Attendance', icon: Clock },
+      { href: `/employee/leave`, label: 'Leave', icon: Calendar },
+      { href: `/employee/profile`, label: 'Profile', icon: Users },
+    ];
+
+    const managerLinks = [
+      { href: `/manager/dashboard`, label: 'Dashboard', icon: LayoutDashboard },
+      { href: `/manager/team-attendance`, label: 'Team Attendance', icon: Clock },
+      { href: `/manager/leave-approvals`, label: 'Leave Approvals', icon: Calendar },
+    ];
+
+    const adminLinks = [
+      { href: `/admin/dashboard`, label: 'Dashboard', icon: LayoutDashboard },
+      { href: `/admin/employees`, label: 'Employees', icon: Users },
+      { href: `/admin/attendance`, label: 'Attendance', icon: Clock },
+      { href: `/admin/leaves`, label: 'Leaves', icon: Calendar },
+      { href: `/admin/reports`, label: 'Reports', icon: BarChart3 },
+    ];
+
+    if (role === 'manager') return managerLinks;
+    if (role === 'admin') return adminLinks;
+    return commonLinks;
+  };
+
+  const links = getSidebarLinks();
+
+  return (
+    <div className="flex h-screen bg-gray-50">
+      {/* Sidebar */}
+      <aside
+        className={`${
+          sidebarOpen ? 'w-64' : 'w-20'
+        } bg-gray-900 text-white transition-all duration-300 flex flex-col`}
+      >
+        {/* Logo */}
+        <div className="px-6 py-8 border-b border-gray-800">
+          <h1 className={`font-bold text-xl ${!sidebarOpen && 'hidden'}`}>AttendEase</h1>
+        </div>
+
+        {/* Navigation */}
+        <nav className="flex-1 px-3 py-6">
+          {links.map(({ href, label, icon: Icon }) => (
+            <Link
+              key={href}
+              href={href}
+              className={`flex items-center px-4 py-3 mb-2 rounded-lg transition-colors ${
+                pathname === href
+                  ? 'bg-blue-600 text-white'
+                  : 'text-gray-300 hover:bg-gray-800'
+              }`}
+            >
+              <Icon size={20} className="flex-shrink-0" />
+              {sidebarOpen && <span className="ml-4">{label}</span>}
+            </Link>
+          ))}
+        </nav>
+
+        {/* Logout */}
+        <div className="px-3 py-6 border-t border-gray-800">
+          <button className="flex items-center w-full px-4 py-3 text-gray-300 hover:bg-gray-800 rounded-lg transition-colors">
+            <LogOut size={20} />
+            {sidebarOpen && <span className="ml-4">Logout</span>}
+          </button>
+        </div>
+      </aside>
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col">
+        {/* Topbar */}
+        <header className="bg-white border-b border-gray-200 px-8 py-4 flex items-center justify-between">
+          <button
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="text-gray-600 hover:text-gray-900"
+          >
+            {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+          <div className="flex items-center gap-4">
+            <div className="text-right">
+              <p className="text-sm font-medium text-gray-900">John Doe</p>
+              <p className="text-xs text-gray-500">Employee</p>
+            </div>
+            <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-semibold">
+              JD
+            </div>
+          </div>
+        </header>
+
+        {/* Content */}
+        <main className="flex-1 overflow-auto p-8">{children}</main>
+      </div>
+    </div>
+  );
+}
+
+export function AuthLayout({ children }) {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center px-4">
+      <div className="w-full max-w-md">
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-white mb-2">AttendEase</h1>
+          <p className="text-blue-100">Employee Attendance & Leave Management</p>
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+}
