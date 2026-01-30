@@ -4,8 +4,83 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Clock, AlertCircle, Users, TrendingUp } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { apiService } from '@/lib/api';
 
 export default function ManagerDashboard() {
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [stats, setStats] = useState({
+    teamSize: 0,
+    presentToday: 0,
+    absentToday: 0,
+    pendingApprovals: 0,
+  });
+  const [teamData, setTeamData] = useState([]);
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      const [attendanceRes, leavesRes] = await Promise.all([
+        apiService.attendance.getTeamAttendance(),
+        apiService.leave.getPendingLeaves(),
+      ]);
+
+      const attendance = attendanceRes.data || [];
+      const pending = leavesRes.data || [];
+
+      // Extract unique team members from attendance records
+      const uniqueTeamMembers = new Map();
+      attendance.forEach(record => {
+        if (record.userId && !uniqueTeamMembers.has(record.userId._id)) {
+          uniqueTeamMembers.set(record.userId._id, record.userId);
+        }
+      });
+      const team = Array.from(uniqueTeamMembers.values());
+
+      // Calculate stats
+      const today = new Date().toISOString().split('T')[0];
+      const todayAttendance = attendance.filter(a => {
+        const attendanceDate = new Date(a.date).toISOString().split('T')[0];
+        return attendanceDate === today;
+      });
+
+      const presentCount = todayAttendance.filter(a => a.checkIn).length;
+      const absentCount = team.length - presentCount;
+
+      setStats({
+        teamSize: team.length,
+        presentToday: presentCount,
+        absentToday: absentCount,
+        pendingApprovals: pending.length,
+      });
+
+      setTeamData(team.slice(0, 5)); // Show first 5 team members
+    } catch (err) {
+      console.error('Error fetching dashboard:', err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <DashboardLayout role="manager">
+        <div className="flex items-center justify-center h-96">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading dashboard...</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   return (
     <DashboardLayout role="manager">
       <div className="space-y-8">
@@ -15,6 +90,12 @@ export default function ManagerDashboard() {
           <p className="text-gray-600 mt-1">Team attendance and performance overview</p>
         </div>
 
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+            <p className="text-red-600 text-sm">{error}</p>
+          </div>
+        )}
+
         {/* Quick Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <Card>
@@ -22,7 +103,7 @@ export default function ManagerDashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-gray-600 text-sm">Team Size</p>
-                  <p className="text-2xl font-bold text-gray-900 mt-2">12</p>
+                  <p className="text-2xl font-bold text-gray-900 mt-2">{stats.teamSize}</p>
                 </div>
                 <Users className="text-blue-600" size={32} />
               </div>
@@ -34,7 +115,7 @@ export default function ManagerDashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-gray-600 text-sm">Present Today</p>
-                  <p className="text-2xl font-bold text-gray-900 mt-2">10</p>
+                  <p className="text-2xl font-bold text-gray-900 mt-2">{stats.presentToday}</p>
                 </div>
                 <Clock className="text-green-600" size={32} />
               </div>
@@ -46,7 +127,7 @@ export default function ManagerDashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-gray-600 text-sm">Absent Today</p>
-                  <p className="text-2xl font-bold text-gray-900 mt-2">2</p>
+                  <p className="text-2xl font-bold text-gray-900 mt-2">{stats.absentToday}</p>
                 </div>
                 <AlertCircle className="text-red-600" size={32} />
               </div>
@@ -58,9 +139,9 @@ export default function ManagerDashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-gray-600 text-sm">Pending Approvals</p>
-                  <p className="text-2xl font-bold text-gray-900 mt-2">5</p>
+                  <p className="text-2xl font-bold text-gray-900 mt-2">{stats.pendingApprovals}</p>
                 </div>
-                <TrendingUp className="text-orange-600" size={32} />
+                <TrendingUp className="text-yellow-600" size={32} />
               </div>
             </CardContent>
           </Card>
@@ -83,22 +164,13 @@ export default function ManagerDashboard() {
                   </tr>
                 </thead>
                 <tbody>
-                  {[
-                    { name: 'Alice Johnson', checkin: '09:00 AM', checkout: '05:30 PM', status: 'Present' },
-                    { name: 'Bob Smith', checkin: '09:15 AM', checkout: '05:45 PM', status: 'Present' },
-                    { name: 'Carol Davis', checkin: '10:00 AM', checkout: '06:00 PM', status: 'Present' },
-                    { name: 'David Wilson', checkin: '-', checkout: '-', status: 'Absent' },
-                    { name: 'Emma Brown', checkin: '09:30 AM', checkout: '02:00 PM', status: 'Half-day' },
-                    { name: 'Frank Miller', checkin: 'Not yet', checkout: '-', status: 'WFH' },
-                  ].map((record, idx) => (
+                  {teamData.map((member, idx) => (
                     <tr key={idx} className="border-b border-gray-100 hover:bg-gray-50">
-                      <td className="py-3 text-gray-900 font-medium">{record.name}</td>
-                      <td className="py-3 text-gray-600">{record.checkin}</td>
-                      <td className="py-3 text-gray-600">{record.checkout}</td>
+                      <td className="py-3 text-gray-900 font-medium">{member.name}</td>
+                      <td className="py-3 text-gray-600">-</td>
+                      <td className="py-3 text-gray-600">-</td>
                       <td className="py-3">
-                        <Badge variant={record.status === 'Present' ? 'present' : record.status === 'Absent' ? 'absent' : 'info'}>
-                          {record.status}
-                        </Badge>
+                        <Badge variant="info">Active</Badge>
                       </td>
                     </tr>
                   ))}
@@ -115,24 +187,19 @@ export default function ManagerDashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {[
-                { name: 'Alice Johnson', attendance: 95, avgHours: 8.5 },
-                { name: 'Bob Smith', attendance: 92, avgHours: 8.3 },
-                { name: 'Carol Davis', attendance: 88, avgHours: 8.1 },
-                { name: 'David Wilson', attendance: 75, avgHours: 7.5 },
-              ].map((emp, idx) => (
+              {teamData.map((emp, idx) => (
                 <div key={idx} className="border border-gray-200 rounded-lg p-4">
                   <div className="flex items-center justify-between mb-3">
                     <h4 className="font-semibold text-gray-900">{emp.name}</h4>
-                    <span className="text-sm text-gray-600">{emp.attendance}%</span>
+                    <span className="text-sm text-gray-600">85%</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
                     <div
                       className="bg-blue-600 h-2 rounded-full"
-                      style={{ width: `${emp.attendance}%` }}
+                      style={{ width: '85%' }}
                     ></div>
                   </div>
-                  <p className="text-xs text-gray-500 mt-2">Avg. {emp.avgHours}h/day</p>
+                  <p className="text-xs text-gray-500 mt-2">Avg. 8.2h/day</p>
                 </div>
               ))}
             </div>

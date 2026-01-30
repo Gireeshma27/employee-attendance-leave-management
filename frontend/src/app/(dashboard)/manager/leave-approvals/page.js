@@ -5,75 +5,60 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { AlertCircle } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import apiService from '@/lib/api';
 
 export default function LeaveApprovalsPage() {
-  const [leaveRequests, setLeaveRequests] = useState([
-    {
-      id: 1,
-      employeeName: 'Alice Johnson',
-      leaveType: 'Casual Leave',
-      from: 'Jan 25, 2026',
-      to: 'Jan 26, 2026',
-      days: 2,
-      reason: 'Personal appointment',
-      status: 'pending',
-      submittedDate: 'Jan 22, 2026',
-    },
-    {
-      id: 2,
-      employeeName: 'Bob Smith',
-      leaveType: 'Sick Leave',
-      from: 'Jan 24, 2026',
-      to: 'Jan 24, 2026',
-      days: 1,
-      reason: 'Medical checkup',
-      status: 'pending',
-      submittedDate: 'Jan 23, 2026',
-    },
-    {
-      id: 3,
-      employeeName: 'Carol Davis',
-      leaveType: 'Paid Leave',
-      from: 'Jan 27, 2026',
-      to: 'Jan 31, 2026',
-      days: 5,
-      reason: 'Vacation',
-      status: 'approved',
-      submittedDate: 'Jan 20, 2026',
-    },
-    {
-      id: 4,
-      employeeName: 'David Wilson',
-      leaveType: 'Casual Leave',
-      from: 'Jan 20, 2026',
-      to: 'Jan 20, 2026',
-      days: 1,
-      reason: 'Family event',
-      status: 'rejected',
-      submittedDate: 'Jan 19, 2026',
-    },
-  ]);
+  const [leaveRequests, setLeaveRequests] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [actionLoading, setActionLoading] = useState(null);
 
-  const handleApprove = (id) => {
-    setLeaveRequests(
-      leaveRequests.map((req) =>
-        req.id === id ? { ...req, status: 'approved' } : req
-      )
-    );
+  useEffect(() => {
+    fetchLeaveRequests();
+  }, []);
+
+  const fetchLeaveRequests = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const res = await apiService.leave.getPendingLeaves();
+      setLeaveRequests(res.data || []);
+    } catch (err) {
+      console.error('Error fetching leave requests:', err);
+      setError(err.message || 'Failed to load leave requests');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleReject = (id) => {
-    setLeaveRequests(
-      leaveRequests.map((req) =>
-        req.id === id ? { ...req, status: 'rejected' } : req
-      )
-    );
+  const handleApprove = async (leaveId) => {
+    try {
+      setActionLoading(leaveId);
+      await apiService.leave.approve(leaveId, { status: 'approved' });
+      // Remove from pending list after approval
+      setLeaveRequests(leaveRequests.filter((req) => req._id !== leaveId));
+    } catch (err) {
+      console.error('Error approving leave:', err);
+      alert('Failed to approve leave: ' + (err.message || 'Unknown error'));
+    } finally {
+      setActionLoading(null);
+    }
   };
 
-  const pendingRequests = leaveRequests.filter((req) => req.status === 'pending');
-  const approvedRequests = leaveRequests.filter((req) => req.status === 'approved');
-  const rejectedRequests = leaveRequests.filter((req) => req.status === 'rejected');
+  const handleReject = async (leaveId) => {
+    try {
+      setActionLoading(leaveId);
+      await apiService.leave.reject(leaveId, { status: 'rejected' });
+      // Remove from pending list after rejection
+      setLeaveRequests(leaveRequests.filter((req) => req._id !== leaveId));
+    } catch (err) {
+      console.error('Error rejecting leave:', err);
+      alert('Failed to reject leave: ' + (err.message || 'Unknown error'));
+    } finally {
+      setActionLoading(null);
+    }
+  };
 
   return (
     <DashboardLayout role="manager">
@@ -84,56 +69,65 @@ export default function LeaveApprovalsPage() {
           <p className="text-gray-600 mt-1">Review and approve team leave requests</p>
         </div>
 
+        {/* Loading State */}
+        {loading && (
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-center py-8">
+                <p className="text-gray-600">Loading leave requests...</p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Error State */}
+        {error && (
+          <Card className="border-red-200 bg-red-50">
+            <CardContent className="pt-6">
+              <p className="text-red-700">{error}</p>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Summary */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="text-center">
-                <p className="text-gray-600 text-sm">Pending</p>
-                <p className="text-3xl font-bold text-yellow-600 mt-2">{pendingRequests.length}</p>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-6">
-              <div className="text-center">
-                <p className="text-gray-600 text-sm">Approved</p>
-                <p className="text-3xl font-bold text-green-600 mt-2">{approvedRequests.length}</p>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-6">
-              <div className="text-center">
-                <p className="text-gray-600 text-sm">Rejected</p>
-                <p className="text-3xl font-bold text-red-600 mt-2">{rejectedRequests.length}</p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        {!loading && (
+          <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
+            <Card>
+              <CardContent className="pt-6">
+                <div className="text-center">
+                  <p className="text-gray-600 text-sm">Pending Requests</p>
+                  <p className="text-3xl font-bold text-yellow-600 mt-2">{leaveRequests.length}</p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
         {/* Pending Requests */}
-        {pendingRequests.length > 0 && (
+        {!loading && leaveRequests.length > 0 && (
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <AlertCircle className="text-yellow-600" size={24} />
-                Pending Approval ({pendingRequests.length})
+                Leave Requests for Approval ({leaveRequests.length})
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {pendingRequests.map((request) => (
+                {leaveRequests.map((request) => (
                   <div
-                    key={request.id}
+                    key={request._id}
                     className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors"
                   >
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex-1">
-                        <h3 className="font-semibold text-gray-900">{request.employeeName}</h3>
+                        <h3 className="font-semibold text-gray-900">
+                          {request.userId?.name || 'Unknown Employee'}
+                        </h3>
                         <p className="text-sm text-gray-600 mt-1">{request.leaveType}</p>
                         <p className="text-xs text-gray-500 mt-1">
-                          {request.from} to {request.to} ({request.days} days)
+                          {new Date(request.startDate).toLocaleDateString()} to{' '}
+                          {new Date(request.endDate).toLocaleDateString()} ({request.days} days)
                         </p>
                       </div>
                       <Badge variant="warning">Pending</Badge>
@@ -148,16 +142,18 @@ export default function LeaveApprovalsPage() {
                       <Button
                         variant="danger"
                         size="sm"
-                        onClick={() => handleReject(request.id)}
+                        onClick={() => handleReject(request._id)}
+                        disabled={actionLoading === request._id}
                       >
-                        Reject
+                        {actionLoading === request._id ? 'Processing...' : 'Reject'}
                       </Button>
                       <Button
                         variant="success"
                         size="sm"
-                        onClick={() => handleApprove(request.id)}
+                        onClick={() => handleApprove(request._id)}
+                        disabled={actionLoading === request._id}
                       >
-                        Approve
+                        {actionLoading === request._id ? 'Processing...' : 'Approve'}
                       </Button>
                     </div>
                   </div>
@@ -167,59 +163,12 @@ export default function LeaveApprovalsPage() {
           </Card>
         )}
 
-        {/* Approved Requests */}
-        {approvedRequests.length > 0 && (
+        {/* No Requests */}
+        {!loading && leaveRequests.length === 0 && !error && (
           <Card>
-            <CardHeader>
-              <CardTitle>Approved Requests ({approvedRequests.length})</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {approvedRequests.map((request) => (
-                  <div
-                    key={request.id}
-                    className="border border-green-200 rounded-lg p-4 bg-green-50"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <h4 className="font-semibold text-gray-900">{request.employeeName}</h4>
-                        <p className="text-sm text-gray-600">
-                          {request.leaveType} - {request.from} to {request.to}
-                        </p>
-                      </div>
-                      <Badge variant="success">Approved</Badge>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Rejected Requests */}
-        {rejectedRequests.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Rejected Requests ({rejectedRequests.length})</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {rejectedRequests.map((request) => (
-                  <div
-                    key={request.id}
-                    className="border border-red-200 rounded-lg p-4 bg-red-50"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <h4 className="font-semibold text-gray-900">{request.employeeName}</h4>
-                        <p className="text-sm text-gray-600">
-                          {request.leaveType} - {request.from} to {request.to}
-                        </p>
-                      </div>
-                      <Badge variant="danger">Rejected</Badge>
-                    </div>
-                  </div>
-                ))}
+            <CardContent className="pt-6">
+              <div className="text-center py-8">
+                <p className="text-gray-600">No pending leave requests</p>
               </div>
             </CardContent>
           </Card>

@@ -5,16 +5,76 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Clock, Calendar, AlertCircle, TrendingUp } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { apiService } from '@/lib/api';
 
 export default function EmployeeDashboard() {
+  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null);
+  const [todayStatus, setTodayStatus] = useState(null);
+  const [attendanceHistory, setAttendanceHistory] = useState([]);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      // Get user profile
+      const profileData = await apiService.user.getProfile();
+      setUser(profileData.data);
+
+      // Get user's attendance records
+      const attendanceData = await apiService.attendance.getMyAttendance();
+      
+      // Get today's attendance from the records
+      const today = new Date().toISOString().split('T')[0];
+      const todayRecord = attendanceData.data?.find(r => {
+        const recordDate = new Date(r.date).toISOString().split('T')[0];
+        return recordDate === today;
+      });
+      
+      setTodayStatus(todayRecord || null);
+      setAttendanceHistory(attendanceData.data || []);
+    } catch (err) {
+      console.error('Error fetching dashboard data:', err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <DashboardLayout role="employee">
+        <div className="flex items-center justify-center h-96">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading dashboard...</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   return (
     <DashboardLayout role="employee">
       <div className="space-y-8">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Welcome back, John Doe!</h1>
+          <h1 className="text-3xl font-bold text-gray-900">
+            Welcome back, {user?.firstName || 'Employee'}!
+          </h1>
           <p className="text-gray-600 mt-1">Here's your attendance overview for today</p>
         </div>
+
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+            <p className="text-red-600 text-sm">{error}</p>
+          </div>
+        )}
 
         {/* Quick Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -24,7 +84,9 @@ export default function EmployeeDashboard() {
                 <div>
                   <p className="text-gray-600 text-sm">Today's Status</p>
                   <p className="text-2xl font-bold text-gray-900 mt-2">
-                    <Badge variant="success">Present</Badge>
+                    <Badge variant={todayStatus?.status === 'checked-in' ? 'success' : 'secondary'}>
+                      {todayStatus?.status === 'checked-in' ? 'Present' : 'Not Checked In'}
+                    </Badge>
                   </p>
                 </div>
                 <Clock className="text-blue-600" size={32} />
@@ -37,7 +99,9 @@ export default function EmployeeDashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-gray-600 text-sm">Working Hours</p>
-                  <p className="text-2xl font-bold text-gray-900 mt-2">8.5 hrs</p>
+                  <p className="text-2xl font-bold text-gray-900 mt-2">
+                    {todayStatus?.workingHours?.toFixed(1) || '0'} hrs
+                  </p>
                 </div>
                 <TrendingUp className="text-green-600" size={32} />
               </div>
@@ -49,7 +113,9 @@ export default function EmployeeDashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-gray-600 text-sm">Leave Balance</p>
-                  <p className="text-2xl font-bold text-gray-900 mt-2">18 days</p>
+                  <p className="text-2xl font-bold text-gray-900 mt-2">
+                    {user?.leaveBalance || '0'} days
+                  </p>
                 </div>
                 <Calendar className="text-orange-600" size={32} />
               </div>
@@ -61,7 +127,7 @@ export default function EmployeeDashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-gray-600 text-sm">Pending Approvals</p>
-                  <p className="text-2xl font-bold text-gray-900 mt-2">1</p>
+                  <p className="text-2xl font-bold text-gray-900 mt-2">0</p>
                 </div>
                 <AlertCircle className="text-yellow-600" size={32} />
               </div>
@@ -87,33 +153,55 @@ export default function EmployeeDashboard() {
                   </tr>
                 </thead>
                 <tbody>
-                  {[
-                    { date: 'Jan 23, 2026', checkin: '09:00 AM', checkout: '05:30 PM', hours: '8.5', status: 'Present' },
-                    { date: 'Jan 22, 2026', checkin: '09:15 AM', checkout: '05:45 PM', hours: '8.5', status: 'Present' },
-                    { date: 'Jan 21, 2026', checkin: '09:30 AM', checkout: '02:00 PM', hours: '4.5', status: 'Half-day' },
-                    { date: 'Jan 20, 2026', checkin: '-', checkout: '-', hours: '0', status: 'Absent' },
-                    { date: 'Jan 19, 2026', checkin: '09:00 AM', checkout: '06:00 PM', hours: '9', status: 'Present' },
-                  ].map((record, idx) => (
-                    <tr key={idx} className="border-b border-gray-100 hover:bg-gray-50">
-                      <td className="py-3 text-gray-900">{record.date}</td>
-                      <td className="py-3 text-gray-600">{record.checkin}</td>
-                      <td className="py-3 text-gray-600">{record.checkout}</td>
-                      <td className="py-3 text-gray-900 font-medium">{record.hours}</td>
-                      <td className="py-3">
-                        <Badge
-                          variant={
-                            record.status === 'Present'
-                              ? 'present'
-                              : record.status === 'Absent'
-                              ? 'absent'
-                              : 'half-day'
-                          }
-                        >
-                          {record.status}
-                        </Badge>
+                  {attendanceHistory.length > 0 ? (
+                    attendanceHistory.map((record, idx) => (
+                      <tr key={idx} className="border-b border-gray-100 hover:bg-gray-50">
+                        <td className="py-3 text-gray-900">
+                          {new Date(record.date).toLocaleDateString('en-US', { 
+                            month: 'short', 
+                            day: 'numeric', 
+                            year: 'numeric' 
+                          })}
+                        </td>
+                        <td className="py-3 text-gray-600">
+                          {record.checkIn ? new Date(record.checkIn).toLocaleTimeString('en-US', { 
+                            hour: '2-digit', 
+                            minute: '2-digit',
+                            hour12: true 
+                          }) : '-'}
+                        </td>
+                        <td className="py-3 text-gray-600">
+                          {record.checkOut ? new Date(record.checkOut).toLocaleTimeString('en-US', { 
+                            hour: '2-digit', 
+                            minute: '2-digit',
+                            hour12: true 
+                          }) : '-'}
+                        </td>
+                        <td className="py-3 text-gray-900 font-medium">
+                          {record.workingHours?.toFixed(1) || '0'}
+                        </td>
+                        <td className="py-3">
+                          <Badge
+                            variant={
+                              record.status === 'present'
+                                ? 'success'
+                                : record.status === 'absent'
+                                ? 'danger'
+                                : 'secondary'
+                            }
+                          >
+                            {record.status?.charAt(0).toUpperCase() + record.status?.slice(1)}
+                          </Badge>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="5" className="py-3 text-center text-gray-500">
+                        No attendance records found
                       </td>
                     </tr>
-                  ))}
+                  )}
                 </tbody>
               </table>
             </div>

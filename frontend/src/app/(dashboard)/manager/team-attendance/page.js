@@ -5,19 +5,83 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Input } from '@/components/ui/Input';
 import { Search } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { apiService } from '@/lib/api';
 
 export default function TeamAttendancePage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [attendanceData, setAttendanceData] = useState([]);
 
-  const attendanceData = [
-    { id: 1, name: 'Alice Johnson', days: 20, present: 19, absent: 0, halfDay: 1, percentage: 95 },
-    { id: 2, name: 'Bob Smith', days: 20, present: 18, absent: 1, halfDay: 1, percentage: 90 },
-    { id: 3, name: 'Carol Davis', days: 20, present: 17, absent: 2, halfDay: 1, percentage: 85 },
-    { id: 4, name: 'David Wilson', days: 20, present: 15, absent: 4, halfDay: 1, percentage: 75 },
-    { id: 5, name: 'Emma Brown', days: 20, present: 18, absent: 1, halfDay: 1, percentage: 90 },
-  ];
+  useEffect(() => {
+    fetchAttendanceData();
+  }, []);
+
+  const fetchAttendanceData = async () => {
+    try {
+      setLoading(true);
+      const attendanceRes = await apiService.attendance.getTeamAttendance();
+      const attendance = attendanceRes.data || [];
+
+      // Extract unique team members and calculate statistics
+      const teamMap = new Map();
+      
+      attendance.forEach(record => {
+        const userId = record.userId._id || record.userId.id;
+        if (!teamMap.has(userId)) {
+          teamMap.set(userId, {
+            id: userId,
+            name: record.userId.name,
+            attendance: [],
+          });
+        }
+        teamMap.get(userId).attendance.push(record);
+      });
+
+      // Calculate statistics for each team member
+      const stats = Array.from(teamMap.values()).map(emp => {
+        const empAttendance = emp.attendance;
+        const present = empAttendance.filter(a => a.checkIn).length;
+        const absent = empAttendance.filter(a => !a.checkIn && a.status === 'absent').length;
+        const halfDay = empAttendance.filter(a => a.checkOut && 
+          (new Date(a.checkOut) - new Date(a.checkIn)) < 5 * 60 * 60 * 1000).length;
+        const total = Math.max(empAttendance.length, 1);
+        const percentage = Math.round((present / total) * 100) || 0;
+
+        return {
+          id: emp.id,
+          name: emp.name,
+          days: total,
+          present,
+          absent,
+          halfDay,
+          percentage,
+        };
+      });
+
+      setAttendanceData(stats);
+    } catch (err) {
+      console.error('Error fetching attendance:', err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <DashboardLayout role="manager">
+        <div className="flex items-center justify-center h-96">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading attendance data...</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   const filteredData = attendanceData.filter((emp) =>
     emp.name.toLowerCase().includes(searchTerm.toLowerCase())

@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Clock, Mail, Lock, Eye, EyeOff, AlertCircle } from "lucide-react";
+import { apiService } from "@/lib/api";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -57,13 +58,38 @@ export default function LoginPage() {
 
     setIsLoading(true);
     
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      const response = await apiService.auth.login({
+        email: formData.email,
+        password: formData.password,
+      });
+
+      // Store token
+      if (response.token) {
+        localStorage.setItem('token', response.token);
+        localStorage.setItem('user', JSON.stringify(response.user));
+      }
+
+      // Redirect based on user role to dashboard pages
+      const userRole = response.user?.role?.toLowerCase();
+      let redirectPath = '/employee/dashboard'; // default
+      
+      if (userRole === 'admin') {
+        redirectPath = '/admin/dashboard';
+      } else if (userRole === 'manager') {
+        redirectPath = '/manager/dashboard';
+      } else if (userRole === 'employee') {
+        redirectPath = '/employee/dashboard';
+      }
+      
+      router.push(redirectPath);
+    } catch (error) {
+      setErrors({
+        submit: error.message || 'Login failed. Please try again.'
+      });
+    } finally {
       setIsLoading(false);
-      // Mock login - redirect based on role
-      // In real app, check user role from API response
-      router.push("/employee");
-    }, 1500);
+    }
   };
 
   return (
@@ -92,6 +118,15 @@ export default function LoginPage() {
         {/* Login Card */}
         <div className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl border border-indigo-100 p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Error Alert */}
+            {errors.submit && (
+              <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
+                <AlertCircle className="text-red-600 flex-shrink-0 mt-0.5" size={20} />
+                <div>
+                  <p className="font-semibold text-red-900">{errors.submit}</p>
+                </div>
+              </div>
+            )}
             {/* Email Field */}
             <div>
               <label htmlFor="email" className="block text-sm font-semibold text-slate-700 mb-2">

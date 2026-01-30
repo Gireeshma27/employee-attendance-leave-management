@@ -6,23 +6,92 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { AlertCircle, Plus } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { apiService } from '@/lib/api';
 
 export default function LeavePage() {
+  const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [leaveBalance, setLeaveBalance] = useState({});
+  const [leaveApplications, setLeaveApplications] = useState([]);
+  const [error, setError] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     leaveType: '',
     fromDate: '',
     toDate: '',
     reason: '',
   });
+  const [formError, setFormError] = useState('');
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // Form will be submitted to backend
-    setFormData({ leaveType: '', fromDate: '', toDate: '', reason: '' });
-    setShowForm(false);
+  useEffect(() => {
+    fetchLeaveData();
+  }, []);
+
+  const fetchLeaveData = async () => {
+    try {
+      setLoading(true);
+      // Get user's leave applications
+      const leaveData = await apiService.leave.getMyLeaves();
+      setLeaveApplications(leaveData.data || []);
+      
+      // Calculate balance from applications
+      const approved = leaveData.data?.filter(l => l.status === 'approved') || [];
+      setLeaveBalance({
+        casual: 12 - (approved.filter(l => l.leaveType === 'casual').length || 0),
+        sick: 8 - (approved.filter(l => l.leaveType === 'sick').length || 0),
+        paid: 18 - (approved.filter(l => l.leaveType === 'paid').length || 0),
+      });
+    } catch (err) {
+      console.error('Error fetching leave data:', err);
+      setError(err.message);
+      // Set default values on error
+      setLeaveBalance({ casual: 12, sick: 8, paid: 18 });
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setFormError('');
+
+    if (!formData.leaveType || !formData.fromDate || !formData.toDate || !formData.reason) {
+      setFormError('All fields are required');
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      await apiService.leave.apply({
+        leaveType: formData.leaveType,
+        startDate: formData.fromDate,
+        endDate: formData.toDate,
+        reason: formData.reason,
+      });
+
+      setFormData({ leaveType: '', fromDate: '', toDate: '', reason: '' });
+      setShowForm(false);
+      await fetchLeaveData();
+    } catch (err) {
+      setFormError(err.message || 'Failed to apply for leave');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <DashboardLayout role="employee">
+        <div className="flex items-center justify-center h-96">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading leave data...</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout role="employee">
@@ -44,13 +113,19 @@ export default function LeavePage() {
           </Button>
         </div>
 
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+            <p className="text-red-600 text-sm">{error}</p>
+          </div>
+        )}
+
         {/* Leave Balance */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card>
             <CardContent className="pt-6">
               <div>
                 <p className="text-gray-600 text-sm">Casual Leave</p>
-                <p className="text-3xl font-bold text-blue-600 mt-2">12</p>
+                <p className="text-3xl font-bold text-blue-600 mt-2">{leaveBalance.casual || 12}</p>
                 <p className="text-xs text-gray-500 mt-1">days remaining</p>
               </div>
             </CardContent>
@@ -60,7 +135,7 @@ export default function LeavePage() {
             <CardContent className="pt-6">
               <div>
                 <p className="text-gray-600 text-sm">Sick Leave</p>
-                <p className="text-3xl font-bold text-green-600 mt-2">8</p>
+                <p className="text-3xl font-bold text-green-600 mt-2">{leaveBalance.sick || 8}</p>
                 <p className="text-xs text-gray-500 mt-1">days remaining</p>
               </div>
             </CardContent>
@@ -70,7 +145,7 @@ export default function LeavePage() {
             <CardContent className="pt-6">
               <div>
                 <p className="text-gray-600 text-sm">Paid Leave</p>
-                <p className="text-3xl font-bold text-orange-600 mt-2">18</p>
+                <p className="text-3xl font-bold text-orange-600 mt-2">{leaveBalance.paid || 18}</p>
                 <p className="text-xs text-gray-500 mt-1">days remaining</p>
               </div>
             </CardContent>
@@ -84,6 +159,11 @@ export default function LeavePage() {
               <CardTitle>Apply for Leave</CardTitle>
             </CardHeader>
             <CardContent>
+              {formError && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
+                  <p className="text-red-600 text-sm">{formError}</p>
+                </div>
+              )}
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -134,11 +214,21 @@ export default function LeavePage() {
                 </div>
 
                 <div className="flex gap-4 justify-end">
-                  <Button variant="secondary" onClick={() => setShowForm(false)}>
+                  <Button 
+                    variant="secondary" 
+                    onClick={() => {
+                      setShowForm(false);
+                      setFormError('');
+                    }}
+                  >
                     Cancel
                   </Button>
-                  <Button variant="primary" type="submit">
-                    Submit Application
+                  <Button 
+                    variant="primary" 
+                    type="submit"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? 'Submitting...' : 'Submit Application'}
                   </Button>
                 </div>
               </form>
@@ -153,39 +243,53 @@ export default function LeavePage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {[
-                { id: 1, type: 'Casual Leave', from: 'Jan 25, 2026', to: 'Jan 26, 2026', days: 2, status: 'Pending' },
-                { id: 2, type: 'Sick Leave', from: 'Jan 10, 2026', to: 'Jan 10, 2026', days: 1, status: 'Approved' },
-                { id: 3, type: 'Paid Leave', from: 'Jan 5, 2026', to: 'Jan 8, 2026', days: 4, status: 'Approved' },
-                { id: 4, type: 'Casual Leave', from: 'Dec 20, 2025', to: 'Dec 22, 2025', days: 3, status: 'Rejected' },
-              ].map((leave) => (
-                <div
-                  key={leave.id}
-                  className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors"
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="font-semibold text-gray-900">{leave.type}</h3>
-                        <Badge
-                          variant={
-                            leave.status === 'Approved'
-                              ? 'success'
-                              : leave.status === 'Pending'
-                              ? 'warning'
-                              : 'danger'
-                          }
-                        >
-                          {leave.status}
-                        </Badge>
+              {leaveApplications.length > 0 ? (
+                leaveApplications.map((leave) => (
+                  <div
+                    key={leave._id}
+                    className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors"
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <h3 className="font-semibold text-gray-900 capitalize">
+                            {leave.leaveType} Leave
+                          </h3>
+                          <Badge
+                            variant={
+                              leave.status === 'approved'
+                                ? 'success'
+                                : leave.status === 'pending'
+                                ? 'secondary'
+                                : 'danger'
+                            }
+                          >
+                            {leave.status?.charAt(0).toUpperCase() + leave.status?.slice(1)}
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-gray-600">
+                          {new Date(leave.startDate).toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric',
+                          })}{' '}
+                          to{' '}
+                          {new Date(leave.endDate).toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric',
+                          })}{' '}
+                          ({leave.numberOfDays} days)
+                        </p>
                       </div>
-                      <p className="text-sm text-gray-600">
-                        {leave.from} to {leave.to} ({leave.days} days)
-                      </p>
                     </div>
                   </div>
+                ))
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-gray-500">No leave applications found</p>
                 </div>
-              ))}
+              )}
             </div>
           </CardContent>
         </Card>
