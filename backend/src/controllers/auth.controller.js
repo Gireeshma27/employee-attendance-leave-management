@@ -1,8 +1,8 @@
-import User from '../models/user.model.js';
-import { hashPassword, comparePassword } from '../utils/password.js';
-import { generateToken } from '../utils/jwt.js';
-import { sendPasswordResetEmail } from '../utils/mailer.js';
-import crypto from 'crypto';
+import User from "../models/user.model.js";
+import { hashPassword, comparePassword } from "../utils/password.js";
+import { generateToken } from "../utils/jwt.js";
+import { sendPasswordResetEmail } from "../utils/mailer.js";
+import crypto from "crypto";
 
 // Register
 export const register = async (req, res) => {
@@ -13,14 +13,14 @@ export const register = async (req, res) => {
     if (!name || !email || !password || !confirmPassword) {
       return res.status(400).json({
         success: false,
-        message: 'Please provide all required fields.',
+        message: "Please provide all required fields.",
       });
     }
 
     if (password !== confirmPassword) {
       return res.status(400).json({
         success: false,
-        message: 'Passwords do not match.',
+        message: "Passwords do not match.",
       });
     }
 
@@ -29,7 +29,7 @@ export const register = async (req, res) => {
     if (existingUser) {
       return res.status(400).json({
         success: false,
-        message: 'User with this email already exists.',
+        message: "User with this email already exists.",
       });
     }
 
@@ -41,7 +41,7 @@ export const register = async (req, res) => {
       name,
       email: email.toLowerCase(),
       password: hashedPassword,
-      role: 'EMPLOYEE', // Default role
+      role: "EMPLOYEE", // Default role
     });
 
     const token = generateToken(user._id, user.email, user.role);
@@ -52,15 +52,15 @@ export const register = async (req, res) => {
 
     return res.status(201).json({
       success: true,
-      message: 'User registered successfully.',
+      message: "User registered successfully.",
       token,
       user: userResponse,
     });
   } catch (error) {
-    console.error('Register error:', error);
+    console.error("Register error:", error);
     return res.status(500).json({
       success: false,
-      message: error.message || 'Registration failed.',
+      message: error.message || "Registration failed.",
     });
   }
 };
@@ -74,17 +74,19 @@ export const login = async (req, res) => {
     if (!email || !password) {
       return res.status(400).json({
         success: false,
-        message: 'Please provide email and password.',
+        message: "Please provide email and password.",
       });
     }
 
     // Find user with password field (it's hidden by default)
-    const user = await User.findOne({ email: email.toLowerCase() }).select('+password');
+    const user = await User.findOne({ email: email.toLowerCase() }).select(
+      "+password",
+    );
 
     if (!user) {
       return res.status(401).json({
         success: false,
-        message: 'Invalid email or password.',
+        message: "Invalid email or password.",
       });
     }
 
@@ -92,7 +94,7 @@ export const login = async (req, res) => {
     if (!user.isActive) {
       return res.status(403).json({
         success: false,
-        message: 'Your account has been deactivated.',
+        message: "Your account has been deactivated.",
       });
     }
 
@@ -102,7 +104,7 @@ export const login = async (req, res) => {
     if (!isPasswordValid) {
       return res.status(401).json({
         success: false,
-        message: 'Invalid email or password.',
+        message: "Invalid email or password.",
       });
     }
 
@@ -115,15 +117,15 @@ export const login = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: 'Login successful.',
+      message: "Login successful.",
       token,
       user: userResponse,
     });
   } catch (error) {
-    console.error('Login error:', error);
+    console.error("Login error:", error);
     return res.status(500).json({
       success: false,
-      message: error.message || 'Login failed.',
+      message: error.message || "Login failed.",
     });
   }
 };
@@ -136,7 +138,7 @@ export const forgotPassword = async (req, res) => {
     if (!email) {
       return res.status(400).json({
         success: false,
-        message: 'Please provide an email address.',
+        message: "Please provide an email address.",
       });
     }
 
@@ -145,21 +147,22 @@ export const forgotPassword = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User with this email does not exist.',
+        message: "User with this email does not exist.",
       });
     }
 
     // Generate reset token
-    const resetToken = crypto.randomBytes(32).toString('hex');
-    const resetTokenHash = crypto.createHash('sha256').update(resetToken).digest('hex');
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+    const resetTokenHash = crypto
+      .createHash("sha256")
+      .update(resetToken)
+      .digest("hex");
 
     // Update user with reset token and expiry (1 hour)
     user.passwordResetToken = resetTokenHash;
     user.passwordResetExpires = new Date(Date.now() + 60 * 60 * 1000);
     await user.save();
-
-    // Construct reset URL
-    const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
 
     try {
       await sendPasswordResetEmail(user.email, resetUrl);
@@ -171,19 +174,19 @@ export const forgotPassword = async (req, res) => {
 
       return res.status(500).json({
         success: false,
-        message: 'Failed to send reset email. Please try again later.',
+        message: "Failed to send reset email. Please try again later.",
       });
     }
 
     return res.status(200).json({
       success: true,
-      message: 'Password reset link sent to your email.',
+      message: "Password reset link sent to your email.",
     });
   } catch (error) {
-    console.error('Forgot password error:', error);
+    console.error("Forgot password error:", error);
     return res.status(500).json({
       success: false,
-      message: error.message || 'Forgot password request failed.',
+      message: error.message || "Forgot password request failed.",
     });
   }
 };
@@ -196,19 +199,22 @@ export const resetPassword = async (req, res) => {
     if (!token || !newPassword || !confirmPassword) {
       return res.status(400).json({
         success: false,
-        message: 'Please provide all required fields.',
+        message: "Please provide all required fields.",
       });
     }
 
     if (newPassword !== confirmPassword) {
       return res.status(400).json({
         success: false,
-        message: 'Passwords do not match.',
+        message: "Passwords do not match.",
       });
     }
 
     // Hash the token to find the user
-    const resetTokenHash = crypto.createHash('sha256').update(token).digest('hex');
+    const resetTokenHash = crypto
+      .createHash("sha256")
+      .update(token)
+      .digest("hex");
 
     const user = await User.findOne({
       passwordResetToken: resetTokenHash,
@@ -218,7 +224,7 @@ export const resetPassword = async (req, res) => {
     if (!user) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid or expired reset token.',
+        message: "Invalid or expired reset token.",
       });
     }
 
@@ -233,13 +239,14 @@ export const resetPassword = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: 'Password reset successful. You can now login with your new password.',
+      message:
+        "Password reset successful. You can now login with your new password.",
     });
   } catch (error) {
-    console.error('Reset password error:', error);
+    console.error("Reset password error:", error);
     return res.status(500).json({
       success: false,
-      message: error.message || 'Password reset failed.',
+      message: error.message || "Password reset failed.",
     });
   }
 };
