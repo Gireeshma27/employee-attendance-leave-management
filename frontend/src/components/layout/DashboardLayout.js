@@ -132,19 +132,14 @@ export function DashboardLayout({ children, role = "employee" }) {
           <div className="relative">
             <button
               onClick={() => setShowProfileDropdown(!showProfileDropdown)}
-              className="flex items-center gap-4 hover:bg-gray-50 p-2 rounded-xl transition-colors"
+              className="group flex items-center gap-2.5 pl-1 pr-4 py-1 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-full transition-all duration-200 shadow-sm"
             >
-              <div className="text-right hidden sm:block">
-                <p className="text-sm font-bold text-gray-900">
-                  {user?.name || "Loading..."}
-                </p>
-                <p className="text-[11px] text-gray-500 font-medium capitalize">
-                  {user?.role || "User"}
-                </p>
-              </div>
-              <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold shadow-md shadow-blue-200">
+              <div className="w-7 h-7 bg-blue-600 rounded-full flex items-center justify-center text-white text-[12px] font-bold shadow-sm">
                 {user?.name ? user.name.charAt(0).toUpperCase() : "?"}
               </div>
+              <p className="text-[13px] font-medium text-gray-700 group-hover:text-gray-900">
+                {user?.name || "Loading..."}
+              </p>
             </button>
 
             {showProfileDropdown && (

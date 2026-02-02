@@ -1,6 +1,7 @@
 import Attendance from "../models/attendance.model.js";
 import User from "../models/user.model.js";
 import ApiResponse from "../utils/apiResponse.js";
+import ExcelJS from "exceljs";
 
 // Check In
 export const checkIn = async (req, res) => {
@@ -221,8 +222,6 @@ export const getTeamAttendance = async (req, res) => {
 };
 
 // Download Excel Report
-import ExcelJS from "exceljs";
-
 export const downloadExcelReport = async (req, res) => {
   try {
     const { fromDate, toDate, status, department, role, search } = req.query;
