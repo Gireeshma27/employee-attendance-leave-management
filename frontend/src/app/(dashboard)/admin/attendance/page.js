@@ -12,6 +12,7 @@ export default function AttendancePage() {
     new Date().toISOString().split('T')[0]
   );
   const [attendanceData, setAttendanceData] = useState([]);
+  const [allEmployees, setAllEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -23,8 +24,12 @@ export default function AttendancePage() {
     try {
       setLoading(true);
       setError(null);
-      const res = await apiService.attendance.getTeamAttendance();
-      setAttendanceData(res.data || []);
+      const [attendanceRes, employeesRes] = await Promise.all([
+        apiService.attendance.getTeamAttendance(),
+        apiService.user.getAll(),
+      ]);
+      setAttendanceData(attendanceRes.data || []);
+      setAllEmployees(employeesRes.data || []);
     } catch (err) {
       console.error('Error fetching attendance:', err);
       setError(err.message || 'Failed to load attendance data');
@@ -33,16 +38,54 @@ export default function AttendancePage() {
     }
   };
 
+  // Filter attendance records for the selected date
+  const todayAttendance = attendanceData.filter(a => {
+    const attendanceDate = new Date(a.date).toISOString().split('T')[0];
+    return attendanceDate === dateFilter;
+  });
+
+  // Create a map of attendance records by userId for quick lookup
+  const attendanceMap = {};
+  todayAttendance.forEach(record => {
+    const userId = record.userId?._id || record.userId;
+    attendanceMap[userId] = record;
+  });
+
+  // Build complete employee list with attendance data merged
+  const employeeAttendanceList = allEmployees.map(employee => {
+    const attendance = attendanceMap[employee._id];
+    return {
+      ...employee,
+      attendance: attendance || {
+        checkInTime: null,
+        checkOutTime: null,
+        workingHours: 0,
+        status: 'Absent',
+      },
+    };
+  });
+
+  // Calculate statistics
+  const presentCount = employeeAttendanceList.filter(
+    (e) => e.attendance.checkInTime && e.attendance.status !== 'Absent' && e.attendance.status !== 'Leave'
+  ).length;
+
+  const absentCount = employeeAttendanceList.filter((e) => !e.attendance.checkInTime).length;
+
+  const halfDayCount = employeeAttendanceList.filter((e) => {
+    const a = e.attendance;
+    return (
+      a.checkInTime &&
+      a.checkOutTime &&
+      new Date(a.checkOutTime) - new Date(a.checkInTime) < 5 * 60 * 60 * 1000
+    );
+  }).length;
+
   const stats = {
-    total: attendanceData.length,
-    present: attendanceData.filter((a) => a.checkIn).length,
-    absent: attendanceData.filter((a) => !a.checkIn).length,
-    halfDay: attendanceData.filter(
-      (a) =>
-        a.checkIn &&
-        a.checkOut &&
-        new Date(a.checkOut) - new Date(a.checkIn) < 5 * 60 * 60 * 1000
-    ).length,
+    total: allEmployees.length,
+    present: presentCount,
+    absent: absentCount,
+    halfDay: halfDayCount,
   };
 
   const calculateHours = (checkIn, checkOut) => {
@@ -142,6 +185,7 @@ export default function AttendancePage() {
                   <thead className="border-b border-gray-200 bg-gray-50">
                     <tr className="text-gray-600">
                       <th className="text-left py-3 px-4">Employee</th>
+                      <th className="text-left py-3 px-4">Employee ID</th>
                       <th className="text-left py-3 px-4">Check-in</th>
                       <th className="text-left py-3 px-4">Check-out</th>
                       <th className="text-left py-3 px-4">Hours</th>
@@ -149,29 +193,38 @@ export default function AttendancePage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {attendanceData.map((record) => {
-                      const status = getStatus(record.checkIn, record.checkOut);
-                      const hours = calculateHours(record.checkIn, record.checkOut);
+                    {employeeAttendanceList.map((employee) => {
+                      const status = getStatus(
+                        employee.attendance.checkInTime,
+                        employee.attendance.checkOutTime
+                      );
+                      const hours = calculateHours(
+                        employee.attendance.checkInTime,
+                        employee.attendance.checkOutTime
+                      );
                       return (
                         <tr
-                          key={record._id}
+                          key={employee._id}
                           className="border-b border-gray-100 hover:bg-gray-50"
                         >
                           <td className="py-4 px-4 font-medium text-gray-900">
-                            {record.userId?.name || 'Unknown'}
+                            {employee.name}
                           </td>
                           <td className="py-4 px-4 text-gray-600">
-                            {record.checkIn
-                              ? new Date(record.checkIn).toLocaleTimeString()
+                            {employee.employeeId || '-'}
+                          </td>
+                          <td className="py-4 px-4 text-gray-600">
+                            {employee.attendance.checkInTime
+                              ? new Date(employee.attendance.checkInTime).toLocaleTimeString()
                               : '-'}
                           </td>
                           <td className="py-4 px-4 text-gray-600">
-                            {record.checkOut
-                              ? new Date(record.checkOut).toLocaleTimeString()
+                            {employee.attendance.checkOutTime
+                              ? new Date(employee.attendance.checkOutTime).toLocaleTimeString()
                               : '-'}
                           </td>
                           <td className="py-4 px-4 text-gray-600 font-medium">
-                            {hours}
+                            {hours}h
                           </td>
                           <td className="py-4 px-4">
                             <Badge
