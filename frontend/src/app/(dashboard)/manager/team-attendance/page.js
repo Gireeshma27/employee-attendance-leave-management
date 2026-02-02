@@ -1,16 +1,16 @@
-'use client';
+"use client";
 
-import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { Badge } from '@/components/ui/Badge';
-import { Input } from '@/components/ui/Input';
-import { Search } from 'lucide-react';
-import { useState, useEffect } from 'react';
-import { apiService } from '@/lib/api';
+import { DashboardLayout } from "@/components/layout/DashboardLayout";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
+import { Badge } from "@/components/ui/Badge";
+import { Input } from "@/components/ui/Input";
+import { Search } from "lucide-react";
+import { useState, useEffect } from "react";
+import { apiService } from "@/lib/api";
 
 export default function TeamAttendancePage() {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState('all');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState("all");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [attendanceData, setAttendanceData] = useState([]);
@@ -23,12 +23,12 @@ export default function TeamAttendancePage() {
     try {
       setLoading(true);
       const attendanceRes = await apiService.attendance.getTeamAttendance();
-      const attendance = attendanceRes.data || [];
+      const attendance = attendanceRes.data?.records || [];
 
       // Extract unique team members and calculate statistics
       const teamMap = new Map();
-      
-      attendance.forEach(record => {
+
+      attendance.forEach((record) => {
         const userId = record.userId._id || record.userId.id;
         if (!teamMap.has(userId)) {
           teamMap.set(userId, {
@@ -41,12 +41,17 @@ export default function TeamAttendancePage() {
       });
 
       // Calculate statistics for each team member
-      const stats = Array.from(teamMap.values()).map(emp => {
+      const stats = Array.from(teamMap.values()).map((emp) => {
         const empAttendance = emp.attendance;
-        const present = empAttendance.filter(a => a.checkIn).length;
-        const absent = empAttendance.filter(a => !a.checkIn && a.status === 'absent').length;
-        const halfDay = empAttendance.filter(a => a.checkOut && 
-          (new Date(a.checkOut) - new Date(a.checkIn)) < 5 * 60 * 60 * 1000).length;
+        const present = empAttendance.filter((a) => a.checkIn).length;
+        const absent = empAttendance.filter(
+          (a) => !a.checkIn && a.status === "absent",
+        ).length;
+        const halfDay = empAttendance.filter(
+          (a) =>
+            a.checkOut &&
+            new Date(a.checkOut) - new Date(a.checkIn) < 5 * 60 * 60 * 1000,
+        ).length;
         const total = Math.max(empAttendance.length, 1);
         const percentage = Math.round((present / total) * 100) || 0;
 
@@ -63,7 +68,7 @@ export default function TeamAttendancePage() {
 
       setAttendanceData(stats);
     } catch (err) {
-      console.error('Error fetching attendance:', err);
+      console.error("Error fetching attendance:", err);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -84,7 +89,7 @@ export default function TeamAttendancePage() {
   }
 
   const filteredData = attendanceData.filter((emp) =>
-    emp.name.toLowerCase().includes(searchTerm.toLowerCase())
+    emp.name.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   return (
@@ -92,8 +97,15 @@ export default function TeamAttendancePage() {
       <div className="space-y-6 md:space-y-8">
         {/* Header */}
         <div>
+<<<<<<< HEAD
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Team Attendance</h1>
           <p className="text-xs md:text-sm text-gray-600 mt-1">Monitor your team's attendance records</p>
+=======
+          <h1 className="text-3xl font-bold text-gray-900">Team Attendance</h1>
+          <p className="text-gray-600 mt-1">
+            Monitor your team's attendance records
+          </p>
+>>>>>>> naveen
         </div>
 
         {/* Filters */}
@@ -137,11 +149,26 @@ export default function TeamAttendancePage() {
                 </thead>
                 <tbody>
                   {filteredData.map((emp) => (
+<<<<<<< HEAD
                     <tr key={emp.id} className="border-b border-gray-100 hover:bg-gray-50">
                       <td className="py-2 md:py-4 px-4 text-gray-900 font-medium text-xs md:text-sm">{emp.name}</td>
                       <td className="py-2 md:py-4 px-4 text-center text-gray-600 hidden sm:table-cell text-xs md:text-sm">{emp.days}</td>
                       <td className="py-2 md:py-4 px-4 text-center">
                         <Badge variant="success" className="text-xs">{emp.present}</Badge>
+=======
+                    <tr
+                      key={emp.id}
+                      className="border-b border-gray-100 hover:bg-gray-50"
+                    >
+                      <td className="py-4 px-4 text-gray-900 font-medium">
+                        {emp.name}
+                      </td>
+                      <td className="py-4 px-4 text-center text-gray-600">
+                        {emp.days}
+                      </td>
+                      <td className="py-4 px-4 text-center">
+                        <Badge variant="success">{emp.present}</Badge>
+>>>>>>> naveen
                       </td>
                       <td className="py-2 md:py-4 px-4 text-center hidden md:table-cell">
                         <Badge variant="danger" className="text-xs">{emp.absent}</Badge>
@@ -155,10 +182,10 @@ export default function TeamAttendancePage() {
                             <div
                               className={`h-2 rounded-full ${
                                 emp.percentage >= 90
-                                  ? 'bg-green-600'
+                                  ? "bg-green-600"
                                   : emp.percentage >= 80
-                                  ? 'bg-yellow-600'
-                                  : 'bg-red-600'
+                                    ? "bg-yellow-600"
+                                    : "bg-red-600"
                               }`}
                               style={{ width: `${emp.percentage}%` }}
                             ></div>

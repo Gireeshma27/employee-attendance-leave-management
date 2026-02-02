@@ -51,6 +51,8 @@ class ApiService {
 
       if (!response.ok) {
         let errorMessage = `API error: ${response.status}`;
+        let errorData = null;
+
         try {
           errorData = await response.json();
           // Extract error message from standardized response format
@@ -59,18 +61,62 @@ class ApiService {
           // If response is not JSON, use status message
           errorMessage = response.statusText || errorMessage;
         }
-        throw new Error(errorMessage);
+
+        const error = new Error(errorMessage);
+        error.status = response.status;
+        error.data = errorData;
+        throw error;
       }
 
       return await response.json();
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error(`API Error [${endpoint}]:`, errorMessage);
-      console.error(`Request URL: ${url}`);
-      console.error(`Request Config:`, config);
-      console.error(`Full Error:`, error);
-      throw error;
+      // Handle network errors more explicitly
+      let errorMessage = error instanceof Error ? error.message : String(error);
+
+      // Distinguish between network errors and other fetch errors
+      if (error.message === "Failed to fetch") {
+        // This usually indicates CORS issue, network connectivity, or backend not running
+        const backendUrl = new URL(API_BASE_URL).origin;
+        errorMessage = `Cannot connect to server (${backendUrl}). Ensure the backend is running and CORS is configured correctly.`;
+      }
+
+      // Log detailed errors in development mode
+      if (process.env.NODE_ENV === "development") {
+        console.error(`API Error [${endpoint}]:`, errorMessage);
+        console.error(`Request URL: ${url}`);
+        console.error(`API Base URL: ${API_BASE_URL}`);
+        console.error(`Request Method: ${config.method || "GET"}`);
+        console.error(`Request Headers:`, config.headers);
+        console.error(`Full Error:`, error);
+      }
     }
+  }
+
+  /**
+   * HTTP Method Wrappers
+   */
+  async get(endpoint, options = {}) {
+    return this.request(endpoint, { ...options, method: "GET" });
+  }
+
+  async post(endpoint, data, options = {}) {
+    return this.request(endpoint, {
+      ...options,
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  }
+
+  async put(endpoint, data, options = {}) {
+    return this.request(endpoint, {
+      ...options,
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
+  }
+
+  async delete(endpoint, options = {}) {
+    return this.request(endpoint, { ...options, method: "DELETE" });
   }
 
   /**
@@ -119,8 +165,17 @@ class ApiService {
         body: JSON.stringify(data),
       }),
 
-    getAll: () =>
-      this.request('/users', { method: 'GET' }),
+    getAll: (filters = {}) => {
+      const params = new URLSearchParams();
+      if (filters.search) params.append("search", filters.search);
+      if (filters.role) params.append("role", filters.role);
+      if (filters.isActive !== undefined)
+        params.append("isActive", filters.isActive);
+      const query = params.toString();
+      return this.request(`/users${query ? "?" + query : ""}`, {
+        method: "GET",
+      });
+    },
 
     getById: (id) => this.request(`/users/${id}`, { method: "GET" }),
 
@@ -227,7 +282,7 @@ class ApiService {
     getPendingLeaves: () => this.request("/leaves/pending", { method: "GET" }),
 
     getAllLeavesAdmin: () =>
-      this.request('/leaves/admin/all', { method: 'GET' }),
+      this.request("/leaves/admin/all", { method: "GET" }),
 
     approve: (leaveId, data) =>
       this.request(`/leaves/${leaveId}/approve`, {

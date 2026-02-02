@@ -1,13 +1,5 @@
-<<<<<<< HEAD
-import Attendance from '../models/attendance.model.js';
-import User from '../models/user.model.js';
-import ApiResponse from '../utils/apiResponse.js';
-=======
 import Attendance from "../models/attendance.model.js";
 import User from "../models/user.model.js";
-import ApiResponse from "../utils/apiResponse.js";
-import ExcelJS from "exceljs";
->>>>>>> 5ac8cd0c0ea525059ca23962c6bb20b870e5ce3b
 
 // Check In
 export const checkIn = async (req, res) => {
@@ -23,11 +15,10 @@ export const checkIn = async (req, res) => {
     });
 
     if (existingAttendance && existingAttendance.checkInTime) {
-<<<<<<< HEAD
-      return ApiResponse.badRequest(res, 'You have already checked in today.');
-=======
-      return ApiResponse.badRequest(res, "You have already checked in today.");
->>>>>>> 5ac8cd0c0ea525059ca23962c6bb20b870e5ce3b
+      return res.status(400).json({
+        success: false,
+        message: "You have already checked in today.",
+      });
     }
 
     let attendance;
@@ -47,17 +38,17 @@ export const checkIn = async (req, res) => {
       });
     }
 
-<<<<<<< HEAD
-    return ApiResponse.success(res, 200, 'Check-in successful.', attendance);
-  } catch (error) {
-    console.error('Check-in error:', error);
-    return ApiResponse.serverError(res, error.message || 'Check-in failed.');
-=======
-    return ApiResponse.success(res, 200, "Check-in successful.", attendance);
+    return res.status(200).json({
+      success: true,
+      message: "Check-in successful.",
+      data: attendance,
+    });
   } catch (error) {
     console.error("Check-in error:", error);
-    return ApiResponse.serverError(res, error.message || "Check-in failed.");
->>>>>>> 5ac8cd0c0ea525059ca23962c6bb20b870e5ce3b
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Check-in failed.",
+    });
   }
 };
 
@@ -74,19 +65,17 @@ export const checkOut = async (req, res) => {
     });
 
     if (!attendance) {
-<<<<<<< HEAD
-      return ApiResponse.notFound(res, 'No check-in record found for today.');
+      return res.status(404).json({
+        success: false,
+        message: "No check-in record found for today.",
+      });
     }
 
     if (attendance.checkOutTime) {
-      return ApiResponse.badRequest(res, 'You have already checked out today.');
-=======
-      return ApiResponse.notFound(res, "No check-in record found for today.");
-    }
-
-    if (attendance.checkOutTime) {
-      return ApiResponse.badRequest(res, "You have already checked out today.");
->>>>>>> 5ac8cd0c0ea525059ca23962c6bb20b870e5ce3b
+      return res.status(400).json({
+        success: false,
+        message: "You have already checked out today.",
+      });
     }
 
     // Calculate working hours
@@ -101,22 +90,17 @@ export const checkOut = async (req, res) => {
 
     const updatedAttendance = await attendance.save();
 
-<<<<<<< HEAD
-    return ApiResponse.success(res, 200, 'Check-out successful.', updatedAttendance);
-  } catch (error) {
-    console.error('Check-out error:', error);
-    return ApiResponse.serverError(res, error.message || 'Check-out failed.');
-=======
-    return ApiResponse.success(
-      res,
-      200,
-      "Check-out successful.",
-      updatedAttendance,
-    );
+    return res.status(200).json({
+      success: true,
+      message: "Check-out successful.",
+      data: updatedAttendance,
+    });
   } catch (error) {
     console.error("Check-out error:", error);
-    return ApiResponse.serverError(res, error.message || "Check-out failed.");
->>>>>>> 5ac8cd0c0ea525059ca23962c6bb20b870e5ce3b
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Check-out failed.",
+    });
   }
 };
 
@@ -139,25 +123,17 @@ export const getMyAttendance = async (req, res) => {
       .sort({ date: -1 })
       .populate("userId", "name email employeeId");
 
-<<<<<<< HEAD
-    return ApiResponse.success(res, 200, 'Attendance records retrieved successfully.', records);
-  } catch (error) {
-    console.error('Get my attendance error:', error);
-    return ApiResponse.serverError(res, error.message || 'Failed to retrieve attendance records.');
-=======
-    return ApiResponse.success(
-      res,
-      200,
-      "Attendance records retrieved successfully.",
-      records,
-    );
+    return res.status(200).json({
+      success: true,
+      message: "Attendance records retrieved successfully.",
+      data: records,
+    });
   } catch (error) {
     console.error("Get my attendance error:", error);
-    return ApiResponse.serverError(
-      res,
-      error.message || "Failed to retrieve attendance records.",
-    );
->>>>>>> 5ac8cd0c0ea525059ca23962c6bb20b870e5ce3b
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Failed to retrieve attendance records.",
+    });
   }
 };
 
@@ -221,88 +197,19 @@ export const getTeamAttendance = async (req, res) => {
     const total = await Attendance.countDocuments(filter);
     const records = await Attendance.find(filter)
       .sort({ date: -1 })
-      .populate("userId", "name email employeeId role department")
-      .skip(skip)
-      .limit(parseInt(limit));
+      .populate("userId", "name email employeeId role");
 
-<<<<<<< HEAD
-    return ApiResponse.success(res, 200, 'Team attendance records retrieved successfully.', records);
-  } catch (error) {
-    console.error('Get team attendance error:', error);
-    return ApiResponse.serverError(res, error.message || 'Failed to retrieve team attendance records.');
-  }
-};
-
-// Generate attendance report
-export const generateReport = async (req, res) => {
-  try {
-    const { fromDate, toDate, employeeId } = req.query;
-
-    const filter = {};
-
-    if (fromDate && toDate) {
-      filter.date = {
-        $gte: new Date(fromDate),
-        $lte: new Date(toDate),
-      };
-    }
-
-    if (employeeId) {
-      const user = await User.findOne({ employeeId });
-      if (user) {
-        filter.userId = user._id;
-      }
-    }
-
-    const records = await Attendance.find(filter)
-      .sort({ date: -1 })
-      .populate('userId', 'name email employeeId');
-
-    // Calculate statistics
-=======
-    // Calculate global stats for current department/search (excluding status filter)
-    const { status: _, ...statsFilter } = filter;
-    const allFilteredResults =
-      await Attendance.find(statsFilter).select("status");
->>>>>>> 5ac8cd0c0ea525059ca23962c6bb20b870e5ce3b
-    const stats = {
-      total: allFilteredResults.length,
-      present: allFilteredResults.filter((r) => r.status === "Present").length,
-      late: allFilteredResults.filter((r) => r.status === "Late").length,
-      absent: allFilteredResults.filter((r) => r.status === "Absent").length,
-    };
-
-<<<<<<< HEAD
-    return ApiResponse.success(res, 200, 'Attendance report generated successfully.', {
-      records,
-      statistics: stats,
+    return res.status(200).json({
+      success: true,
+      message: "Team attendance records retrieved successfully.",
+      data: records,
     });
   } catch (error) {
-    console.error('Generate report error:', error);
-    return ApiResponse.serverError(res, error.message || 'Failed to generate attendance report.');
-=======
-    return ApiResponse.success(
-      res,
-      200,
-      "Team attendance records retrieved successfully.",
-      {
-        records,
-        stats,
-        pagination: {
-          total,
-          page: parseInt(page),
-          limit: parseInt(limit),
-          pages: Math.ceil(total / parseInt(limit)),
-        },
-      },
-    );
-  } catch (error) {
     console.error("Get team attendance error:", error);
-    return ApiResponse.serverError(
-      res,
-      error.message || "Failed to retrieve team attendance records.",
-    );
->>>>>>> 5ac8cd0c0ea525059ca23962c6bb20b870e5ce3b
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Failed to retrieve team attendance records.",
+    });
   }
 };
 
@@ -353,141 +260,34 @@ export const downloadExcelReport = async (req, res) => {
       .sort({ date: -1 })
       .populate("userId", "name email employeeId department role");
 
-    // Initialize Excel Workbook
-    const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet("Attendance Report");
-
-    // Define Columns
-    worksheet.columns = [
-      { header: "Employee ID", key: "employeeId", width: 15 },
-      { header: "Employee Name", key: "name", width: 25 },
-      { header: "Email", key: "email", width: 25 },
-      { header: "Department", key: "department", width: 20 },
-      { header: "Date", key: "date", width: 15 },
-      { header: "Check-in", key: "checkIn", width: 15 },
-      { header: "Check-out", key: "checkOut", width: 15 },
-      { header: "Total Hours", key: "hours", width: 15 },
-      { header: "Status", key: "status", width: 12 },
-    ];
-
-    // Styling Header
-    worksheet.getRow(1).font = { bold: true, color: { argb: "FFFFFFFF" } };
-    worksheet.getRow(1).fill = {
-      type: "pattern",
-      pattern: "solid",
-      fgColor: { argb: "FF2563EB" }, // blue-600
-    };
-    worksheet.getRow(1).alignment = {
-      vertical: "middle",
-      horizontal: "center",
+    // Calculate statistics
+    const stats = {
+      totalDays: records.length,
+      presentDays: records.filter((r) => r.status === "Present").length,
+      absentDays: records.filter((r) => r.status === "Absent").length,
+      halfDays: records.filter((r) => r.status === "Half-day").length,
+      wfhDays: records.filter((r) => r.status === "WFH").length,
+      leaveDays: records.filter((r) => r.status === "Leave").length,
+      totalWorkingHours: records.reduce(
+        (sum, r) => sum + (r.workingHours || 0),
+        0,
+      ),
     };
 
-    const calculateHours = (checkIn, checkOut) => {
-      if (!checkIn || !checkOut) return "0h";
-      const diffMs = new Date(checkOut) - new Date(checkIn);
-      const h = Math.floor(diffMs / (1000 * 60 * 60));
-      const m = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-      return `${h}h ${m}m`;
-    };
-
-    // Add Rows
-    records.forEach((record) => {
-      const user = record.userId || {};
-      const row = worksheet.addRow({
-        employeeId: user.employeeId || "N/A",
-        name: user.name || "N/A",
-        email: user.email || "N/A",
-        department: user.department || "N/A",
-        date: new Date(record.date).toLocaleDateString(),
-        checkIn: record.checkInTime
-          ? new Date(record.checkInTime).toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-            })
-          : "—",
-        checkOut: record.checkOutTime
-          ? new Date(record.checkOutTime).toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-            })
-          : "—",
-        hours: calculateHours(record.checkInTime, record.checkOutTime),
-        status: record.status,
-      });
-
-      // Status Badge Color Mockup (Conditional Styling)
-      const statusCell = row.getCell("status");
-      if (record.status === "Present") {
-        statusCell.font = { color: { argb: "FF059669" }, bold: true }; // green-600
-      } else if (record.status === "Late") {
-        statusCell.font = { color: { argb: "FFD97706" }, bold: true }; // orange-600
-      } else if (record.status === "Absent") {
-        statusCell.font = { color: { argb: "FFDC2626" }, bold: true }; // red-600
-      }
+    return res.status(200).json({
+      success: true,
+      message: "Attendance report generated successfully.",
+      data: {
+        records,
+        statistics: stats,
+      },
     });
-
-    // Auto-filter and freeze top row
-    worksheet.autoFilter = "A1:I1";
-    worksheet.views = [{ state: "frozen", ySplit: 1 }];
-
-    // Prepare response
-    res.setHeader(
-      "Content-Type",
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    );
-    res.setHeader(
-      "Content-Disposition",
-      `attachment; filename=Attendance_Report_${new Date().toISOString().split("T")[0]}.xlsx`,
-    );
-
-    await workbook.xlsx.write(res);
-    res.end();
   } catch (error) {
-    console.error("Excel download error:", error);
-    return ApiResponse.serverError(res, "Failed to generate Excel report.");
-  }
-};
-
-// Update attendance record (Admin/Manager)
-export const updateAttendance = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { checkInTime, checkOutTime, status, reason } = req.body;
-
-    const attendance = await Attendance.findById(id);
-
-    if (!attendance) {
-      return ApiResponse.notFound(res, "Attendance record not found.");
-    }
-
-    if (checkInTime) attendance.checkInTime = new Date(checkInTime);
-    if (checkOutTime) attendance.checkOutTime = new Date(checkOutTime);
-    if (status) attendance.status = status;
-
-    // Recalculate working hours if both times exist
-    if (attendance.checkInTime && attendance.checkOutTime) {
-      const start = new Date(attendance.checkInTime);
-      const end = new Date(attendance.checkOutTime);
-      const workingMilliseconds = end - start;
-      const workingHours =
-        Math.round((workingMilliseconds / (1000 * 60 * 60)) * 2) / 2;
-      attendance.workingHours = workingHours > 0 ? workingHours : 0;
-    }
-
-    const updatedAttendance = await attendance.save();
-
-    return ApiResponse.success(
-      res,
-      200,
-      "Attendance record updated successfully.",
-      updatedAttendance,
-    );
-  } catch (error) {
-    console.error("Update attendance error:", error);
-    return ApiResponse.serverError(
-      res,
-      error.message || "Failed to update attendance record.",
-    );
+    console.error("Generate report error:", error);
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Failed to generate attendance report.",
+    });
   }
 };
 
@@ -496,6 +296,5 @@ export default {
   checkOut,
   getMyAttendance,
   getTeamAttendance,
-  downloadExcelReport,
-  updateAttendance,
+  generateReport,
 };

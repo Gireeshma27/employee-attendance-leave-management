@@ -73,20 +73,72 @@ export default function EmployeesPage() {
             <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Employees</h1>
             <p className="text-sm md:text-base text-gray-600 mt-1">Manage all employees in the system</p>
           </div>
-          <Button variant="primary" size="lg" className="flex items-center gap-2">
-            <Plus size={20} />
+          <Button
+            variant="primary"
+            size="md"
+            className="flex items-center gap-2"
+            onClick={() => setIsAddModalOpen(true)}
+          >
+            <Plus size={18} />
             Add Employee
           </Button>
         </div>
 
-        {/* Search & Filter */}
-        <div className="flex gap-4">
-          <div className="flex-1">
+        {/* Search & Filters */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Search
+            </label>
             <Input
               placeholder="Name or email..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Role
+            </label>
+            <select
+              value={roleFilter}
+              onChange={(e) => setRoleFilter(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">All Roles</option>
+              <option value="ADMIN">Admin</option>
+              <option value="MANAGER">Manager</option>
+              <option value="EMPLOYEE">Employee</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Status
+            </label>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">All Statuses</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+          </div>
+
+          <div>
+            <button
+              onClick={() => {
+                setSearchTerm('');
+                setRoleFilter('');
+                setStatusFilter('');
+              }}
+              className="mt-7 px-4 py-2 text-sm text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              Clear Filters
+            </button>
           </div>
         </div>
 
@@ -123,17 +175,28 @@ export default function EmployeesPage() {
                     <tr className="text-gray-600">
                       <th className="text-left py-3 px-4">Name</th>
                       <th className="text-left py-3 px-4">Email</th>
+                      <th className="text-left py-3 px-4">Employee ID</th>
                       <th className="text-left py-3 px-4">Role</th>
                       <th className="text-left py-3 px-4">Status</th>
                       <th className="text-center py-3 px-4">Action</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredEmployees.map((emp) => (
-                      <tr key={emp._id} className="border-b border-gray-100 hover:bg-gray-50">
-                        <td className="py-4 px-4 font-medium text-gray-900">{emp.name}</td>
+                    {employees.map((emp) => (
+                      <tr
+                        key={emp._id}
+                        className="border-b border-gray-100 hover:bg-gray-50"
+                      >
+                        <td className="py-4 px-4 font-medium text-gray-900">
+                          {emp.name}
+                        </td>
                         <td className="py-4 px-4 text-gray-600">{emp.email}</td>
-                        <td className="py-4 px-4 text-gray-600 capitalize">{emp.role}</td>
+                        <td className="py-4 px-4 text-gray-600">
+                          {emp.employeeId || 'N/A'}
+                        </td>
+                        <td className="py-4 px-4 text-gray-600 capitalize">
+                          {emp.role}
+                        </td>
                         <td className="py-4 px-4">
                           <Badge
                             variant={emp.isActive ? 'success' : 'default'}
@@ -173,24 +236,30 @@ export default function EmployeesPage() {
         )}
 
         {/* Summary */}
-        {!loading && (
+        {!loading && employees.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Card>
               <CardContent className="pt-6 text-center">
                 <p className="text-gray-600 text-sm">Total Employees</p>
-                <p className="text-3xl font-bold text-gray-900 mt-2">{employees.length}</p>
+                <p className="text-3xl font-bold text-gray-900 mt-2">
+                  {employees.length}
+                </p>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="pt-6 text-center">
                 <p className="text-gray-600 text-sm">Active</p>
-                <p className="text-3xl font-bold text-green-600 mt-2">{activeCount}</p>
+                <p className="text-3xl font-bold text-green-600 mt-2">
+                  {activeCount}
+                </p>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="pt-6 text-center">
                 <p className="text-gray-600 text-sm">Inactive</p>
-                <p className="text-3xl font-bold text-gray-600 mt-2">{inactiveCount}</p>
+                <p className="text-3xl font-bold text-gray-600 mt-2">
+                  {inactiveCount}
+                </p>
               </CardContent>
             </Card>
           </div>
