@@ -26,31 +26,33 @@ export default function AdminDashboard() {
     try {
       setLoading(true);
       setError(null);
-      const [attendanceRes, leavesRes] = await Promise.all([
+      const [usersRes, todayAttendanceRes, leavesRes] = await Promise.all([
+        apiService.user.getAll(),
         apiService.attendance.getTeamAttendance(),
         apiService.leave.getPendingLeaves(),
       ]);
 
-      const attendance = attendanceRes.data || [];
+      const employees = usersRes.data || [];
+      const attendance = todayAttendanceRes.data || [];
       const pendingLeaves = leavesRes.data || [];
 
-      // Extract unique employees from attendance records
-      const uniqueEmployees = new Map();
-      attendance.forEach(record => {
-        if (record.userId && !uniqueEmployees.has(record.userId._id)) {
-          uniqueEmployees.set(record.userId._id, record.userId);
-        }
-      });
-      const users = Array.from(uniqueEmployees.values());
+      // Get all employees
+      const totalEmployees = employees.length;
 
-      // Calculate statistics
-      const totalEmployees = users.length;
+      // Calculate today's attendance
       const today = new Date().toISOString().split('T')[0];
       const todayAttendance = attendance.filter(a => {
         const attendanceDate = new Date(a.date).toISOString().split('T')[0];
         return attendanceDate === today;
       });
-      const presentToday = todayAttendance.filter((a) => a.checkIn).length;
+
+      // Get unique employee IDs that checked in today
+      const presentEmployeeIds = new Set(
+        todayAttendance
+          .filter(a => a.checkInTime && a.status !== 'Absent' && a.status !== 'Leave')
+          .map(a => a.userId._id || a.userId)
+      );
+      const presentToday = presentEmployeeIds.size;
       const absentToday = totalEmployees - presentToday;
       const avgAttendance =
         totalEmployees > 0 ? Math.round((presentToday / totalEmployees) * 100) : 0;
