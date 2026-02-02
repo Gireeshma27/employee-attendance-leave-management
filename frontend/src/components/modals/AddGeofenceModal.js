@@ -146,7 +146,8 @@ export function AddGeofenceModal({
                     onChange={(e) =>
                       setFormData({
                         ...formData,
-                        radius: parseInt(e.target.value),
+                        radius:
+                          e.target.value === "" ? "" : parseInt(e.target.value),
                       })
                     }
                     className="pl-10 rounded-xl border-gray-100 bg-gray-50/50 focus:bg-white"

@@ -110,7 +110,7 @@ export function DashboardLayout({ children, role = "employee" }) {
       <aside
         className={`${
           sidebarOpen ? "w-64" : "w-20"
-        } bg-gray-900 text-white transition-all duration-300 flex flex-col`}
+        } bg-gray-900 text-white transition-all duration-300 flex flex-col flex-shrink-0`}
       >
         {/* Logo */}
         <div className="px-6 py-8 border-b border-gray-800">
@@ -170,7 +170,7 @@ export function DashboardLayout({ children, role = "employee" }) {
       </aside>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col w-full">
+      <div className="flex-1 flex flex-col w-full min-w-0">
         {/* Topbar */}
         <header className="bg-white border-b border-gray-200 px-8 py-4 flex items-center justify-end">
           <div className="relative">

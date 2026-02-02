@@ -97,15 +97,10 @@ export default function TeamAttendancePage() {
       <div className="space-y-6 md:space-y-8">
         {/* Header */}
         <div>
-<<<<<<< HEAD
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Team Attendance</h1>
-          <p className="text-xs md:text-sm text-gray-600 mt-1">Monitor your team's attendance records</p>
-=======
           <h1 className="text-3xl font-bold text-gray-900">Team Attendance</h1>
           <p className="text-gray-600 mt-1">
             Monitor your team's attendance records
           </p>
->>>>>>> naveen
         </div>
 
         {/* Filters */}
@@ -132,30 +127,35 @@ export default function TeamAttendancePage() {
         {/* Attendance Table */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-base md:text-lg">Attendance Records (January 2026)</CardTitle>
+            <CardTitle className="text-base md:text-lg">
+              Attendance Records (January 2026)
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto -mx-4 md:mx-0">
               <table className="w-full text-xs md:text-sm">
                 <thead className="border-b border-gray-200 bg-gray-50">
                   <tr className="text-gray-600">
-                    <th className="text-left py-2 md:py-3 px-4 md:px-4">Employee Name</th>
-                    <th className="text-center py-2 md:py-3 px-4 md:px-4 hidden sm:table-cell">Working Days</th>
-                    <th className="text-center py-2 md:py-3 px-4 md:px-4">Present</th>
-                    <th className="text-center py-2 md:py-3 px-4 md:px-4 hidden md:table-cell">Absent</th>
-                    <th className="text-center py-2 md:py-3 px-4 md:px-4 hidden lg:table-cell">Half-day</th>
+                    <th className="text-left py-2 md:py-3 px-4 md:px-4">
+                      Employee Name
+                    </th>
+                    <th className="text-center py-2 md:py-3 px-4 md:px-4 hidden sm:table-cell">
+                      Working Days
+                    </th>
+                    <th className="text-center py-2 md:py-3 px-4 md:px-4">
+                      Present
+                    </th>
+                    <th className="text-center py-2 md:py-3 px-4 md:px-4 hidden md:table-cell">
+                      Absent
+                    </th>
+                    <th className="text-center py-2 md:py-3 px-4 md:px-4 hidden lg:table-cell">
+                      Half-day
+                    </th>
                     <th className="text-center py-2 md:py-3 px-4 md:px-4">%</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredData.map((emp) => (
-<<<<<<< HEAD
-                    <tr key={emp.id} className="border-b border-gray-100 hover:bg-gray-50">
-                      <td className="py-2 md:py-4 px-4 text-gray-900 font-medium text-xs md:text-sm">{emp.name}</td>
-                      <td className="py-2 md:py-4 px-4 text-center text-gray-600 hidden sm:table-cell text-xs md:text-sm">{emp.days}</td>
-                      <td className="py-2 md:py-4 px-4 text-center">
-                        <Badge variant="success" className="text-xs">{emp.present}</Badge>
-=======
                     <tr
                       key={emp.id}
                       className="border-b border-gray-100 hover:bg-gray-50"
@@ -168,13 +168,16 @@ export default function TeamAttendancePage() {
                       </td>
                       <td className="py-4 px-4 text-center">
                         <Badge variant="success">{emp.present}</Badge>
->>>>>>> naveen
                       </td>
                       <td className="py-2 md:py-4 px-4 text-center hidden md:table-cell">
-                        <Badge variant="danger" className="text-xs">{emp.absent}</Badge>
+                        <Badge variant="danger" className="text-xs">
+                          {emp.absent}
+                        </Badge>
                       </td>
                       <td className="py-2 md:py-4 px-4 text-center hidden lg:table-cell">
-                        <Badge variant="warning" className="text-xs">{emp.halfDay}</Badge>
+                        <Badge variant="warning" className="text-xs">
+                          {emp.halfDay}
+                        </Badge>
                       </td>
                       <td className="py-2 md:py-4 px-4">
                         <div className="flex items-center justify-center gap-1 md:gap-2">
@@ -208,25 +211,35 @@ export default function TeamAttendancePage() {
           <Card>
             <CardContent className="pt-4 md:pt-6 text-center">
               <p className="text-xs md:text-sm text-gray-600">Team Size</p>
-              <p className="text-xl md:text-3xl font-bold text-gray-900 mt-1 md:mt-2">5</p>
+              <p className="text-xl md:text-3xl font-bold text-gray-900 mt-1 md:mt-2">
+                5
+              </p>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="pt-4 md:pt-6 text-center">
-              <p className="text-xs md:text-sm text-gray-600">Avg. Attendance</p>
-              <p className="text-xl md:text-3xl font-bold text-green-600 mt-1 md:mt-2">87%</p>
+              <p className="text-xs md:text-sm text-gray-600">
+                Avg. Attendance
+              </p>
+              <p className="text-xl md:text-3xl font-bold text-green-600 mt-1 md:mt-2">
+                87%
+              </p>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="pt-4 md:pt-6 text-center">
               <p className="text-xs md:text-sm text-gray-600">Total Present</p>
-              <p className="text-xl md:text-3xl font-bold text-blue-600 mt-1 md:mt-2">87</p>
+              <p className="text-xl md:text-3xl font-bold text-blue-600 mt-1 md:mt-2">
+                87
+              </p>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="pt-4 md:pt-6 text-center">
               <p className="text-xs md:text-sm text-gray-600">Total Absent</p>
-              <p className="text-xl md:text-3xl font-bold text-red-600 mt-1 md:mt-2">8</p>
+              <p className="text-xl md:text-3xl font-bold text-red-600 mt-1 md:mt-2">
+                8
+              </p>
             </CardContent>
           </Card>
         </div>
