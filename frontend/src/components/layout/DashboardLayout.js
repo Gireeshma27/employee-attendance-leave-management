@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   Clock,
@@ -11,37 +11,79 @@ import {
   Menu,
   X,
   BarChart3,
-} from 'lucide-react';
-import { useState } from 'react';
+} from "lucide-react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import apiService from "@/lib/api";
 
 export function DashboardLayout({ children, role = 'employee' }) {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const pathname = usePathname();
+  const router = useRouter();
+  const [user, setUser] = useState(null);
+  const [showProfileDropdown, setShowProfileDropdown] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const storedUser = localStorage.getItem("user");
+      if (storedUser) {
+        try {
+          setUser(JSON.parse(storedUser));
+        } catch (e) {
+          console.error("Failed to parse user data");
+        }
+      }
+    }
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      await apiService.auth.logout();
+    } catch (error) {
+      console.error("Logout API call failed:", error);
+    } finally {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      router.push("/login");
+    }
+  };
 
   const getSidebarLinks = () => {
     const commonLinks = [
-      { href: `/employee/dashboard`, label: 'Dashboard', icon: LayoutDashboard },
-      { href: `/employee/attendance`, label: 'Attendance', icon: Clock },
-      { href: `/employee/leave`, label: 'Leave', icon: Calendar },
-      { href: `/employee/profile`, label: 'Profile', icon: Users },
+      {
+        href: `/employee/dashboard`,
+        label: "Dashboard",
+        icon: LayoutDashboard,
+      },
+      { href: `/employee/attendance`, label: "Attendance", icon: Clock },
+      { href: `/employee/leave`, label: "Leave", icon: Calendar },
+      { href: `/employee/profile`, label: "Profile", icon: Users },
     ];
 
     const managerLinks = [
-      { href: `/manager/dashboard`, label: 'Dashboard', icon: LayoutDashboard },
-      { href: `/manager/team-attendance`, label: 'Team Attendance', icon: Clock },
-      { href: `/manager/leave-approvals`, label: 'Leave Approvals', icon: Calendar },
+      { href: `/manager/dashboard`, label: "Dashboard", icon: LayoutDashboard },
+      {
+        href: `/manager/team-attendance`,
+        label: "Team Attendance",
+        icon: Clock,
+      },
+      {
+        href: `/manager/leave-approvals`,
+        label: "Leave Approvals",
+        icon: Calendar,
+      },
     ];
 
     const adminLinks = [
-      { href: `/admin/dashboard`, label: 'Dashboard', icon: LayoutDashboard },
-      { href: `/admin/employees`, label: 'Employees', icon: Users },
-      { href: `/admin/attendance`, label: 'Attendance', icon: Clock },
-      { href: `/admin/leaves`, label: 'Leaves', icon: Calendar },
-      { href: `/admin/reports`, label: 'Reports', icon: BarChart3 },
+      { href: `/admin/dashboard`, label: "Dashboard", icon: LayoutDashboard },
+      { href: `/admin/employees`, label: "Employees", icon: Users },
+      { href: `/admin/attendance`, label: "Attendance", icon: Clock },
+      { href: `/admin/leaves`, label: "Leaves", icon: Calendar },
+      { href: `/admin/reports`, label: "Reports", icon: BarChart3 },
     ];
 
-    if (role === 'manager') return managerLinks;
-    if (role === 'admin') return adminLinks;
+    if (role === "manager") return managerLinks;
+    if (role === "admin") return adminLinks;
     return commonLinks;
   };
 
@@ -60,18 +102,12 @@ export function DashboardLayout({ children, role = 'employee' }) {
       {/* Sidebar */}
       <aside
         className={`${
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        } fixed md:static md:translate-x-0 left-0 top-0 w-64 h-screen bg-gray-900 text-white transition-transform duration-300 flex flex-col z-40`}
+          sidebarOpen ? 'w-64' : 'w-20'
+        } bg-gray-900 text-white transition-all duration-300 flex flex-col`}
       >
         {/* Logo */}
-        <div className="flex items-center justify-between px-6 py-8 border-b border-gray-800">
-          <h1 className="font-bold text-xl">AttendEase</h1>
-          <button
-            onClick={() => setSidebarOpen(false)}
-            className="md:hidden text-gray-400 hover:text-white"
-          >
-            <X size={24} />
-          </button>
+        <div className="px-6 py-8 border-b border-gray-800">
+          <h1 className={`font-bold text-xl ${!sidebarOpen && 'hidden'}`}>AttendEase</h1>
         </div>
 
         {/* Navigation */}
@@ -83,8 +119,8 @@ export function DashboardLayout({ children, role = 'employee' }) {
               onClick={() => setSidebarOpen(false)}
               className={`flex items-center gap-4 px-4 py-3 rounded-lg transition-colors whitespace-nowrap ${
                 pathname === href
-                  ? 'bg-blue-600 text-white'
-                  : 'text-gray-300 hover:bg-gray-800'
+                  ? "bg-blue-600 text-white"
+                  : "text-gray-300 hover:bg-gray-800"
               }`}
             >
               <Icon size={20} className="flex-shrink-0" />
@@ -95,9 +131,9 @@ export function DashboardLayout({ children, role = 'employee' }) {
 
         {/* Logout */}
         <div className="px-3 py-6 border-t border-gray-800">
-          <button className="flex items-center gap-4 w-full px-4 py-3 text-gray-300 hover:bg-gray-800 rounded-lg transition-colors whitespace-nowrap">
-            <LogOut size={20} className="flex-shrink-0" />
-            <span>Logout</span>
+          <button className="flex items-center w-full px-4 py-3 text-gray-300 hover:bg-gray-800 rounded-lg transition-colors">
+            <LogOut size={20} />
+            {sidebarOpen && <span className="ml-4">Logout</span>}
           </button>
         </div>
       </aside>
@@ -105,19 +141,19 @@ export function DashboardLayout({ children, role = 'employee' }) {
       {/* Main Content */}
       <div className="flex-1 flex flex-col w-full">
         {/* Topbar */}
-        <header className="bg-white border-b border-gray-200 px-4 md:px-8 py-4 flex items-center justify-between">
+        <header className="bg-white border-b border-gray-200 px-8 py-4 flex items-center justify-between">
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
             className="text-gray-600 hover:text-gray-900"
           >
             {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
-          <div className="hidden sm:flex items-center gap-4">
+          <div className="flex items-center gap-4">
             <div className="text-right">
               <p className="text-sm font-medium text-gray-900">John Doe</p>
               <p className="text-xs text-gray-500">Employee</p>
             </div>
-            <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
+            <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-semibold">
               JD
             </div>
           </div>
@@ -135,8 +171,8 @@ export function AuthLayout({ children }) {
     <div className="min-h-screen bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center px-4 py-8">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">AttendEase</h1>
-          <p className="text-sm md:text-base text-blue-100">Employee Attendance & Leave Management</p>
+          <h1 className="text-4xl font-bold text-white mb-2">AttendEase</h1>
+          <p className="text-blue-100">Employee Attendance & Leave Management</p>
         </div>
         {children}
       </div>

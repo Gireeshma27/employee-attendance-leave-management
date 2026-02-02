@@ -10,13 +10,43 @@ import leaveRoutes from './routes/leave.routes.js';
 
 const app = express();
 
-// Middleware
-app.use(cors({
-  origin: process.env.NODE_ENV === 'production' ? config.FRONTEND_URL : true,
+// CORS Configuration - Must be before routes
+const corsOptions = {
+  origin: function (origin, callback) {
+    const allowedOrigins = [
+      'http://localhost:3000',
+      'http://localhost:3001',
+      'http://127.0.0.1:3000',
+      'http://127.0.0.1:3001',
+    ];
+    
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else if (process.env.NODE_ENV === 'production') {
+      // In production, restrict to configured frontend URL
+      const frontendUrl = config.FRONTEND_URL;
+      if (origin === frontendUrl) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    } else {
+      // In development, allow all origins
+      callback(null, true);
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
-}));
+  optionsSuccessStatus: 200,
+  maxAge: 86400, // Cache preflight for 24 hours
+};
+
+app.use(cors(corsOptions));
+
+// Handle preflight requests explicitly
+app.options('*', cors(corsOptions));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

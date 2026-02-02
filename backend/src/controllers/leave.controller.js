@@ -196,48 +196,6 @@ export const cancelLeave = async (req, res) => {
   }
 };
 
-// Get all leaves for admin dashboard (with counts)
-export const getAllLeavesForAdmin = async (req, res) => {
-  try {
-    // Fetch all leaves with populated user data
-    const leaves = await Leave.find()
-      .sort({ appliedDate: -1 })
-      .populate('userId', 'name email employeeId department')
-      .populate('approvedBy', 'name email');
-
-    // Calculate counts by status
-    const totalPending = leaves.filter(l => l.status === 'Pending').length;
-    const totalApproved = leaves.filter(l => l.status === 'Approved').length;
-    const totalRejected = leaves.filter(l => l.status === 'Rejected').length;
-
-    // Format leave data for frontend
-    const formattedLeaves = leaves.map(leave => ({
-      _id: leave._id,
-      appliedDate: leave.createdAt,
-      employeeId: leave.userId?.employeeId || 'N/A',
-      employeeName: leave.userId?.name || 'Unknown',
-      department: leave.userId?.department || 'N/A',
-      fromDate: leave.fromDate,
-      toDate: leave.toDate,
-      status: leave.status,
-      leaveType: leave.leaveType,
-      numberOfDays: leave.numberOfDays,
-      reason: leave.reason,
-      userId: leave.userId?._id,
-    }));
-
-    return ApiResponse.success(res, 200, 'All leave requests retrieved successfully.', {
-      totalPending,
-      totalApproved,
-      totalRejected,
-      leaves: formattedLeaves,
-    });
-  } catch (error) {
-    console.error('Get all leaves error:', error);
-    return ApiResponse.serverError(res, error.message || 'Failed to retrieve leave requests.');
-  }
-};
-
 export default {
   applyLeave,
   getMyLeaves,
