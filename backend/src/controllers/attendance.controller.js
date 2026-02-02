@@ -121,38 +121,95 @@ export const getMyAttendance = async (req, res) => {
   }
 };
 
-// Get team attendance (for managers)
+// Get team attendance (for managers/admins)
 export const getTeamAttendance = async (req, res) => {
   try {
-    const managerId = req.user.id;
-    const { fromDate, toDate, employeeId } = req.query;
+    const {
+      page = 1,
+      limit = 10,
+      fromDate,
+      toDate,
+      status,
+      department,
+      role,
+      search,
+    } = req.query;
 
-    // Get all employees under this manager (simplified - in real app, would need team mapping)
+    const skip = (parseInt(page) - 1) * parseInt(limit);
     const filter = {};
 
+    // Date filtering
     if (fromDate && toDate) {
       filter.date = {
         $gte: new Date(fromDate),
         $lte: new Date(toDate),
       };
+    } else if (fromDate) {
+      filter.date = { $gte: new Date(fromDate) };
+    } else if (toDate) {
+      filter.date = { $lte: new Date(toDate) };
     }
 
-    if (employeeId) {
-      const user = await User.findOne({ employeeId });
-      if (user) {
-        filter.userId = user._id;
-      }
+    // Attendance status filtering
+    if (status) {
+      filter.status = status;
     }
 
+    // Employee related filtering (search, department, role)
+    const userFilter = {};
+    if (search) {
+      userFilter.$or = [
+        { name: { $regex: search, $options: "i" } },
+        { employeeId: { $regex: search, $options: "i" } },
+      ];
+    }
+    if (department) {
+      userFilter.department = department;
+    }
+    if (role) {
+      userFilter.role = role;
+    }
+
+    // If we have user filters, find matching users first
+    if (Object.keys(userFilter).length > 0) {
+      const users = await User.find(userFilter).select("_id");
+      const userIds = users.map((u) => u._id);
+      filter.userId = { $in: userIds };
+    }
+
+    // Execute query with pagination
+    const total = await Attendance.countDocuments(filter);
     const records = await Attendance.find(filter)
       .sort({ date: -1 })
-      .populate("userId", "name email employeeId role");
+      .populate("userId", "name email employeeId role department")
+      .skip(skip)
+      .limit(parseInt(limit));
+
+    // Calculate global stats for current department/search (excluding status filter)
+    const { status: _, ...statsFilter } = filter;
+    const allFilteredResults =
+      await Attendance.find(statsFilter).select("status");
+    const stats = {
+      total: allFilteredResults.length,
+      present: allFilteredResults.filter((r) => r.status === "Present").length,
+      late: allFilteredResults.filter((r) => r.status === "Late").length,
+      absent: allFilteredResults.filter((r) => r.status === "Absent").length,
+    };
 
     return ApiResponse.success(
       res,
       200,
       "Team attendance records retrieved successfully.",
-      records,
+      {
+        records,
+        stats,
+        pagination: {
+          total,
+          page: parseInt(page),
+          limit: parseInt(limit),
+          pages: Math.ceil(total / parseInt(limit)),
+        },
+      },
     );
   } catch (error) {
     console.error("Get team attendance error:", error);
@@ -163,60 +220,147 @@ export const getTeamAttendance = async (req, res) => {
   }
 };
 
-// Generate attendance report
-export const generateReport = async (req, res) => {
+// Download Excel Report
+import ExcelJS from "exceljs";
+
+export const downloadExcelReport = async (req, res) => {
   try {
-    const { fromDate, toDate, employeeId } = req.query;
+    const { fromDate, toDate, status, department, role, search } = req.query;
 
     const filter = {};
 
+    // Date filtering
     if (fromDate && toDate) {
       filter.date = {
         $gte: new Date(fromDate),
         $lte: new Date(toDate),
       };
+    } else if (fromDate) {
+      filter.date = { $gte: new Date(fromDate) };
+    } else if (toDate) {
+      filter.date = { $lte: new Date(toDate) };
     }
 
-    if (employeeId) {
-      const user = await User.findOne({ employeeId });
-      if (user) {
-        filter.userId = user._id;
-      }
+    if (status) {
+      filter.status = status;
+    }
+
+    const userFilter = {};
+    if (search) {
+      userFilter.$or = [
+        { name: { $regex: search, $options: "i" } },
+        { employeeId: { $regex: search, $options: "i" } },
+      ];
+    }
+    if (department) {
+      userFilter.department = department;
+    }
+    if (role) {
+      userFilter.role = role;
+    }
+
+    if (Object.keys(userFilter).length > 0) {
+      const users = await User.find(userFilter).select("_id");
+      const userIds = users.map((u) => u._id);
+      filter.userId = { $in: userIds };
     }
 
     const records = await Attendance.find(filter)
       .sort({ date: -1 })
-      .populate("userId", "name email employeeId");
+      .populate("userId", "name email employeeId department role");
 
-    // Calculate statistics
-    const stats = {
-      totalDays: records.length,
-      presentDays: records.filter((r) => r.status === "Present").length,
-      absentDays: records.filter((r) => r.status === "Absent").length,
-      halfDays: records.filter((r) => r.status === "Half-day").length,
-      wfhDays: records.filter((r) => r.status === "WFH").length,
-      leaveDays: records.filter((r) => r.status === "Leave").length,
-      totalWorkingHours: records.reduce(
-        (sum, r) => sum + (r.workingHours || 0),
-        0,
-      ),
+    // Initialize Excel Workbook
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("Attendance Report");
+
+    // Define Columns
+    worksheet.columns = [
+      { header: "Employee ID", key: "employeeId", width: 15 },
+      { header: "Employee Name", key: "name", width: 25 },
+      { header: "Email", key: "email", width: 25 },
+      { header: "Department", key: "department", width: 20 },
+      { header: "Date", key: "date", width: 15 },
+      { header: "Check-in", key: "checkIn", width: 15 },
+      { header: "Check-out", key: "checkOut", width: 15 },
+      { header: "Total Hours", key: "hours", width: 15 },
+      { header: "Status", key: "status", width: 12 },
+    ];
+
+    // Styling Header
+    worksheet.getRow(1).font = { bold: true, color: { argb: "FFFFFFFF" } };
+    worksheet.getRow(1).fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: "FF2563EB" }, // blue-600
+    };
+    worksheet.getRow(1).alignment = {
+      vertical: "middle",
+      horizontal: "center",
     };
 
-    return ApiResponse.success(
-      res,
-      200,
-      "Attendance report generated successfully.",
-      {
-        records,
-        statistics: stats,
-      },
+    const calculateHours = (checkIn, checkOut) => {
+      if (!checkIn || !checkOut) return "0h";
+      const diffMs = new Date(checkOut) - new Date(checkIn);
+      const h = Math.floor(diffMs / (1000 * 60 * 60));
+      const m = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+      return `${h}h ${m}m`;
+    };
+
+    // Add Rows
+    records.forEach((record) => {
+      const user = record.userId || {};
+      const row = worksheet.addRow({
+        employeeId: user.employeeId || "N/A",
+        name: user.name || "N/A",
+        email: user.email || "N/A",
+        department: user.department || "N/A",
+        date: new Date(record.date).toLocaleDateString(),
+        checkIn: record.checkInTime
+          ? new Date(record.checkInTime).toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            })
+          : "—",
+        checkOut: record.checkOutTime
+          ? new Date(record.checkOutTime).toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            })
+          : "—",
+        hours: calculateHours(record.checkInTime, record.checkOutTime),
+        status: record.status,
+      });
+
+      // Status Badge Color Mockup (Conditional Styling)
+      const statusCell = row.getCell("status");
+      if (record.status === "Present") {
+        statusCell.font = { color: { argb: "FF059669" }, bold: true }; // green-600
+      } else if (record.status === "Late") {
+        statusCell.font = { color: { argb: "FFD97706" }, bold: true }; // orange-600
+      } else if (record.status === "Absent") {
+        statusCell.font = { color: { argb: "FFDC2626" }, bold: true }; // red-600
+      }
+    });
+
+    // Auto-filter and freeze top row
+    worksheet.autoFilter = "A1:I1";
+    worksheet.views = [{ state: "frozen", ySplit: 1 }];
+
+    // Prepare response
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     );
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=Attendance_Report_${new Date().toISOString().split("T")[0]}.xlsx`,
+    );
+
+    await workbook.xlsx.write(res);
+    res.end();
   } catch (error) {
-    console.error("Generate report error:", error);
-    return ApiResponse.serverError(
-      res,
-      error.message || "Failed to generate attendance report.",
-    );
+    console.error("Excel download error:", error);
+    return ApiResponse.serverError(res, "Failed to generate Excel report.");
   }
 };
 
@@ -268,6 +412,6 @@ export default {
   checkOut,
   getMyAttendance,
   getTeamAttendance,
-  generateReport,
+  downloadExcelReport,
   updateAttendance,
 };

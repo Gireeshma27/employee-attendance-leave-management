@@ -26,14 +26,38 @@ import apiService from "@/lib/api";
 export default function AttendancePage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const rowsPerPage = 10;
+  const [rowsPerPage, setRowsPerPage] = useState(10);
   const [dateFilter, setDateFilter] = useState(
     new Date().toISOString().split("T")[0],
   );
   const [attendanceData, setAttendanceData] = useState([]);
-  const [allEmployees, setAllEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [stats, setStats] = useState({
+    total: 0,
+    present: 0,
+    absent: 0,
+    late: 0,
+  });
+  const [pagination, setPagination] = useState({
+    total: 0,
+    page: 1,
+    limit: 10,
+    pages: 1,
+  });
+
+  // Filter Drawer State
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [tempFilters, setTempFilters] = useState({
+    status: "",
+    department: "",
+    role: "",
+  });
+  const [activeFilters, setActiveFilters] = useState({
+    status: "",
+    department: "",
+    role: "",
+  });
 
   // Edit Drawer State
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -45,92 +69,51 @@ export default function AttendancePage() {
     reason: "",
   });
   const [isUpdating, setIsUpdating] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
+
+  // Download Dialog State
+  const [isDownloadOpen, setIsDownloadOpen] = useState(false);
+  const [downloadRange, setDownloadRange] = useState({
+    from: new Date().toISOString().split("T")[0],
+    to: new Date().toISOString().split("T")[0],
+  });
 
   useEffect(() => {
     fetchAttendanceData();
-  }, [dateFilter]);
+  }, [dateFilter, searchQuery, currentPage, rowsPerPage, activeFilters]);
 
   const fetchAttendanceData = async () => {
     try {
       setLoading(true);
       setError(null);
-      const [attendanceRes, employeesRes] = await Promise.all([
-        apiService.attendance.getTeamAttendance(),
-        apiService.user.getAll(),
-      ]);
-      setAttendanceData(attendanceRes.data || []);
-      setAllEmployees(employeesRes.data || []);
+
+      const params = {
+        page: currentPage,
+        limit: rowsPerPage,
+        fromDate: dateFilter,
+        toDate: dateFilter,
+        search: searchQuery,
+        ...activeFilters,
+      };
+
+      const response = await apiService.attendance.getTeamAttendance(params);
+
+      // Backend returns { records, stats, pagination }
+      const {
+        records,
+        stats: statsData,
+        pagination: paginationData,
+      } = response.data;
+
+      setAttendanceData(records || []);
+      if (statsData) setStats(statsData);
+      if (paginationData) setPagination(paginationData);
     } catch (err) {
       console.error("Error fetching attendance:", err);
       setError(err.message || "Failed to load attendance data");
     } finally {
       setLoading(false);
     }
-  };
-
-  // Filter attendance records for the selected date
-  const todayAttendance = attendanceData.filter((a) => {
-    const attendanceDate = new Date(a.date).toISOString().split("T")[0];
-    return attendanceDate === dateFilter;
-  });
-
-  // Create a map of attendance records by userId for quick lookup
-  const attendanceMap = {};
-  todayAttendance.forEach((record) => {
-    const userId = record.userId?._id || record.userId;
-    attendanceMap[userId] = record;
-  });
-
-  // Build complete employee list with attendance data merged
-  const employeeAttendanceList = allEmployees.map((employee) => {
-    const attendance = attendanceMap[employee._id];
-    return {
-      ...employee,
-      attendance: attendance || {
-        checkInTime: null,
-        checkOutTime: null,
-        workingHours: 0,
-        status: "Absent",
-      },
-    };
-  });
-
-  // Calculate statistics
-  const presentCount = employeeAttendanceList.filter((e) => {
-    const checkIn = e.attendance.checkInTime;
-    if (!checkIn) return false;
-    const checkInDate = new Date(checkIn);
-    // Late if after 9:30 AM
-    const isLate =
-      checkInDate.getHours() > 9 ||
-      (checkInDate.getHours() === 9 && checkInDate.getMinutes() > 30);
-    return (
-      !isLate &&
-      e.attendance.status !== "Absent" &&
-      e.attendance.status !== "Leave"
-    );
-  }).length;
-
-  const lateCount = employeeAttendanceList.filter((e) => {
-    const checkIn = e.attendance.checkInTime;
-    if (!checkIn) return false;
-    const checkInDate = new Date(checkIn);
-    // Late if after 9:30 AM
-    return (
-      checkInDate.getHours() > 9 ||
-      (checkInDate.getHours() === 9 && checkInDate.getMinutes() > 30)
-    );
-  }).length;
-
-  const absentCount = employeeAttendanceList.filter(
-    (e) => !e.attendance.checkInTime,
-  ).length;
-
-  const stats = {
-    total: allEmployees.length,
-    present: presentCount,
-    absent: absentCount,
-    late: lateCount,
   };
 
   const calculateHours = (checkIn, checkOut) => {
@@ -155,37 +138,55 @@ export default function AttendancePage() {
     return "Present";
   };
 
-  // Filter based on search query
-  const filteredEmployees = employeeAttendanceList.filter(
-    (e) =>
-      e.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (e.employeeId &&
-        e.employeeId.toLowerCase().includes(searchQuery.toLowerCase())),
-  );
+  const totalPages = pagination.pages;
 
-  const paginatedEmployees = filteredEmployees.slice(
-    (currentPage - 1) * rowsPerPage,
-    currentPage * rowsPerPage,
-  );
+  const handleApplyFilters = () => {
+    setActiveFilters(tempFilters);
+    setCurrentPage(1);
+    setIsFilterOpen(false);
+  };
 
-  const totalPages = Math.ceil(filteredEmployees.length / rowsPerPage);
+  const handleResetFilters = () => {
+    const reset = { status: "", department: "", role: "" };
+    setTempFilters(reset);
+    setActiveFilters(reset);
+    setCurrentPage(1);
+    setIsFilterOpen(false);
+  };
 
-  const handleEditClick = (employee) => {
-    setEditingEmployee(employee);
+  const handleEditClick = (record) => {
+    setEditingEmployee(record.userId);
     setEditForm({
-      checkInTime: employee.attendance.checkInTime
-        ? new Date(employee.attendance.checkInTime).toISOString().slice(0, 16)
+      recordId: record._id,
+      checkInTime: record.checkInTime
+        ? new Date(record.checkInTime).toISOString().slice(0, 16)
         : "",
-      checkOutTime: employee.attendance.checkOutTime
-        ? new Date(employee.attendance.checkOutTime).toISOString().slice(0, 16)
+      checkOutTime: record.checkOutTime
+        ? new Date(record.checkOutTime).toISOString().slice(0, 16)
         : "",
-      status: getStatus(
-        employee.attendance.checkInTime,
-        employee.attendance.checkOutTime,
-      ),
+      status: record.status,
       reason: "",
     });
     setIsEditOpen(true);
+  };
+
+  const handleDownloadExcel = async () => {
+    try {
+      setIsDownloading(true);
+      const params = {
+        fromDate: downloadRange.from,
+        toDate: downloadRange.to,
+        search: searchQuery,
+        ...activeFilters,
+      };
+      await apiService.attendance.downloadExcelReport(params);
+      setIsDownloadOpen(false);
+    } catch (err) {
+      console.error("Download error:", err);
+      setError("Failed to download Excel report");
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
   const handleUpdateRecord = async (e) => {
@@ -194,14 +195,7 @@ export default function AttendancePage() {
 
     try {
       setIsUpdating(true);
-      const recordId = editingEmployee.attendance._id;
-
-      // If no record exists yet (Absent), we might need to handle creation or just show a warning
-      if (!recordId) {
-        setError("Cannot edit an absent record that hasn't been created yet.");
-        return;
-      }
-
+      const recordId = editForm.recordId;
       await apiService.attendance.updateRecord(recordId, editForm);
       await fetchAttendanceData();
       setIsEditOpen(false);
@@ -319,11 +313,26 @@ export default function AttendancePage() {
               placeholder="Select date"
               align="right"
             />
-            <button className="flex items-center justify-center p-2.5 border border-gray-200 rounded-lg bg-white text-gray-600 hover:bg-gray-50 shadow-sm">
+            <button
+              onClick={() => setIsFilterOpen(true)}
+              className={`flex items-center justify-center p-2.5 border rounded-lg bg-white shadow-sm transition-colors ${
+                Object.values(activeFilters).some((v) => v !== "")
+                  ? "border-blue-500 text-blue-600 bg-blue-50"
+                  : "border-gray-200 text-gray-600 hover:bg-gray-50"
+              }`}
+            >
               <Filter size={18} />
             </button>
-            <button className="flex items-center justify-center p-2.5 border border-gray-200 rounded-lg bg-white text-gray-600 hover:bg-gray-50 shadow-sm">
-              <Download size={18} />
+            <button
+              onClick={() => setIsDownloadOpen(true)}
+              disabled={isDownloading}
+              className="flex items-center justify-center p-2.5 border border-gray-200 rounded-lg bg-white text-gray-600 hover:bg-gray-50 shadow-sm disabled:opacity-50"
+              title="Download Excel Report"
+            >
+              <Download
+                size={18}
+                className={isDownloading ? "animate-bounce" : ""}
+              />
             </button>
           </div>
         </div>
@@ -350,9 +359,9 @@ export default function AttendancePage() {
               </h2>
             </div>
             <p className="text-sm text-gray-500">
-              Showing {(currentPage - 1) * rowsPerPage + 1}-
-              {Math.min(currentPage * rowsPerPage, filteredEmployees.length)} of{" "}
-              {filteredEmployees.length} results
+              Showing {(pagination.page - 1) * pagination.limit + 1}-
+              {Math.min(pagination.page * pagination.limit, pagination.total)}{" "}
+              of {pagination.total} results
             </p>
           </div>
 
@@ -395,41 +404,36 @@ export default function AttendancePage() {
                       </p>
                     </td>
                   </tr>
-                ) : paginatedEmployees.length === 0 ? (
+                ) : attendanceData.length === 0 ? (
                   <tr>
                     <td
                       colSpan="7"
                       className="px-6 py-12 text-center text-gray-500 bg-white"
                     >
-                      No matching records found for this date.
+                      No records found matching your filters.
                     </td>
                   </tr>
                 ) : (
-                  paginatedEmployees.map((employee) => {
-                    const status = getStatus(
-                      employee.attendance.checkInTime,
-                      employee.attendance.checkOutTime,
-                    );
+                  attendanceData.map((record) => {
+                    const employee = record.userId || {
+                      name: "Deleted User",
+                      employeeId: "N/A",
+                    };
+                    const status = record.status;
                     const hours = calculateHours(
-                      employee.attendance.checkInTime,
-                      employee.attendance.checkOutTime,
+                      record.checkInTime,
+                      record.checkOutTime,
                     );
 
                     return (
                       <tr
-                        key={employee._id}
+                        key={record._id}
                         className="hover:bg-gray-50/50 transition-colors"
                       >
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center gap-3">
                             <div className="h-10 w-10 bg-gray-100 text-gray-600 font-semibold rounded-full flex items-center justify-center text-sm border border-gray-200">
                               {employee.name.charAt(0).toUpperCase()}
-                              {employee.name.split(" ").length > 1
-                                ? employee.name
-                                    .split(" ")[1]
-                                    .charAt(0)
-                                    .toUpperCase()
-                                : ""}
                             </div>
                             <div>
                               <p className="font-semibold text-gray-900 text-sm leading-tight">
@@ -445,31 +449,33 @@ export default function AttendancePage() {
                           {employee.employeeId || "-"}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-gray-600">
-                          {employee.attendance.checkInTime
-                            ? new Date(
-                                employee.attendance.checkInTime,
-                              ).toLocaleTimeString("en-US", {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                                hour12: true,
-                              })
+                          {record.checkInTime
+                            ? new Date(record.checkInTime).toLocaleTimeString(
+                                "en-US",
+                                {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                  hour12: true,
+                                },
+                              )
                             : "—"}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-gray-600">
-                          {employee.attendance.checkOutTime
-                            ? new Date(
-                                employee.attendance.checkOutTime,
-                              ).toLocaleTimeString("en-US", {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                                hour12: true,
-                              })
+                          {record.checkOutTime
+                            ? new Date(record.checkOutTime).toLocaleTimeString(
+                                "en-US",
+                                {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                  hour12: true,
+                                },
+                              )
                             : "—"}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span
                             className={
-                              employee.attendance.checkInTime
+                              record.checkInTime
                                 ? "text-gray-900 font-medium"
                                 : "text-gray-300"
                             }
@@ -493,7 +499,7 @@ export default function AttendancePage() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right">
                           <button
-                            onClick={() => handleEditClick(employee)}
+                            onClick={() => handleEditClick(record)}
                             className="text-gray-400 hover:text-blue-600 transition-colors"
                           >
                             <Pencil size={16} />
@@ -511,10 +517,17 @@ export default function AttendancePage() {
           <div className="px-5 py-4 border-t border-gray-100 bg-white flex items-center justify-between">
             <div className="flex items-center gap-2">
               <p className="text-sm text-gray-500">Rows per page:</p>
-              <select className="text-sm bg-transparent border-none focus:ring-0 text-gray-700 font-medium cursor-pointer">
-                <option>10</option>
-                <option>20</option>
-                <option>50</option>
+              <select
+                className="text-sm bg-transparent border-none focus:ring-0 text-gray-700 font-medium cursor-pointer"
+                value={rowsPerPage}
+                onChange={(e) => {
+                  setRowsPerPage(Number(e.target.value));
+                  setCurrentPage(1);
+                }}
+              >
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
               </select>
             </div>
             <div className="flex items-center gap-2">
@@ -555,6 +568,148 @@ export default function AttendancePage() {
           </div>
         </div>
       </div>
+
+      <SideDrawer
+        isOpen={isDownloadOpen}
+        onClose={() => setIsDownloadOpen(false)}
+        title="Download Attendance Report"
+      >
+        <div className="space-y-6">
+          <p className="text-sm text-gray-500">
+            Select a date range to export the attendance records to Excel.
+          </p>
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-gray-500 uppercase">
+                From Date
+              </label>
+              <input
+                type="date"
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm bg-white"
+                value={downloadRange.from}
+                onChange={(e) =>
+                  setDownloadRange({ ...downloadRange, from: e.target.value })
+                }
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-gray-500 uppercase">
+                To Date
+              </label>
+              <input
+                type="date"
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm bg-white"
+                value={downloadRange.to}
+                onChange={(e) =>
+                  setDownloadRange({ ...downloadRange, to: e.target.value })
+                }
+              />
+            </div>
+          </div>
+
+          <div className="pt-4 flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setIsDownloadOpen(false)}
+              className="flex-1 px-4 py-3 border border-gray-200 rounded-xl text-sm font-bold text-gray-600 hover:bg-gray-50 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleDownloadExcel}
+              disabled={isDownloading}
+              className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 shadow-md shadow-blue-200 transition-all disabled:opacity-50"
+            >
+              {isDownloading ? "Generating..." : "Download Excel"}
+            </button>
+          </div>
+        </div>
+      </SideDrawer>
+
+      <SideDrawer
+        isOpen={isFilterOpen}
+        onClose={() => setIsFilterOpen(false)}
+        title="Advanced Filters"
+      >
+        <div className="space-y-6">
+          <div className="space-y-2">
+            <label className="text-xs font-bold text-gray-500 uppercase">
+              Department
+            </label>
+            <select
+              className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm appearance-none bg-white transition-all capitalize"
+              value={tempFilters.department}
+              onChange={(e) =>
+                setTempFilters({ ...tempFilters, department: e.target.value })
+              }
+            >
+              <option value="">All Departments</option>
+              <option value="Administration">Administration</option>
+              <option value="HR">HR</option>
+              <option value="Engineering">Engineering</option>
+              <option value="Design">Design</option>
+              <option value="Marketing">Marketing</option>
+            </select>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-xs font-bold text-gray-500 uppercase">
+              Attendance Status
+            </label>
+            <select
+              className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm appearance-none bg-white transition-all capitalize"
+              value={tempFilters.status}
+              onChange={(e) =>
+                setTempFilters({ ...tempFilters, status: e.target.value })
+              }
+            >
+              <option value="">All Statuses</option>
+              <option value="Present">Present</option>
+              <option value="Late">Late</option>
+              <option value="Absent">Absent</option>
+              <option value="Leave">Leave</option>
+              <option value="Half-day">Half-day</option>
+              <option value="WFH">WFH</option>
+            </select>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-xs font-bold text-gray-500 uppercase">
+              Role
+            </label>
+            <select
+              className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm appearance-none bg-white transition-all capitalize"
+              value={tempFilters.role}
+              onChange={(e) =>
+                setTempFilters({ ...tempFilters, role: e.target.value })
+              }
+            >
+              <option value="">All Roles</option>
+              <option value="ADMIN">Admin</option>
+              <option value="MANAGER">Manager</option>
+              <option value="EMPLOYEE">Employee</option>
+            </select>
+          </div>
+
+          <div className="pt-4 flex items-center gap-3">
+            <button
+              type="button"
+              onClick={handleResetFilters}
+              className="flex-1 px-4 py-3 border border-gray-200 rounded-xl text-sm font-bold text-gray-600 hover:bg-gray-50 transition-colors"
+            >
+              Reset
+            </button>
+            <button
+              onClick={handleApplyFilters}
+              className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 shadow-md shadow-blue-200 transition-all"
+            >
+              Apply Filters
+            </button>
+          </div>
+        </div>
+      </SideDrawer>
 
       {/* Edit Attendance Drawer */}
       <SideDrawer

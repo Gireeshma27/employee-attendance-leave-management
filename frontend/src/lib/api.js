@@ -210,8 +210,22 @@ class ApiService {
 
     getMyAttendance: () => this.request("/attendance/my", { method: "GET" }),
 
-    getTeamAttendance: () =>
-      this.request("/attendance/team", { method: "GET" }),
+    getTeamAttendance: (filters = {}) => {
+      const params = new URLSearchParams();
+      if (filters.page) params.append("page", filters.page);
+      if (filters.limit) params.append("limit", filters.limit);
+      if (filters.fromDate) params.append("fromDate", filters.fromDate);
+      if (filters.toDate) params.append("toDate", filters.toDate);
+      if (filters.status) params.append("status", filters.status);
+      if (filters.department) params.append("department", filters.department);
+      if (filters.role) params.append("role", filters.role);
+      if (filters.search) params.append("search", filters.search);
+
+      const query = params.toString();
+      return this.request(`/attendance/team${query ? "?" + query : ""}`, {
+        method: "GET",
+      });
+    },
 
     getReport: () => this.request("/attendance/report", { method: "GET" }),
 
@@ -220,6 +234,37 @@ class ApiService {
         method: "PUT",
         body: JSON.stringify(data),
       }),
+
+    downloadExcelReport: async (filters = {}) => {
+      const params = new URLSearchParams();
+      if (filters.fromDate) params.append("fromDate", filters.fromDate);
+      if (filters.toDate) params.append("toDate", filters.toDate);
+      if (filters.status) params.append("status", filters.status);
+      if (filters.department) params.append("department", filters.department);
+      if (filters.role) params.append("role", filters.role);
+      if (filters.search) params.append("search", filters.search);
+
+      const query = params.toString();
+      const response = await fetch(
+        `${API_BASE_URL}/attendance/export/excel${query ? "?" + query : ""}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        },
+      );
+
+      if (!response.ok) throw new Error("Excel download failed");
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Attendance_Report_${new Date().toISOString().split("T")[0]}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+    },
   };
 
   /**

@@ -21,6 +21,7 @@ export function DashboardLayout({ children, role = "employee" }) {
   const pathname = usePathname();
   const router = useRouter();
   const [user, setUser] = useState(null);
+  const [showProfileDropdown, setShowProfileDropdown] = useState(false);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -121,40 +122,54 @@ export function DashboardLayout({ children, role = "employee" }) {
           ))}
         </nav>
 
-        {/* Logout */}
-        <div className="px-3 py-6 border-t border-gray-800">
-          <button
-            onClick={handleLogout}
-            className="flex items-center w-full px-4 py-3 text-gray-300 hover:bg-gray-800 rounded-lg transition-colors"
-          >
-            <LogOut size={20} />
-            {sidebarOpen && <span className="ml-4">Logout</span>}
-          </button>
-        </div>
+        {/* Logout removed from sidebar */}
       </aside>
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
         {/* Topbar */}
-        <header className="bg-white border-b border-gray-200 px-8 py-4 flex items-center justify-between">
-          <button
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="text-gray-600 hover:text-gray-900"
-          >
-            {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
-          <div className="flex items-center gap-4">
-            <div className="text-right">
-              <p className="text-sm font-medium text-gray-900">
-                {user?.name || "Loading..."}
-              </p>
-              <p className="text-xs text-gray-500 capitalize">
-                {user?.role || "User"}
-              </p>
-            </div>
-            <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-semibold">
-              {user?.name ? user.name.charAt(0).toUpperCase() : "?"}
-            </div>
+        <header className="bg-white border-b border-gray-200 px-8 py-4 flex items-center justify-end">
+          <div className="relative">
+            <button
+              onClick={() => setShowProfileDropdown(!showProfileDropdown)}
+              className="flex items-center gap-4 hover:bg-gray-50 p-2 rounded-xl transition-colors"
+            >
+              <div className="text-right hidden sm:block">
+                <p className="text-sm font-bold text-gray-900">
+                  {user?.name || "Loading..."}
+                </p>
+                <p className="text-[11px] text-gray-500 font-medium capitalize">
+                  {user?.role || "User"}
+                </p>
+              </div>
+              <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold shadow-md shadow-blue-200">
+                {user?.name ? user.name.charAt(0).toUpperCase() : "?"}
+              </div>
+            </button>
+
+            {showProfileDropdown && (
+              <>
+                <div
+                  className="fixed inset-0 z-40"
+                  onClick={() => setShowProfileDropdown(false)}
+                ></div>
+                <div className="absolute right-0 mt-2 w-64 bg-white border border-gray-100 rounded-2xl shadow-2xl z-50 p-2 animate-in fade-in zoom-in duration-200 origin-top-right">
+                  <div className="px-4 py-3 border-b border-gray-50 mb-1">
+                    <p className="text-sm font-bold text-gray-900">
+                      {user?.name}
+                    </p>
+                    <p className="text-xs text-gray-500">{user?.email}</p>
+                  </div>
+                  <button
+                    onClick={handleLogout}
+                    className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50 rounded-xl transition-colors font-semibold"
+                  >
+                    <LogOut size={18} />
+                    Logout
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </header>
 

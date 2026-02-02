@@ -6,7 +6,7 @@ import {
   checkOut,
   getMyAttendance,
   getTeamAttendance,
-  generateReport,
+  downloadExcelReport,
   updateAttendance,
 } from "../controllers/attendance.controller.js";
 
@@ -19,7 +19,7 @@ router.get("/my", authMiddleware, getMyAttendance);
 
 // Manager and admin routes
 router.get("/team", authMiddleware, isManager, getTeamAttendance);
-router.get("/report", authMiddleware, isManager, generateReport);
+router.get("/export/excel", authMiddleware, isManager, downloadExcelReport);
 router.put("/:id", authMiddleware, isManager, updateAttendance);
 
 export default router;
