@@ -11,6 +11,7 @@ import {
   Menu,
   X,
   BarChart3,
+  MapPin,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -22,8 +23,11 @@ export function DashboardLayout({ children, role = "employee" }) {
   const router = useRouter();
   const [user, setUser] = useState(null);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
+  const [wfhMode, setWfhMode] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     if (typeof window !== "undefined") {
       const storedUser = localStorage.getItem("user");
       if (storedUser) {
@@ -33,6 +37,8 @@ export function DashboardLayout({ children, role = "employee" }) {
           console.error("Failed to parse user data");
         }
       }
+      const storedWfh = localStorage.getItem("wfhMode") === "true";
+      setWfhMode(storedWfh);
     }
   }, []);
 
@@ -79,6 +85,7 @@ export function DashboardLayout({ children, role = "employee" }) {
       { href: `/admin/employees`, label: "Employees", icon: Users },
       { href: `/admin/attendance`, label: "Attendance", icon: Clock },
       { href: `/admin/leaves`, label: "Leaves", icon: Calendar },
+      { href: `/admin/geofencing`, label: "Geofencing", icon: MapPin },
       { href: `/admin/reports`, label: "Reports", icon: BarChart3 },
     ];
 
@@ -123,6 +130,34 @@ export function DashboardLayout({ children, role = "employee" }) {
         </nav>
 
         {/* Logout removed from sidebar */}
+
+        {/* WFH Mode Toggle */}
+        <div className="mt-auto p-4 border-t border-gray-800">
+          <div className="bg-gray-800/50 rounded-xl p-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[11px] font-black text-gray-400 uppercase tracking-widest">
+                WFH Mode
+              </span>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  className="sr-only peer"
+                  checked={mounted && wfhMode}
+                  onChange={(e) => {
+                    const val = e.target.checked;
+                    setWfhMode(val);
+                    localStorage.setItem("wfhMode", val);
+                  }}
+                  disabled={!mounted}
+                />
+                <div className="w-9 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-green-600"></div>
+              </label>
+            </div>
+            <p className="text-[10px] text-gray-500 leading-relaxed">
+              Bypass restrictions for remote employees
+            </p>
+          </div>
+        </div>
       </aside>
 
       {/* Main Content */}
@@ -131,6 +166,7 @@ export function DashboardLayout({ children, role = "employee" }) {
         <header className="bg-white border-b border-gray-200 px-8 py-4 flex items-center justify-end">
           <div className="relative">
             <button
+              type="button"
               onClick={() => setShowProfileDropdown(!showProfileDropdown)}
               className="group flex items-center gap-2.5 pl-1 pr-4 py-1 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-full transition-all duration-200 shadow-sm"
             >

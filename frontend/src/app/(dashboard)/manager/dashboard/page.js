@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { Badge } from '@/components/ui/Badge';
-import { Clock, AlertCircle, Users, TrendingUp } from 'lucide-react';
-import { useState, useEffect } from 'react';
-import { apiService } from '@/lib/api';
+import { DashboardLayout } from "@/components/layout/DashboardLayout";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
+import { Badge } from "@/components/ui/Badge";
+import { Clock, AlertCircle, Users, TrendingUp } from "lucide-react";
+import { useState, useEffect } from "react";
+import { apiService } from "@/lib/api";
 
 export default function ManagerDashboard() {
   const [loading, setLoading] = useState(true);
@@ -30,12 +30,12 @@ export default function ManagerDashboard() {
         apiService.leave.getPendingLeaves(),
       ]);
 
-      const attendance = attendanceRes.data || [];
+      const attendance = attendanceRes.data?.records || [];
       const pending = leavesRes.data || [];
 
       // Extract unique team members from attendance records
       const uniqueTeamMembers = new Map();
-      attendance.forEach(record => {
+      attendance.forEach((record) => {
         if (record.userId && !uniqueTeamMembers.has(record.userId._id)) {
           uniqueTeamMembers.set(record.userId._id, record.userId);
         }
@@ -43,13 +43,13 @@ export default function ManagerDashboard() {
       const team = Array.from(uniqueTeamMembers.values());
 
       // Calculate stats
-      const today = new Date().toISOString().split('T')[0];
-      const todayAttendance = attendance.filter(a => {
-        const attendanceDate = new Date(a.date).toISOString().split('T')[0];
+      const today = new Date().toISOString().split("T")[0];
+      const todayAttendance = attendance.filter((a) => {
+        const attendanceDate = new Date(a.date).toISOString().split("T")[0];
         return attendanceDate === today;
       });
 
-      const presentCount = todayAttendance.filter(a => a.checkIn).length;
+      const presentCount = todayAttendance.filter((a) => a.checkIn).length;
       const absentCount = team.length - presentCount;
 
       setStats({
@@ -61,7 +61,7 @@ export default function ManagerDashboard() {
 
       setTeamData(team.slice(0, 5)); // Show first 5 team members
     } catch (err) {
-      console.error('Error fetching dashboard:', err);
+      console.error("Error fetching dashboard:", err);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -86,8 +86,12 @@ export default function ManagerDashboard() {
       <div className="space-y-8">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Manager Dashboard</h1>
-          <p className="text-gray-600 mt-1">Team attendance and performance overview</p>
+          <h1 className="text-3xl font-bold text-gray-900">
+            Manager Dashboard
+          </h1>
+          <p className="text-gray-600 mt-1">
+            Team attendance and performance overview
+          </p>
         </div>
 
         {error && (
@@ -103,7 +107,9 @@ export default function ManagerDashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-gray-600 text-sm">Team Size</p>
-                  <p className="text-2xl font-bold text-gray-900 mt-2">{stats.teamSize}</p>
+                  <p className="text-2xl font-bold text-gray-900 mt-2">
+                    {stats.teamSize}
+                  </p>
                 </div>
                 <Users className="text-blue-600" size={32} />
               </div>
@@ -115,7 +121,9 @@ export default function ManagerDashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-gray-600 text-sm">Present Today</p>
-                  <p className="text-2xl font-bold text-gray-900 mt-2">{stats.presentToday}</p>
+                  <p className="text-2xl font-bold text-gray-900 mt-2">
+                    {stats.presentToday}
+                  </p>
                 </div>
                 <Clock className="text-green-600" size={32} />
               </div>
@@ -127,7 +135,9 @@ export default function ManagerDashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-gray-600 text-sm">Absent Today</p>
-                  <p className="text-2xl font-bold text-gray-900 mt-2">{stats.absentToday}</p>
+                  <p className="text-2xl font-bold text-gray-900 mt-2">
+                    {stats.absentToday}
+                  </p>
                 </div>
                 <AlertCircle className="text-red-600" size={32} />
               </div>
@@ -139,7 +149,9 @@ export default function ManagerDashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-gray-600 text-sm">Pending Approvals</p>
-                  <p className="text-2xl font-bold text-gray-900 mt-2">{stats.pendingApprovals}</p>
+                  <p className="text-2xl font-bold text-gray-900 mt-2">
+                    {stats.pendingApprovals}
+                  </p>
                 </div>
                 <TrendingUp className="text-yellow-600" size={32} />
               </div>
@@ -165,8 +177,13 @@ export default function ManagerDashboard() {
                 </thead>
                 <tbody>
                   {teamData.map((member, idx) => (
-                    <tr key={idx} className="border-b border-gray-100 hover:bg-gray-50">
-                      <td className="py-3 text-gray-900 font-medium">{member.name}</td>
+                    <tr
+                      key={idx}
+                      className="border-b border-gray-100 hover:bg-gray-50"
+                    >
+                      <td className="py-3 text-gray-900 font-medium">
+                        {member.name}
+                      </td>
                       <td className="py-3 text-gray-600">-</td>
                       <td className="py-3 text-gray-600">-</td>
                       <td className="py-3">
@@ -188,7 +205,10 @@ export default function ManagerDashboard() {
           <CardContent>
             <div className="space-y-4">
               {teamData.map((emp, idx) => (
-                <div key={idx} className="border border-gray-200 rounded-lg p-4">
+                <div
+                  key={idx}
+                  className="border border-gray-200 rounded-lg p-4"
+                >
                   <div className="flex items-center justify-between mb-3">
                     <h4 className="font-semibold text-gray-900">{emp.name}</h4>
                     <span className="text-sm text-gray-600">85%</span>
@@ -196,7 +216,7 @@ export default function ManagerDashboard() {
                   <div className="w-full bg-gray-200 rounded-full h-2">
                     <div
                       className="bg-blue-600 h-2 rounded-full"
-                      style={{ width: '85%' }}
+                      style={{ width: "85%" }}
                     ></div>
                   </div>
                   <p className="text-xs text-gray-500 mt-2">Avg. 8.2h/day</p>
