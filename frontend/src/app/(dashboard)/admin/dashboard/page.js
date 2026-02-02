@@ -91,81 +91,83 @@ export default function AdminDashboard() {
 
   return (
     <DashboardLayout role="admin">
-      <div className="space-y-8">
+      <div className="space-y-6 md:space-y-8">
         {/* Header */}
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-          <p className="text-gray-600 mt-1">System-wide attendance and leave management</p>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Admin Dashboard</h1>
+            <p className="text-sm md:text-base text-gray-600 mt-1">System-wide attendance and leave management</p>
+          </div>
         </div>
 
         {/* Key Metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4">
           <Card>
             <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
                   <p className="text-gray-600 text-xs">Total Employees</p>
-                  <p className="text-2xl font-bold text-gray-900 mt-2">
+                  <p className="text-xl md:text-2xl font-bold text-gray-900 mt-2">
                     {loading ? '...' : stats.totalEmployees}
                   </p>
                 </div>
-                <Users className="text-blue-600" size={28} />
+                <Users className="text-blue-600 flex-shrink-0" size={28} />
               </div>
             </CardContent>
           </Card>
 
           <Card>
             <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
                   <p className="text-gray-600 text-xs">Present Today</p>
-                  <p className="text-2xl font-bold text-green-600 mt-2">
+                  <p className="text-xl md:text-2xl font-bold text-green-600 mt-2">
                     {loading ? '...' : stats.presentToday}
                   </p>
                 </div>
-                <Clock className="text-green-600" size={28} />
+                <Clock className="text-green-600 flex-shrink-0" size={28} />
               </div>
             </CardContent>
           </Card>
 
           <Card>
             <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
                   <p className="text-gray-600 text-xs">Absent Today</p>
-                  <p className="text-2xl font-bold text-red-600 mt-2">
+                  <p className="text-xl md:text-2xl font-bold text-red-600 mt-2">
                     {loading ? '...' : stats.absentToday}
                   </p>
                 </div>
-                <AlertCircle className="text-red-600" size={28} />
+                <AlertCircle className="text-red-600 flex-shrink-0" size={28} />
               </div>
             </CardContent>
           </Card>
 
           <Card>
             <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
                   <p className="text-gray-600 text-xs">Pending Leaves</p>
-                  <p className="text-2xl font-bold text-yellow-600 mt-2">
+                  <p className="text-xl md:text-2xl font-bold text-yellow-600 mt-2">
                     {loading ? '...' : stats.pendingLeaves}
                   </p>
                 </div>
-                <Calendar className="text-yellow-600" size={28} />
+                <Calendar className="text-yellow-600 flex-shrink-0" size={28} />
               </div>
             </CardContent>
           </Card>
 
           <Card>
             <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
                   <p className="text-gray-600 text-xs">Avg. Attendance</p>
-                  <p className="text-2xl font-bold text-purple-600 mt-2">
+                  <p className="text-xl md:text-2xl font-bold text-purple-600 mt-2">
                     {loading ? '...' : stats.avgAttendance}%
                   </p>
                 </div>
-                <BarChart3 className="text-purple-600" size={28} />
+                <BarChart3 className="text-purple-600 flex-shrink-0" size={28} />
               </div>
             </CardContent>
           </Card>
@@ -177,17 +179,17 @@ export default function AdminDashboard() {
             <CardTitle>System Status</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-gray-700">Database</span>
+            <div className="space-y-3 md:space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <span className="text-sm md:text-base text-gray-700">Database</span>
                 <Badge variant="success">Connected</Badge>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-gray-700">API Server</span>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <span className="text-sm md:text-base text-gray-700">API Server</span>
                 <Badge variant="success">Active</Badge>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-gray-700">Reports</span>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <span className="text-sm md:text-base text-gray-700">Reports</span>
                 <Badge variant="success">Running</Badge>
               </div>
             </div>

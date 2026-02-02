@@ -105,39 +105,39 @@ export default function AttendancePage() {
 
   return (
     <DashboardLayout role="employee">
-      <div className="space-y-8">
+      <div className="space-y-6 md:space-y-8">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Attendance</h1>
-          <p className="text-gray-600 mt-1">Track your daily check-in and check-out</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Attendance</h1>
+          <p className="text-xs md:text-sm text-gray-600 mt-1">Track your daily check-in and check-out</p>
         </div>
 
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-            <p className="text-red-600 text-sm">{error}</p>
+          <div className="bg-red-50 border border-red-200 rounded-lg p-3 md:p-4">
+            <p className="text-red-600 text-xs md:text-sm">{error}</p>
           </div>
         )}
 
         {/* Today's Status */}
         <Card>
           <CardHeader>
-            <CardTitle>Today's Attendance</CardTitle>
+            <CardTitle className="text-base md:text-lg">Today's Attendance</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="text-center p-4 bg-blue-50 rounded-lg">
-                  <Clock className="mx-auto text-blue-600 mb-2" size={32} />
-                  <p className="text-gray-600 text-sm">Check-in Time</p>
-                  <p className="text-2xl font-bold text-gray-900 mt-1">
+            <div className="space-y-4 md:space-y-6">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
+                <div className="text-center p-3 md:p-4 bg-blue-50 rounded-lg">
+                  <Clock className="mx-auto text-blue-600 mb-2 w-6 h-6 md:w-8 md:h-8" />
+                  <p className="text-xs md:text-sm text-gray-600">Check-in Time</p>
+                  <p className="text-lg md:text-2xl font-bold text-gray-900 mt-1">
                     {formatTime(todayAttendance?.checkIn)}
                   </p>
                 </div>
 
-                <div className="text-center p-4 bg-green-50 rounded-lg">
-                  <Clock className="mx-auto text-green-600 mb-2" size={32} />
-                  <p className="text-gray-600 text-sm">Current Time</p>
-                  <p className="text-2xl font-bold text-gray-900 mt-1">
+                <div className="text-center p-3 md:p-4 bg-green-50 rounded-lg">
+                  <Clock className="mx-auto text-green-600 mb-2 w-6 h-6 md:w-8 md:h-8" />
+                  <p className="text-xs md:text-sm text-gray-600">Current Time</p>
+                  <p className="text-lg md:text-2xl font-bold text-gray-900 mt-1">
                     {currentTime.toLocaleTimeString('en-US', { 
                       hour: '2-digit', 
                       minute: '2-digit',
@@ -146,21 +146,22 @@ export default function AttendancePage() {
                   </p>
                 </div>
 
-                <div className="text-center p-4 bg-purple-50 rounded-lg">
-                  <Clock className="mx-auto text-purple-600 mb-2" size={32} />
-                  <p className="text-gray-600 text-sm">Working Hours</p>
-                  <p className="text-2xl font-bold text-gray-900 mt-1">
+                <div className="text-center p-3 md:p-4 bg-purple-50 rounded-lg">
+                  <Clock className="mx-auto text-purple-600 mb-2 w-6 h-6 md:w-8 md:h-8" />
+                  <p className="text-xs md:text-sm text-gray-600">Working Hours</p>
+                  <p className="text-lg md:text-2xl font-bold text-gray-900 mt-1">
                     {todayAttendance?.workingHours?.toFixed(2) || '0'} hrs
                   </p>
                 </div>
               </div>
 
-              <div className="flex gap-4 justify-center">
+              <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center">
                 <Button 
                   variant="success" 
                   size="lg" 
                   disabled={!!todayAttendance?.checkIn || isSubmitting}
                   onClick={handleCheckIn}
+                  className="text-xs md:text-base"
                 >
                   {isSubmitting ? 'Processing...' : 'Check In'}
                 </Button>
@@ -169,17 +170,18 @@ export default function AttendancePage() {
                   size="lg" 
                   disabled={!todayAttendance?.checkIn || !!todayAttendance?.checkOut || isSubmitting}
                   onClick={handleCheckOut}
+                  className="text-xs md:text-base"
                 >
                   {isSubmitting ? 'Processing...' : 'Check Out'}
                 </Button>
               </div>
 
               {todayAttendance?.checkIn && (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-start gap-3">
-                  <AlertCircle className="text-green-600 flex-shrink-0 mt-0.5" size={20} />
-                  <div>
-                    <p className="font-semibold text-green-900">You are checked in</p>
-                    <p className="text-sm text-green-700 mt-1">
+                <div className="bg-green-50 border border-green-200 rounded-lg p-3 md:p-4 flex items-start gap-3">
+                  <AlertCircle className="text-green-600 flex-shrink-0 mt-0.5 w-5 h-5" />
+                  <div className="min-w-0">
+                    <p className="font-semibold text-xs md:text-sm text-green-900">You are checked in</p>
+                    <p className="text-xs md:text-sm text-green-700 mt-1">
                       You checked in at {formatTime(todayAttendance?.checkIn)}. Don't forget to check out before leaving.
                     </p>
                   </div>
@@ -192,39 +194,37 @@ export default function AttendancePage() {
         {/* Attendance History */}
         <Card>
           <CardHeader>
-            <CardTitle>Attendance History</CardTitle>
+            <CardTitle className="text-base md:text-lg">Attendance History</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+            <div className="overflow-x-auto -mx-4 md:mx-0">
+              <table className="w-full text-xs md:text-sm">
                 <thead className="border-b border-gray-200">
                   <tr className="text-gray-600">
-                    <th className="text-left py-3">Date</th>
-                    <th className="text-left py-3">Check-in</th>
-                    <th className="text-left py-3">Check-out</th>
-                    <th className="text-left py-3">Duration</th>
-                    <th className="text-left py-3">Status</th>
+                    <th className="text-left py-2 md:py-3 px-4 md:px-0">Date</th>
+                    <th className="text-left py-2 md:py-3 px-4 md:px-0 hidden sm:table-cell">Check-in</th>
+                    <th className="text-left py-2 md:py-3 px-4 md:px-0 hidden md:table-cell">Check-out</th>
+                    <th className="text-left py-2 md:py-3 px-4 md:px-0">Duration</th>
+                    <th className="text-left py-2 md:py-3 px-4 md:px-0 hidden lg:table-cell">Status</th>
                   </tr>
                 </thead>
                 <tbody>
                   {attendanceHistory.length > 0 ? (
                     attendanceHistory.map((record, idx) => (
                       <tr key={idx} className="border-b border-gray-100 hover:bg-gray-50">
-                        <td className="py-3 text-gray-900">{formatDate(record.date)}</td>
-                        <td className="py-3 text-gray-600">{formatTime(record.checkIn)}</td>
-                        <td className="py-3 text-gray-600">{formatTime(record.checkOut)}</td>
-                        <td className="py-3 text-gray-900 font-medium">
+                        <td className="py-2 md:py-3 px-4 md:px-0 text-gray-900 text-xs md:text-sm">{formatDate(record.date)}</td>
+                        <td className="py-2 md:py-3 px-4 md:px-0 text-gray-600 hidden sm:table-cell text-xs md:text-sm">{formatTime(record.checkIn)}</td>
+                        <td className="py-2 md:py-3 px-4 md:px-0 text-gray-600 hidden md:table-cell text-xs md:text-sm">{formatTime(record.checkOut)}</td>
+                        <td className="py-2 md:py-3 px-4 md:px-0 text-gray-900 font-medium text-xs md:text-sm">
                           {record.workingHours ? `${Math.floor(record.workingHours)}h ${Math.round((record.workingHours % 1) * 60)}m` : '-'}
                         </td>
-                        <td className="py-3">
+                        <td className="py-2 md:py-3 px-4 md:px-0 hidden lg:table-cell">
                           <Badge
-                            variant={
-                              record.status === 'present'
-                                ? 'success'
-                                : record.status === 'absent'
-                                ? 'danger'
-                                : 'secondary'
-                            }
+                            variant={{
+                              present: 'success',
+                              absent: 'danger',
+                            }[record.status] || 'secondary'}
+                            className="text-xs"
                           >
                             {record.status?.charAt(0).toUpperCase() + record.status?.slice(1) || 'Pending'}
                           </Badge>
@@ -233,7 +233,7 @@ export default function AttendancePage() {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan="5" className="py-3 text-center text-gray-500">
+                      <td colSpan="5" className="py-3 text-center text-gray-500 text-xs md:text-sm">
                         No attendance records found
                       </td>
                     </tr>

@@ -15,7 +15,7 @@ import {
 import { useState } from 'react';
 
 export function DashboardLayout({ children, role = 'employee' }) {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
 
   const getSidebarLinks = () => {
@@ -48,68 +48,83 @@ export function DashboardLayout({ children, role = 'employee' }) {
   const links = getSidebarLinks();
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex flex-col md:flex-row h-screen bg-gray-50">
+      {/* Mobile Backdrop */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 md:hidden z-30"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
       <aside
         className={`${
-          sidebarOpen ? 'w-64' : 'w-20'
-        } bg-gray-900 text-white transition-all duration-300 flex flex-col`}
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        } fixed md:static md:translate-x-0 left-0 top-0 w-64 h-screen bg-gray-900 text-white transition-transform duration-300 flex flex-col z-40`}
       >
         {/* Logo */}
-        <div className="px-6 py-8 border-b border-gray-800">
-          <h1 className={`font-bold text-xl ${!sidebarOpen && 'hidden'}`}>AttendEase</h1>
+        <div className="flex items-center justify-between px-6 py-8 border-b border-gray-800">
+          <h1 className="font-bold text-xl">AttendEase</h1>
+          <button
+            onClick={() => setSidebarOpen(false)}
+            className="md:hidden text-gray-400 hover:text-white"
+          >
+            <X size={24} />
+          </button>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 px-3 py-6">
+        <nav className="flex-1 px-3 py-6 space-y-2">
           {links.map(({ href, label, icon: Icon }) => (
             <Link
               key={href}
               href={href}
-              className={`flex items-center px-4 py-3 mb-2 rounded-lg transition-colors ${
+              onClick={() => setSidebarOpen(false)}
+              className={`flex items-center gap-4 px-4 py-3 rounded-lg transition-colors whitespace-nowrap ${
                 pathname === href
                   ? 'bg-blue-600 text-white'
                   : 'text-gray-300 hover:bg-gray-800'
               }`}
             >
               <Icon size={20} className="flex-shrink-0" />
-              {sidebarOpen && <span className="ml-4">{label}</span>}
+              <span>{label}</span>
             </Link>
           ))}
         </nav>
 
         {/* Logout */}
         <div className="px-3 py-6 border-t border-gray-800">
-          <button className="flex items-center w-full px-4 py-3 text-gray-300 hover:bg-gray-800 rounded-lg transition-colors">
-            <LogOut size={20} />
-            {sidebarOpen && <span className="ml-4">Logout</span>}
+          <button className="flex items-center gap-4 w-full px-4 py-3 text-gray-300 hover:bg-gray-800 rounded-lg transition-colors whitespace-nowrap">
+            <LogOut size={20} className="flex-shrink-0" />
+            <span>Logout</span>
           </button>
         </div>
       </aside>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col w-full">
         {/* Topbar */}
-        <header className="bg-white border-b border-gray-200 px-8 py-4 flex items-center justify-between">
+        <header className="bg-white border-b border-gray-200 px-4 md:px-8 py-4 flex items-center justify-between">
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
             className="text-gray-600 hover:text-gray-900"
           >
             {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
-          <div className="flex items-center gap-4">
+          <div className="hidden sm:flex items-center gap-4">
             <div className="text-right">
               <p className="text-sm font-medium text-gray-900">John Doe</p>
               <p className="text-xs text-gray-500">Employee</p>
             </div>
-            <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-semibold">
+            <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
               JD
             </div>
           </div>
         </header>
 
         {/* Content */}
-        <main className="flex-1 overflow-auto p-8">{children}</main>
+        <main className="flex-1 overflow-auto p-4 md:p-6 lg:p-8 w-full">{children}</main>
       </div>
     </div>
   );
@@ -117,11 +132,11 @@ export function DashboardLayout({ children, role = 'employee' }) {
 
 export function AuthLayout({ children }) {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center px-4 py-8">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">AttendEase</h1>
-          <p className="text-blue-100">Employee Attendance & Leave Management</p>
+          <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">AttendEase</h1>
+          <p className="text-sm md:text-base text-blue-100">Employee Attendance & Leave Management</p>
         </div>
         {children}
       </div>

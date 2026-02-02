@@ -61,42 +61,42 @@ export default function EmployeeDashboard() {
 
   return (
     <DashboardLayout role="employee">
-      <div className="space-y-8">
+      <div className="space-y-6 md:space-y-8">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
             Welcome back, {user?.firstName || 'Employee'}!
           </h1>
-          <p className="text-gray-600 mt-1">Here's your attendance overview for today</p>
+          <p className="text-sm md:text-base text-gray-600 mt-1">Here's your attendance overview for today</p>
         </div>
 
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-            <p className="text-red-600 text-sm">{error}</p>
+            <p className="text-sm text-red-600">{error}</p>
           </div>
         )}
 
         {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
           <Card>
             <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                  <p className="text-gray-600 text-sm">Today's Status</p>
-                  <p className="text-2xl font-bold text-gray-900 mt-2">
+                  <p className="text-gray-600 text-xs md:text-sm">Today's Status</p>
+                  <p className="text-xl md:text-2xl font-bold text-gray-900 mt-2">
                     <Badge variant={todayStatus?.status === 'checked-in' ? 'success' : 'secondary'}>
                       {todayStatus?.status === 'checked-in' ? 'Present' : 'Not Checked In'}
                     </Badge>
                   </p>
                 </div>
-                <Clock className="text-blue-600" size={32} />
+                <Clock className="text-blue-600 flex-shrink-0" size={32} />
               </div>
             </CardContent>
           </Card>
 
           <Card>
             <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
                   <p className="text-gray-600 text-sm">Working Hours</p>
                   <p className="text-2xl font-bold text-gray-900 mt-2">

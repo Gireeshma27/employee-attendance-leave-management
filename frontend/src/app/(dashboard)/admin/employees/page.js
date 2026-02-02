@@ -66,17 +66,17 @@ export default function EmployeesPage() {
 
   return (
     <DashboardLayout role="admin">
-      <div className="space-y-8">
+      <div className="space-y-6 md:space-y-8">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Employees</h1>
-            <p className="text-gray-600 mt-1">Manage all employees in the system</p>
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Employees</h1>
+            <p className="text-sm md:text-base text-gray-600 mt-1">Manage all employees in the system</p>
           </div>
           <Button
             variant="primary"
             size="md"
-            className="flex items-center gap-2"
+            className="flex items-center justify-center gap-2 w-full sm:w-auto"
             onClick={() => setIsAddModalOpen(true)}
           >
             <Plus size={18} />
@@ -85,7 +85,7 @@ export default function EmployeesPage() {
         </div>
 
         {/* Search & Filters */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Search
@@ -104,7 +104,7 @@ export default function EmployeesPage() {
             <select
               value={roleFilter}
               onChange={(e) => setRoleFilter(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
             >
               <option value="">All Roles</option>
               <option value="ADMIN">Admin</option>
@@ -120,7 +120,7 @@ export default function EmployeesPage() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
             >
               <option value="">All Statuses</option>
               <option value="active">Active</option>
@@ -128,14 +128,14 @@ export default function EmployeesPage() {
             </select>
           </div>
 
-          <div>
+          <div className="flex items-end">
             <button
               onClick={() => {
                 setSearchTerm('');
                 setRoleFilter('');
                 setStatusFilter('');
               }}
-              className="mt-7 px-4 py-2 text-sm text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              className="w-full px-4 py-2 text-sm text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
             >
               Clear Filters
             </button>
@@ -146,7 +146,7 @@ export default function EmployeesPage() {
         {error && (
           <Card className="border-red-200 bg-red-50">
             <CardContent className="pt-6">
-              <p className="text-red-700">{error}</p>
+              <p className="text-sm md:text-base text-red-700">{error}</p>
             </CardContent>
           </Card>
         )}
@@ -169,14 +169,14 @@ export default function EmployeesPage() {
               <CardTitle>Employee Directory ({employees.length})</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
+              <div className="overflow-x-auto -mx-4 md:mx-0">
+                <table className="w-full text-xs md:text-sm">
                   <thead className="border-b border-gray-200 bg-gray-50">
                     <tr className="text-gray-600">
                       <th className="text-left py-3 px-4">Name</th>
                       <th className="text-left py-3 px-4">Email</th>
-                      <th className="text-left py-3 px-4">Employee ID</th>
-                      <th className="text-left py-3 px-4">Role</th>
+                      <th className="text-left py-3 px-4 hidden sm:table-cell">Employee ID</th>
+                      <th className="text-left py-3 px-4 hidden md:table-cell">Role</th>
                       <th className="text-left py-3 px-4">Status</th>
                       <th className="text-center py-3 px-4">Action</th>
                     </tr>
@@ -185,16 +185,18 @@ export default function EmployeesPage() {
                     {employees.map((emp) => (
                       <tr
                         key={emp._id}
-                        className="border-b border-gray-100 hover:bg-gray-50"
+                        className="border-b border-gray-100 hover:bg-gray-50 text-xs md:text-sm"
                       >
-                        <td className="py-4 px-4 font-medium text-gray-900">
+                        <td className="py-4 px-4 font-medium text-gray-900 max-w-xs truncate">
                           {emp.name}
                         </td>
-                        <td className="py-4 px-4 text-gray-600">{emp.email}</td>
-                        <td className="py-4 px-4 text-gray-600">
+                        <td className="py-4 px-4 text-gray-600 max-w-xs truncate text-xs md:text-sm">
+                          {emp.email}
+                        </td>
+                        <td className="py-4 px-4 text-gray-600 hidden sm:table-cell">
                           {emp.employeeId || 'N/A'}
                         </td>
-                        <td className="py-4 px-4 text-gray-600 capitalize">
+                        <td className="py-4 px-4 text-gray-600 capitalize hidden md:table-cell">
                           {emp.role}
                         </td>
                         <td className="py-4 px-4">
@@ -237,27 +239,27 @@ export default function EmployeesPage() {
 
         {/* Summary */}
         {!loading && employees.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
             <Card>
               <CardContent className="pt-6 text-center">
-                <p className="text-gray-600 text-sm">Total Employees</p>
-                <p className="text-3xl font-bold text-gray-900 mt-2">
+                <p className="text-gray-600 text-xs md:text-sm">Total Employees</p>
+                <p className="text-2xl md:text-3xl font-bold text-gray-900 mt-2">
                   {employees.length}
                 </p>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="pt-6 text-center">
-                <p className="text-gray-600 text-sm">Active</p>
-                <p className="text-3xl font-bold text-green-600 mt-2">
+                <p className="text-gray-600 text-xs md:text-sm">Active</p>
+                <p className="text-2xl md:text-3xl font-bold text-green-600 mt-2">
                   {activeCount}
                 </p>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="pt-6 text-center">
-                <p className="text-gray-600 text-sm">Inactive</p>
-                <p className="text-3xl font-bold text-gray-600 mt-2">
+                <p className="text-gray-600 text-xs md:text-sm">Inactive</p>
+                <p className="text-2xl md:text-3xl font-bold text-gray-600 mt-2">
                   {inactiveCount}
                 </p>
               </CardContent>

@@ -95,57 +95,57 @@ export default function LeavePage() {
 
   return (
     <DashboardLayout role="employee">
-      <div className="space-y-8">
+      <div className="space-y-6 md:space-y-8">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Leave Management</h1>
-            <p className="text-gray-600 mt-1">Apply and track your leaves</p>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 md:gap-4">
+          <div className="min-w-0">
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Leave Management</h1>
+            <p className="text-xs md:text-sm text-gray-600 mt-1">Apply and track your leaves</p>
           </div>
           <Button
             variant="primary"
             size="lg"
             onClick={() => setShowForm(!showForm)}
-            className="flex items-center gap-2"
+            className="flex items-center justify-center gap-2 w-full sm:w-auto text-xs md:text-base"
           >
-            <Plus size={20} />
+            <Plus size={16} className="md:w-5 md:h-5" />
             Apply Leave
           </Button>
         </div>
 
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-            <p className="text-red-600 text-sm">{error}</p>
+          <div className="bg-red-50 border border-red-200 rounded-lg p-3 md:p-4">
+            <p className="text-red-600 text-xs md:text-sm">{error}</p>
           </div>
         )}
 
         {/* Leave Balance */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
           <Card>
-            <CardContent className="pt-6">
+            <CardContent className="pt-4 md:pt-6">
               <div>
-                <p className="text-gray-600 text-sm">Casual Leave</p>
-                <p className="text-3xl font-bold text-blue-600 mt-2">{leaveBalance.casual || 12}</p>
+                <p className="text-xs md:text-sm text-gray-600">Casual Leave</p>
+                <p className="text-2xl md:text-3xl font-bold text-blue-600 mt-1 md:mt-2">{leaveBalance.casual || 12}</p>
                 <p className="text-xs text-gray-500 mt-1">days remaining</p>
               </div>
             </CardContent>
           </Card>
 
           <Card>
-            <CardContent className="pt-6">
+            <CardContent className="pt-4 md:pt-6">
               <div>
-                <p className="text-gray-600 text-sm">Sick Leave</p>
-                <p className="text-3xl font-bold text-green-600 mt-2">{leaveBalance.sick || 8}</p>
+                <p className="text-xs md:text-sm text-gray-600">Sick Leave</p>
+                <p className="text-2xl md:text-3xl font-bold text-green-600 mt-1 md:mt-2">{leaveBalance.sick || 8}</p>
                 <p className="text-xs text-gray-500 mt-1">days remaining</p>
               </div>
             </CardContent>
           </Card>
 
           <Card>
-            <CardContent className="pt-6">
+            <CardContent className="pt-4 md:pt-6">
               <div>
-                <p className="text-gray-600 text-sm">Paid Leave</p>
-                <p className="text-3xl font-bold text-orange-600 mt-2">{leaveBalance.paid || 18}</p>
+                <p className="text-xs md:text-sm text-gray-600">Paid Leave</p>
+                <p className="text-2xl md:text-3xl font-bold text-orange-600 mt-1 md:mt-2">{leaveBalance.paid || 18}</p>
                 <p className="text-xs text-gray-500 mt-1">days remaining</p>
               </div>
             </CardContent>
@@ -156,23 +156,23 @@ export default function LeavePage() {
         {showForm && (
           <Card>
             <CardHeader>
-              <CardTitle>Apply for Leave</CardTitle>
+              <CardTitle className="text-base md:text-lg">Apply for Leave</CardTitle>
             </CardHeader>
             <CardContent>
               {formError && (
                 <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
-                  <p className="text-red-600 text-sm">{formError}</p>
+                  <p className="text-red-600 text-xs md:text-sm">{formError}</p>
                 </div>
               )}
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-4 md:space-y-5">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">
                     Leave Type *
                   </label>
                   <select
                     value={formData.leaveType}
                     onChange={(e) => setFormData({ ...formData, leaveType: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 md:px-4 py-2 md:py-2.5 text-xs md:text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required
                   >
                     <option value="">Select leave type</option>
@@ -182,7 +182,7 @@ export default function LeavePage() {
                   </select>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
                   <Input
                     label="From Date"
                     type="date"
@@ -200,26 +200,27 @@ export default function LeavePage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">
                     Reason for Leave *
                   </label>
                   <textarea
                     value={formData.reason}
                     onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
                     placeholder="Please provide a reason for your leave request"
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                    className="w-full px-3 md:px-4 py-2 md:py-2.5 text-xs md:text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
                     rows="4"
                     required
                   />
                 </div>
 
-                <div className="flex gap-4 justify-end">
+                <div className="flex flex-col-reverse sm:flex-row gap-3 justify-end pt-2 md:pt-4">
                   <Button 
                     variant="secondary" 
                     onClick={() => {
                       setShowForm(false);
                       setFormError('');
                     }}
+                    className="text-xs md:text-base"
                   >
                     Cancel
                   </Button>
@@ -227,6 +228,7 @@ export default function LeavePage() {
                     variant="primary" 
                     type="submit"
                     disabled={isSubmitting}
+                    className="text-xs md:text-base"
                   >
                     {isSubmitting ? 'Submitting...' : 'Submit Application'}
                   </Button>
@@ -239,35 +241,34 @@ export default function LeavePage() {
         {/* Leave Applications */}
         <Card>
           <CardHeader>
-            <CardTitle>Your Leave Applications</CardTitle>
+            <CardTitle className="text-base md:text-lg">Your Leave Applications</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
+            <div className="space-y-3 md:space-y-4">
               {leaveApplications.length > 0 ? (
                 leaveApplications.map((leave) => (
                   <div
                     key={leave._id}
-                    className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors"
+                    className="border border-gray-200 rounded-lg p-3 md:p-4 hover:bg-gray-50 transition-colors"
                   >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <h3 className="font-semibold text-gray-900 capitalize">
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
+                          <h3 className="font-semibold text-xs md:text-sm text-gray-900 capitalize">
                             {leave.leaveType} Leave
                           </h3>
                           <Badge
-                            variant={
-                              leave.status === 'approved'
-                                ? 'success'
-                                : leave.status === 'pending'
-                                ? 'secondary'
-                                : 'danger'
-                            }
+                            variant={{
+                              approved: 'success',
+                              pending: 'secondary',
+                              rejected: 'danger',
+                            }[leave.status] || 'secondary'}
+                            className="text-xs w-fit"
                           >
                             {leave.status?.charAt(0).toUpperCase() + leave.status?.slice(1)}
                           </Badge>
                         </div>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-xs md:text-sm text-gray-600">
                           {new Date(leave.startDate).toLocaleDateString('en-US', {
                             month: 'short',
                             day: 'numeric',
@@ -286,8 +287,8 @@ export default function LeavePage() {
                   </div>
                 ))
               ) : (
-                <div className="text-center py-8">
-                  <p className="text-gray-500">No leave applications found</p>
+                <div className="text-center py-6 md:py-8">
+                  <p className="text-xs md:text-sm text-gray-500">No leave applications found</p>
                 </div>
               )}
             </div>

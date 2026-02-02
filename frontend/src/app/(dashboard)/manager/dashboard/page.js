@@ -83,65 +83,65 @@ export default function ManagerDashboard() {
 
   return (
     <DashboardLayout role="manager">
-      <div className="space-y-8">
+      <div className="space-y-6 md:space-y-8">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Manager Dashboard</h1>
-          <p className="text-gray-600 mt-1">Team attendance and performance overview</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Manager Dashboard</h1>
+          <p className="text-xs md:text-sm text-gray-600 mt-1">Team attendance and performance overview</p>
         </div>
 
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-            <p className="text-red-600 text-sm">{error}</p>
+          <div className="bg-red-50 border border-red-200 rounded-lg p-3 md:p-4">
+            <p className="text-red-600 text-xs md:text-sm">{error}</p>
           </div>
         )}
 
         {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
           <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-gray-600 text-sm">Team Size</p>
-                  <p className="text-2xl font-bold text-gray-900 mt-2">{stats.teamSize}</p>
+            <CardContent className="pt-4 md:pt-6">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs md:text-sm text-gray-600">Team Size</p>
+                  <p className="text-xl md:text-2xl font-bold text-gray-900 mt-1 md:mt-2">{stats.teamSize}</p>
                 </div>
-                <Users className="text-blue-600" size={32} />
+                <Users className="text-blue-600 flex-shrink-0 w-6 h-6 md:w-8 md:h-8" />
               </div>
             </CardContent>
           </Card>
 
           <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-gray-600 text-sm">Present Today</p>
-                  <p className="text-2xl font-bold text-gray-900 mt-2">{stats.presentToday}</p>
+            <CardContent className="pt-4 md:pt-6">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs md:text-sm text-gray-600">Present Today</p>
+                  <p className="text-xl md:text-2xl font-bold text-gray-900 mt-1 md:mt-2">{stats.presentToday}</p>
                 </div>
-                <Clock className="text-green-600" size={32} />
+                <Clock className="text-green-600 flex-shrink-0 w-6 h-6 md:w-8 md:h-8" />
               </div>
             </CardContent>
           </Card>
 
           <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-gray-600 text-sm">Absent Today</p>
-                  <p className="text-2xl font-bold text-gray-900 mt-2">{stats.absentToday}</p>
+            <CardContent className="pt-4 md:pt-6">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs md:text-sm text-gray-600">Absent Today</p>
+                  <p className="text-xl md:text-2xl font-bold text-gray-900 mt-1 md:mt-2">{stats.absentToday}</p>
                 </div>
-                <AlertCircle className="text-red-600" size={32} />
+                <AlertCircle className="text-red-600 flex-shrink-0 w-6 h-6 md:w-8 md:h-8" />
               </div>
             </CardContent>
           </Card>
 
           <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-gray-600 text-sm">Pending Approvals</p>
-                  <p className="text-2xl font-bold text-gray-900 mt-2">{stats.pendingApprovals}</p>
+            <CardContent className="pt-4 md:pt-6">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs md:text-sm text-gray-600">Pending Approvals</p>
+                  <p className="text-xl md:text-2xl font-bold text-gray-900 mt-1 md:mt-2">{stats.pendingApprovals}</p>
                 </div>
-                <TrendingUp className="text-yellow-600" size={32} />
+                <TrendingUp className="text-yellow-600 flex-shrink-0 w-6 h-6 md:w-8 md:h-8" />
               </div>
             </CardContent>
           </Card>
@@ -150,26 +150,26 @@ export default function ManagerDashboard() {
         {/* Team Attendance */}
         <Card>
           <CardHeader>
-            <CardTitle>Team Attendance Today</CardTitle>
+            <CardTitle className="text-base md:text-lg">Team Attendance Today</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+            <div className="overflow-x-auto -mx-4 md:mx-0">
+              <table className="w-full text-xs md:text-sm">
                 <thead className="border-b border-gray-200">
                   <tr className="text-gray-600">
-                    <th className="text-left py-3">Employee</th>
-                    <th className="text-left py-3">Check-in</th>
-                    <th className="text-left py-3">Check-out</th>
-                    <th className="text-left py-3">Status</th>
+                    <th className="text-left py-2 md:py-3 px-4 md:px-0">Employee</th>
+                    <th className="text-left py-2 md:py-3 px-4 md:px-0 hidden sm:table-cell">Check-in</th>
+                    <th className="text-left py-2 md:py-3 px-4 md:px-0 hidden md:table-cell">Check-out</th>
+                    <th className="text-left py-2 md:py-3 px-4 md:px-0">Status</th>
                   </tr>
                 </thead>
                 <tbody>
                   {teamData.map((member, idx) => (
                     <tr key={idx} className="border-b border-gray-100 hover:bg-gray-50">
-                      <td className="py-3 text-gray-900 font-medium">{member.name}</td>
-                      <td className="py-3 text-gray-600">-</td>
-                      <td className="py-3 text-gray-600">-</td>
-                      <td className="py-3">
+                      <td className="py-2 md:py-3 px-4 md:px-0 text-gray-900 font-medium">{member.name}</td>
+                      <td className="py-2 md:py-3 px-4 md:px-0 text-gray-600 hidden sm:table-cell">-</td>
+                      <td className="py-2 md:py-3 px-4 md:px-0 text-gray-600 hidden md:table-cell">-</td>
+                      <td className="py-2 md:py-3 px-4 md:px-0">
                         <Badge variant="info">Active</Badge>
                       </td>
                     </tr>
@@ -183,15 +183,15 @@ export default function ManagerDashboard() {
         {/* Team Performance */}
         <Card>
           <CardHeader>
-            <CardTitle>Team Performance (This Month)</CardTitle>
+            <CardTitle className="text-base md:text-lg">Team Performance (This Month)</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
+            <div className="space-y-3 md:space-y-4">
               {teamData.map((emp, idx) => (
-                <div key={idx} className="border border-gray-200 rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <h4 className="font-semibold text-gray-900">{emp.name}</h4>
-                    <span className="text-sm text-gray-600">85%</span>
+                <div key={idx} className="border border-gray-200 rounded-lg p-3 md:p-4">
+                  <div className="flex items-center justify-between mb-2 md:mb-3">
+                    <h4 className="font-semibold text-xs md:text-sm text-gray-900">{emp.name}</h4>
+                    <span className="text-xs md:text-sm text-gray-600">85%</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
                     <div
@@ -199,7 +199,7 @@ export default function ManagerDashboard() {
                       style={{ width: '85%' }}
                     ></div>
                   </div>
-                  <p className="text-xs text-gray-500 mt-2">Avg. 8.2h/day</p>
+                  <p className="text-xs text-gray-500 mt-1 md:mt-2">Avg. 8.2h/day</p>
                 </div>
               ))}
             </div>

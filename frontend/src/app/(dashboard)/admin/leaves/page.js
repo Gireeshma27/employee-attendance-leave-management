@@ -4,163 +4,194 @@ import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
-import { Button } from '@/components/ui/Button';
 import apiService from '@/lib/api';
 
-export default function LeavesPage() {
-  const [leaveRequests, setLeaveRequests] = useState([]);
+export default function AdminLeavesPage() {
+  const [leaves, setLeaves] = useState([]);
+  const [stats, setStats] = useState({
+    totalPending: 0,
+    totalApproved: 0,
+    totalRejected: 0,
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [actionLoading, setActionLoading] = useState(null);
 
   useEffect(() => {
-    fetchLeaveRequests();
+    fetchLeaveData();
   }, []);
 
-  const fetchLeaveRequests = async () => {
+  const fetchLeaveData = async () => {
     try {
       setLoading(true);
       setError(null);
-      const res = await apiService.leave.getPendingLeaves();
-      setLeaveRequests(res.data || []);
+      const res = await apiService.leave.getAllLeavesAdmin();
+      setLeaves(res.data?.leaves || []);
+      setStats({
+        totalPending: res.data?.totalPending || 0,
+        totalApproved: res.data?.totalApproved || 0,
+        totalRejected: res.data?.totalRejected || 0,
+      });
     } catch (err) {
-      console.error('Error fetching leave requests:', err);
+      console.error('Error fetching leave data:', err);
       setError(err.message || 'Failed to load leave requests');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleApprove = async (leaveId) => {
-    try {
-      setActionLoading(leaveId);
-      await apiService.leave.approve(leaveId, { status: 'approved' });
-      setLeaveRequests(leaveRequests.filter((req) => req._id !== leaveId));
-    } catch (err) {
-      console.error('Error approving leave:', err);
-      alert('Failed to approve leave: ' + (err.message || 'Unknown error'));
-    } finally {
-      setActionLoading(null);
+  const getStatusVariant = (status) => {
+    switch (status) {
+      case 'Pending':
+        return 'warning';
+      case 'Approved':
+        return 'success';
+      case 'Rejected':
+        return 'danger';
+      default:
+        return 'default';
     }
   };
 
-  const handleReject = async (leaveId) => {
-    try {
-      setActionLoading(leaveId);
-      await apiService.leave.reject(leaveId, { status: 'rejected' });
-      setLeaveRequests(leaveRequests.filter((req) => req._id !== leaveId));
-    } catch (err) {
-      console.error('Error rejecting leave:', err);
-      alert('Failed to reject leave: ' + (err.message || 'Unknown error'));
-    } finally {
-      setActionLoading(null);
-    }
+  const formatDate = (date) => {
+    if (!date) return '-';
+    return new Date(date).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
   };
 
-  const pendingCount = leaveRequests.length;
+  const formatDateTime = (date) => {
+    if (!date) return '-';
+    return new Date(date).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
+  };
 
   return (
     <DashboardLayout role="admin">
-      <div className="space-y-8">
+      <div className="space-y-6 md:space-y-8">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Leave Management</h1>
-          <p className="text-gray-600 mt-1">
-            Manage all leave requests across the organization
-          </p>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Leave Management</h1>
+          <p className="text-xs md:text-sm text-gray-600 mt-1">System-wide leave request overview</p>
         </div>
+
+        {/* Error State */}
+        {error && (
+          <Card className="border-red-200 bg-red-50">
+            <CardContent className="pt-4 md:pt-6">
+              <p className="text-red-700 text-xs md:text-sm">{error}</p>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Summary Stats */}
         {!loading && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
+            {/* Pending Requests */}
             <Card>
-              <CardContent className="pt-6 text-center">
-                <p className="text-gray-600 text-sm">Pending Requests</p>
-                <p className="text-3xl font-bold text-yellow-600 mt-2">{pendingCount}</p>
+              <CardContent className="pt-4 md:pt-6 text-center">
+                <p className="text-xs md:text-sm text-gray-600">Pending Requests</p>
+                <p className="text-2xl md:text-3xl font-bold text-yellow-600 mt-1 md:mt-2">
+                  {stats.totalPending}
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Approved Leaves */}
+            <Card>
+              <CardContent className="pt-4 md:pt-6 text-center">
+                <p className="text-xs md:text-sm text-gray-600">Approved Leaves</p>
+                <p className="text-2xl md:text-3xl font-bold text-green-600 mt-1 md:mt-2">
+                  {stats.totalApproved}
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Rejected Leaves */}
+            <Card>
+              <CardContent className="pt-4 md:pt-6 text-center">
+                <p className="text-xs md:text-sm text-gray-600">Rejected Leaves</p>
+                <p className="text-2xl md:text-3xl font-bold text-red-600 mt-1 md:mt-2">
+                  {stats.totalRejected}
+                </p>
               </CardContent>
             </Card>
           </div>
         )}
 
-        {/* Error State */}
-        {error && (
-          <Card className="border-red-200 bg-red-50">
-            <CardContent className="pt-6">
-              <p className="text-red-700">{error}</p>
-            </CardContent>
-          </Card>
-        )}
-
         {/* Loading State */}
         {loading && (
           <Card>
-            <CardContent className="pt-6">
-              <div className="text-center py-8">
-                <p className="text-gray-600">Loading leave requests...</p>
+            <CardContent className="pt-4 md:pt-6">
+              <div className="text-center py-6 md:py-8">
+                <p className="text-xs md:text-sm text-gray-600">Loading leave requests...</p>
               </div>
             </CardContent>
           </Card>
         )}
 
-        {/* Leave Requests Table */}
-        {!loading && leaveRequests.length > 0 && (
+        {/* Leaves Table */}
+        {!loading && (
           <Card>
             <CardHeader>
-              <CardTitle>Pending Leave Requests ({leaveRequests.length})</CardTitle>
+              <CardTitle className="text-base md:text-lg">All Leave Requests ({leaves.length})</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
+              <div className="overflow-x-auto -mx-4 md:mx-0">
+                <table className="w-full text-xs md:text-sm">
                   <thead className="border-b border-gray-200 bg-gray-50">
                     <tr className="text-gray-600">
-                      <th className="text-left py-3 px-4">Employee</th>
-                      <th className="text-left py-3 px-4">Leave Type</th>
-                      <th className="text-left py-3 px-4">From</th>
-                      <th className="text-left py-3 px-4">To</th>
-                      <th className="text-center py-3 px-4">Days</th>
-                      <th className="text-left py-3 px-4">Reason</th>
-                      <th className="text-center py-3 px-4">Action</th>
+                      <th className="text-left py-2 md:py-3 px-4 md:px-4">Applied Date</th>
+                      <th className="text-left py-2 md:py-3 px-4 md:px-4 hidden sm:table-cell">Employee ID</th>
+                      <th className="text-left py-2 md:py-3 px-4 md:px-4">Employee Name</th>
+                      <th className="text-left py-2 md:py-3 px-4 md:px-4 hidden sm:table-cell">Department</th>
+                      <th className="text-left py-2 md:py-3 px-4 md:px-4 hidden md:table-cell">Leave Duration</th>
+                      <th className="text-left py-2 md:py-3 px-4 md:px-4">Status</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {leaveRequests.map((request) => (
-                      <tr key={request._id} className="border-b border-gray-100 hover:bg-gray-50">
-                        <td className="py-4 px-4 font-medium text-gray-900">
-                          {request.userId?.name || 'Unknown'}
-                        </td>
-                        <td className="py-4 px-4 text-gray-600">{request.leaveType}</td>
-                        <td className="py-4 px-4 text-gray-600">
-                          {new Date(request.startDate).toLocaleDateString()}
-                        </td>
-                        <td className="py-4 px-4 text-gray-600">
-                          {new Date(request.endDate).toLocaleDateString()}
-                        </td>
-                        <td className="py-4 px-4 text-center font-medium">
-                          {request.days}
-                        </td>
-                        <td className="py-4 px-4 text-gray-600">{request.reason}</td>
-                        <td className="py-4 px-4">
-                          <div className="flex items-center justify-center gap-2">
-                            <Button
-                              variant="danger"
-                              size="sm"
-                              onClick={() => handleReject(request._id)}
-                              disabled={actionLoading === request._id}
+                    {leaves.length > 0 ? (
+                      leaves.map((leave) => (
+                        <tr
+                          key={leave._id}
+                          className="border-b border-gray-100 hover:bg-gray-50"
+                        >
+                          <td className="py-2 md:py-4 px-4 text-gray-600 text-xs md:text-sm">
+                            {formatDateTime(leave.appliedDate)}
+                          </td>
+                          <td className="py-2 md:py-4 px-4 text-gray-600 hidden sm:table-cell text-xs md:text-sm">
+                            {leave.employeeId}
+                          </td>
+                          <td className="py-2 md:py-4 px-4 font-medium text-gray-900 text-xs md:text-sm">
+                            {leave.employeeName}
+                          </td>
+                          <td className="py-2 md:py-4 px-4 text-gray-600 hidden sm:table-cell text-xs md:text-sm">
+                            {leave.department}
+                          </td>
+                          <td className="py-2 md:py-4 px-4 text-gray-600 hidden md:table-cell text-xs md:text-sm">
+                            {formatDate(leave.fromDate)} – {formatDate(leave.toDate)}
+                          </td>
+                          <td className="py-2 md:py-4 px-4">
+                            <Badge
+                              variant={getStatusVariant(leave.status)}
+                              className="text-xs"
                             >
-                              {actionLoading === request._id ? '...' : 'Reject'}
-                            </Button>
-                            <Button
-                              variant="success"
-                              size="sm"
-                              onClick={() => handleApprove(request._id)}
-                              disabled={actionLoading === request._id}
-                            >
-                              {actionLoading === request._id ? '...' : 'Approve'}
-                            </Button>
-                          </div>
+                              {leave.status}
+                            </Badge>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan="6" className="py-6 md:py-8 px-4 text-center">
+                          <p className="text-xs md:text-sm text-gray-600">No leave requests found</p>
                         </td>
                       </tr>
-                    ))}
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -168,12 +199,12 @@ export default function LeavesPage() {
           </Card>
         )}
 
-        {/* No Requests */}
-        {!loading && leaveRequests.length === 0 && !error && (
+        {/* Empty State */}
+        {!loading && !error && leaves.length === 0 && (
           <Card>
-            <CardContent className="pt-6">
-              <div className="text-center py-8">
-                <p className="text-gray-600">No pending leave requests</p>
+            <CardContent className="pt-4 md:pt-6">
+              <div className="text-center py-6 md:py-8">
+                <p className="text-xs md:text-sm text-gray-600">No leave requests to display</p>
               </div>
             </CardContent>
           </Card>

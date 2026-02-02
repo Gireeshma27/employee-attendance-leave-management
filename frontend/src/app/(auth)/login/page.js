@@ -59,25 +59,19 @@ export default function LoginPage() {
     setIsLoading(true);
     
     try {
-      // First, verify backend is reachable
-      const backendHealthy = await apiService.healthCheck();
-      if (!backendHealthy) {
-        throw new Error('Backend server is not responding. Please ensure the server is running on http://localhost:5000');
-      }
-
       const response = await apiService.auth.login({
         email: formData.email,
         password: formData.password,
       });
 
-      // Store token and user (API wraps response in data object)
-      if (response.data && response.data.token) {
-        localStorage.setItem('token', response.data.token);
-        localStorage.setItem('user', JSON.stringify(response.data.user));
+      // Store token
+      if (response.token) {
+        localStorage.setItem('token', response.token);
+        localStorage.setItem('user', JSON.stringify(response.user));
       }
 
       // Redirect based on user role to dashboard pages
-      const userRole = response.data?.user?.role?.toLowerCase();
+      const userRole = response.user?.role?.toLowerCase();
       let redirectPath = '/employee/dashboard'; // default
       
       if (userRole === 'admin') {
@@ -90,15 +84,9 @@ export default function LoginPage() {
       
       router.push(redirectPath);
     } catch (error) {
-      const errorMessage = error?.message || 'Login failed. Please try again.';
       setErrors({
-        submit: errorMessage
+        submit: error.message || 'Login failed. Please try again.'
       });
-      
-      // Log error for debugging
-      if (process.env.NODE_ENV === 'development') {
-        console.error('Login error details:', error);
-      }
     } finally {
       setIsLoading(false);
     }

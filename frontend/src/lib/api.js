@@ -7,22 +7,6 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5
 
 class ApiService {
   /**
-   * Check if backend is reachable
-   */
-  async healthCheck() {
-    try {
-      const response = await fetch(`${API_BASE_URL}/health`, {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
-      });
-      return response.ok;
-    } catch (error) {
-      console.warn('Health check failed:', error.message);
-      return false;
-    }
-  }
-
-  /**
    * Generic fetch wrapper with error handling
    */
   async request(endpoint, options = {}) {
@@ -33,7 +17,6 @@ class ApiService {
         'Content-Type': 'application/json',
         ...options.headers,
       },
-      credentials: 'include', // Ensure cookies are sent with requests
       ...options,
     };
 
@@ -56,7 +39,6 @@ class ApiService {
           errorMessage = errorData.error || errorData.message || errorMessage;
         } catch {
           // If response is not JSON, use status message
-          errorMessage = response.statusText || errorMessage;
         }
         
         const error = new Error(errorMessage);
@@ -67,23 +49,13 @@ class ApiService {
 
       return await response.json();
     } catch (error) {
-      // Handle network errors more explicitly
-      let errorMessage = error instanceof Error ? error.message : String(error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
       
-      // Distinguish between network errors and other fetch errors
-      if (error.message === 'Failed to fetch') {
-        // This usually indicates CORS issue, network connectivity, or backend not running
-        const backendUrl = new URL(API_BASE_URL).origin;
-        errorMessage = `Cannot connect to server (${backendUrl}). Ensure the backend is running and CORS is configured correctly.`;
-      }
-      
-      // Log detailed errors in development mode
+      // Only log detailed errors in development mode
       if (process.env.NODE_ENV === 'development') {
         console.error(`API Error [${endpoint}]:`, errorMessage);
         console.error(`Request URL: ${url}`);
-        console.error(`API Base URL: ${API_BASE_URL}`);
-        console.error(`Request Method: ${config.method || 'GET'}`);
-        console.error(`Request Headers:`, config.headers);
+        console.error(`Request Config:`, config);
         console.error(`Full Error:`, error);
       }
       
@@ -204,6 +176,9 @@ class ApiService {
 
     getPendingLeaves: () =>
       this.request('/leaves/pending', { method: 'GET' }),
+
+    getAllLeavesAdmin: () =>
+      this.request('/leaves/admin/all', { method: 'GET' }),
 
     approve: (leaveId, data) =>
       this.request(`/leaves/${leaveId}/approve`, {

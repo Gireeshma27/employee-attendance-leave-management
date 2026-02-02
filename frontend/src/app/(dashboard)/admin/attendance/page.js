@@ -105,58 +105,58 @@ export default function AttendancePage() {
 
   return (
     <DashboardLayout role="admin">
-      <div className="space-y-8">
+      <div className="space-y-6 md:space-y-8">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Attendance Records</h1>
-          <p className="text-gray-600 mt-1">System-wide attendance management</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Attendance Records</h1>
+          <p className="text-xs md:text-sm text-gray-600 mt-1">System-wide attendance management</p>
         </div>
 
         {/* Filters */}
-        <div className="flex gap-4">
+        <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
           <Input
             label="Date"
             type="date"
             value={dateFilter}
             onChange={(e) => setDateFilter(e.target.value)}
-            className="w-48"
+            className="w-full sm:w-48"
           />
         </div>
 
         {/* Error State */}
         {error && (
           <Card className="border-red-200 bg-red-50">
-            <CardContent className="pt-6">
-              <p className="text-red-700">{error}</p>
+            <CardContent className="pt-4 md:pt-6">
+              <p className="text-red-700 text-xs md:text-sm">{error}</p>
             </CardContent>
           </Card>
         )}
 
         {/* Summary Stats */}
         {!loading && (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
             <Card>
-              <CardContent className="pt-6 text-center">
-                <p className="text-gray-600 text-sm">Total Employees</p>
-                <p className="text-3xl font-bold text-gray-900 mt-2">{stats.total}</p>
+              <CardContent className="pt-4 md:pt-6 text-center">
+                <p className="text-xs md:text-sm text-gray-600">Total Employees</p>
+                <p className="text-2xl md:text-3xl font-bold text-gray-900 mt-1 md:mt-2">{stats.total}</p>
               </CardContent>
             </Card>
             <Card>
-              <CardContent className="pt-6 text-center">
-                <p className="text-gray-600 text-sm">Present</p>
-                <p className="text-3xl font-bold text-green-600 mt-2">{stats.present}</p>
+              <CardContent className="pt-4 md:pt-6 text-center">
+                <p className="text-xs md:text-sm text-gray-600">Present</p>
+                <p className="text-2xl md:text-3xl font-bold text-green-600 mt-1 md:mt-2">{stats.present}</p>
               </CardContent>
             </Card>
             <Card>
-              <CardContent className="pt-6 text-center">
-                <p className="text-gray-600 text-sm">Absent</p>
-                <p className="text-3xl font-bold text-red-600 mt-2">{stats.absent}</p>
+              <CardContent className="pt-4 md:pt-6 text-center">
+                <p className="text-xs md:text-sm text-gray-600">Absent</p>
+                <p className="text-2xl md:text-3xl font-bold text-red-600 mt-1 md:mt-2">{stats.absent}</p>
               </CardContent>
             </Card>
             <Card>
-              <CardContent className="pt-6 text-center">
-                <p className="text-gray-600 text-sm">Half Day</p>
-                <p className="text-3xl font-bold text-yellow-600 mt-2">{stats.halfDay}</p>
+              <CardContent className="pt-4 md:pt-6 text-center">
+                <p className="text-xs md:text-sm text-gray-600">Half Day</p>
+                <p className="text-2xl md:text-3xl font-bold text-yellow-600 mt-1 md:mt-2">{stats.halfDay}</p>
               </CardContent>
             </Card>
           </div>
@@ -165,9 +165,9 @@ export default function AttendancePage() {
         {/* Loading State */}
         {loading && (
           <Card>
-            <CardContent className="pt-6">
-              <div className="text-center py-8">
-                <p className="text-gray-600">Loading attendance data...</p>
+            <CardContent className="pt-4 md:pt-6">
+              <div className="text-center py-6 md:py-8">
+                <p className="text-xs md:text-sm text-gray-600">Loading attendance data...</p>
               </div>
             </CardContent>
           </Card>
@@ -177,19 +177,19 @@ export default function AttendancePage() {
         {!loading && (
           <Card>
             <CardHeader>
-              <CardTitle>Attendance for {dateFilter}</CardTitle>
+              <CardTitle className="text-base md:text-lg">Attendance for {dateFilter}</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
+              <div className="overflow-x-auto -mx-4 md:mx-0">
+                <table className="w-full text-xs md:text-sm">
                   <thead className="border-b border-gray-200 bg-gray-50">
                     <tr className="text-gray-600">
-                      <th className="text-left py-3 px-4">Employee</th>
-                      <th className="text-left py-3 px-4">Employee ID</th>
-                      <th className="text-left py-3 px-4">Check-in</th>
-                      <th className="text-left py-3 px-4">Check-out</th>
-                      <th className="text-left py-3 px-4">Hours</th>
-                      <th className="text-left py-3 px-4">Status</th>
+                      <th className="text-left py-2 md:py-3 px-4 md:px-4">Employee</th>
+                      <th className="text-left py-2 md:py-3 px-4 md:px-4 hidden sm:table-cell">Employee ID</th>
+                      <th className="text-left py-2 md:py-3 px-4 md:px-4 hidden md:table-cell">Check-in</th>
+                      <th className="text-left py-2 md:py-3 px-4 md:px-4 hidden lg:table-cell">Check-out</th>
+                      <th className="text-left py-2 md:py-3 px-4 md:px-4 hidden sm:table-cell">Hours</th>
+                      <th className="text-left py-2 md:py-3 px-4 md:px-4">Status</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -207,26 +207,26 @@ export default function AttendancePage() {
                           key={employee._id}
                           className="border-b border-gray-100 hover:bg-gray-50"
                         >
-                          <td className="py-4 px-4 font-medium text-gray-900">
+                          <td className="py-2 md:py-4 px-4 font-medium text-gray-900 text-xs md:text-sm">
                             {employee.name}
                           </td>
-                          <td className="py-4 px-4 text-gray-600">
+                          <td className="py-2 md:py-4 px-4 text-gray-600 hidden sm:table-cell text-xs md:text-sm">
                             {employee.employeeId || '-'}
                           </td>
-                          <td className="py-4 px-4 text-gray-600">
+                          <td className="py-2 md:py-4 px-4 text-gray-600 hidden md:table-cell text-xs md:text-sm">
                             {employee.attendance.checkInTime
                               ? new Date(employee.attendance.checkInTime).toLocaleTimeString()
                               : '-'}
                           </td>
-                          <td className="py-4 px-4 text-gray-600">
+                          <td className="py-2 md:py-4 px-4 text-gray-600 hidden lg:table-cell text-xs md:text-sm">
                             {employee.attendance.checkOutTime
                               ? new Date(employee.attendance.checkOutTime).toLocaleTimeString()
                               : '-'}
                           </td>
-                          <td className="py-4 px-4 text-gray-600 font-medium">
+                          <td className="py-2 md:py-4 px-4 text-gray-600 font-medium hidden sm:table-cell text-xs md:text-sm">
                             {hours}h
                           </td>
-                          <td className="py-4 px-4">
+                          <td className="py-2 md:py-4 px-4">
                             <Badge
                               variant={
                                 status === 'Present'
@@ -235,6 +235,7 @@ export default function AttendancePage() {
                                   ? 'danger'
                                   : 'warning'
                               }
+                              className="text-xs"
                             >
                               {status}
                             </Badge>
