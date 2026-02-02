@@ -1,6 +1,6 @@
-import Leave from '../models/leave.model.js';
-import User from '../models/user.model.js';
-import ApiResponse from '../utils/apiResponse.js';
+import Leave from "../models/leave.model.js";
+import User from "../models/user.model.js";
+import ApiResponse from "../utils/apiResponse.js";
 
 // Apply for leave
 export const applyLeave = async (req, res) => {
@@ -10,18 +10,21 @@ export const applyLeave = async (req, res) => {
 
     // Validation
     if (!leaveType || !fromDate || !toDate || !numberOfDays || !reason) {
-      return ApiResponse.badRequest(res, 'Please provide all required fields.');
+      return ApiResponse.badRequest(res, "Please provide all required fields.");
     }
 
     const from = new Date(fromDate);
     const to = new Date(toDate);
 
     if (from > to) {
-      return ApiResponse.badRequest(res, 'From date cannot be greater than to date.');
+      return ApiResponse.badRequest(
+        res,
+        "From date cannot be greater than to date.",
+      );
     }
 
     if (from < new Date()) {
-      return ApiResponse.badRequest(res, 'Cannot apply for leave in the past.');
+      return ApiResponse.badRequest(res, "Cannot apply for leave in the past.");
     }
 
     // Create leave request
@@ -32,18 +35,25 @@ export const applyLeave = async (req, res) => {
       toDate: to,
       numberOfDays: parseInt(numberOfDays),
       reason,
-      status: 'Pending',
+      status: "Pending",
     });
 
     const populatedLeave = await Leave.findById(leave._id).populate(
-      'userId',
-      'name email employeeId'
+      "userId",
+      "name email employeeId",
     );
 
-    return ApiResponse.created(res, 'Leave request submitted successfully.', populatedLeave);
+    return ApiResponse.created(
+      res,
+      "Leave request submitted successfully.",
+      populatedLeave,
+    );
   } catch (error) {
-    console.error('Apply leave error:', error);
-    return ApiResponse.serverError(res, error.message || 'Failed to apply for leave.');
+    console.error("Apply leave error:", error);
+    return ApiResponse.serverError(
+      res,
+      error.message || "Failed to apply for leave.",
+    );
   }
 };
 
@@ -61,13 +71,21 @@ export const getMyLeaves = async (req, res) => {
 
     const leaves = await Leave.find(filter)
       .sort({ createdAt: -1 })
-      .populate('userId', 'name email employeeId')
-      .populate('approvedBy', 'name email');
+      .populate("userId", "name email employeeId")
+      .populate("approvedBy", "name email");
 
-    return ApiResponse.success(res, 200, 'Leave requests retrieved successfully.', leaves);
+    return ApiResponse.success(
+      res,
+      200,
+      "Leave requests retrieved successfully.",
+      leaves,
+    );
   } catch (error) {
-    console.error('Get my leaves error:', error);
-    return ApiResponse.serverError(res, error.message || 'Failed to retrieve leave requests.');
+    console.error("Get my leaves error:", error);
+    return ApiResponse.serverError(
+      res,
+      error.message || "Failed to retrieve leave requests.",
+    );
   }
 };
 
@@ -76,7 +94,7 @@ export const getPendingLeaves = async (req, res) => {
   try {
     const { employeeId } = req.query;
 
-    const filter = { status: 'Pending' };
+    const filter = { status: "Pending" };
 
     if (employeeId) {
       const user = await User.findOne({ employeeId });
@@ -87,13 +105,21 @@ export const getPendingLeaves = async (req, res) => {
 
     const leaves = await Leave.find(filter)
       .sort({ createdAt: -1 })
-      .populate('userId', 'name email employeeId department')
-      .populate('approvedBy', 'name email');
+      .populate("userId", "name email employeeId department")
+      .populate("approvedBy", "name email");
 
-    return ApiResponse.success(res, 200, 'Pending leave requests retrieved successfully.', leaves);
+    return ApiResponse.success(
+      res,
+      200,
+      "Pending leave requests retrieved successfully.",
+      leaves,
+    );
   } catch (error) {
-    console.error('Get pending leaves error:', error);
-    return ApiResponse.serverError(res, error.message || 'Failed to retrieve pending leave requests.');
+    console.error("Get pending leaves error:", error);
+    return ApiResponse.serverError(
+      res,
+      error.message || "Failed to retrieve pending leave requests.",
+    );
   }
 };
 
@@ -106,26 +132,37 @@ export const approveLeave = async (req, res) => {
     const leave = await Leave.findById(leaveId);
 
     if (!leave) {
-      return ApiResponse.notFound(res, 'Leave request not found.');
+      return ApiResponse.notFound(res, "Leave request not found.");
     }
 
-    if (leave.status !== 'Pending') {
-      return ApiResponse.badRequest(res, `Cannot approve a ${leave.status.toLowerCase()} leave request.`);
+    if (leave.status !== "Pending") {
+      return ApiResponse.badRequest(
+        res,
+        `Cannot approve a ${leave.status.toLowerCase()} leave request.`,
+      );
     }
 
-    leave.status = 'Approved';
+    leave.status = "Approved";
     leave.approvedBy = approverId;
 
     const updatedLeave = await leave.save();
 
     const populatedLeave = await Leave.findById(updatedLeave._id)
-      .populate('userId', 'name email employeeId')
-      .populate('approvedBy', 'name email');
+      .populate("userId", "name email employeeId")
+      .populate("approvedBy", "name email");
 
-    return ApiResponse.success(res, 200, 'Leave request approved successfully.', populatedLeave);
+    return ApiResponse.success(
+      res,
+      200,
+      "Leave request approved successfully.",
+      populatedLeave,
+    );
   } catch (error) {
-    console.error('Approve leave error:', error);
-    return ApiResponse.serverError(res, error.message || 'Failed to approve leave request.');
+    console.error("Approve leave error:", error);
+    return ApiResponse.serverError(
+      res,
+      error.message || "Failed to approve leave request.",
+    );
   }
 };
 
@@ -137,33 +174,44 @@ export const rejectLeave = async (req, res) => {
     const approverId = req.user.id;
 
     if (!rejectionReason) {
-      return ApiResponse.badRequest(res, 'Please provide a rejection reason.');
+      return ApiResponse.badRequest(res, "Please provide a rejection reason.");
     }
 
     const leave = await Leave.findById(leaveId);
 
     if (!leave) {
-      return ApiResponse.notFound(res, 'Leave request not found.');
+      return ApiResponse.notFound(res, "Leave request not found.");
     }
 
-    if (leave.status !== 'Pending') {
-      return ApiResponse.badRequest(res, `Cannot reject a ${leave.status.toLowerCase()} leave request.`);
+    if (leave.status !== "Pending") {
+      return ApiResponse.badRequest(
+        res,
+        `Cannot reject a ${leave.status.toLowerCase()} leave request.`,
+      );
     }
 
-    leave.status = 'Rejected';
+    leave.status = "Rejected";
     leave.rejectionReason = rejectionReason;
     leave.approvedBy = approverId;
 
     const updatedLeave = await leave.save();
 
     const populatedLeave = await Leave.findById(updatedLeave._id)
-      .populate('userId', 'name email employeeId')
-      .populate('approvedBy', 'name email');
+      .populate("userId", "name email employeeId")
+      .populate("approvedBy", "name email");
 
-    return ApiResponse.success(res, 200, 'Leave request rejected successfully.', populatedLeave);
+    return ApiResponse.success(
+      res,
+      200,
+      "Leave request rejected successfully.",
+      populatedLeave,
+    );
   } catch (error) {
-    console.error('Reject leave error:', error);
-    return ApiResponse.serverError(res, error.message || 'Failed to reject leave request.');
+    console.error("Reject leave error:", error);
+    return ApiResponse.serverError(
+      res,
+      error.message || "Failed to reject leave request.",
+    );
   }
 };
 
@@ -176,23 +224,85 @@ export const cancelLeave = async (req, res) => {
     const leave = await Leave.findById(leaveId);
 
     if (!leave) {
-      return ApiResponse.notFound(res, 'Leave request not found.');
+      return ApiResponse.notFound(res, "Leave request not found.");
     }
 
     if (leave.userId.toString() !== userId) {
-      return ApiResponse.forbidden(res, 'You can only cancel your own leave requests.');
+      return ApiResponse.forbidden(
+        res,
+        "You can only cancel your own leave requests.",
+      );
     }
 
-    if (leave.status === 'Approved' && new Date(leave.fromDate) < new Date()) {
-      return ApiResponse.badRequest(res, 'Cannot cancel an approved leave request that has already started.');
+    if (leave.status === "Approved" && new Date(leave.fromDate) < new Date()) {
+      return ApiResponse.badRequest(
+        res,
+        "Cannot cancel an approved leave request that has already started.",
+      );
     }
 
     await Leave.findByIdAndDelete(leaveId);
 
-    return ApiResponse.success(res, 200, 'Leave request cancelled successfully.');
+    return ApiResponse.success(
+      res,
+      200,
+      "Leave request cancelled successfully.",
+    );
   } catch (error) {
-    console.error('Cancel leave error:', error);
-    return ApiResponse.serverError(res, error.message || 'Failed to cancel leave request.');
+    console.error("Cancel leave error:", error);
+    return ApiResponse.serverError(
+      res,
+      error.message || "Failed to cancel leave request.",
+    );
+  }
+};
+
+// Get all leaves for admin
+export const getAllLeavesForAdmin = async (req, res) => {
+  try {
+    const { status, employeeId, leaveType, fromDate, toDate } = req.query;
+
+    const filter = {};
+
+    if (status) {
+      filter.status = status;
+    }
+
+    if (leaveType) {
+      filter.leaveType = leaveType;
+    }
+
+    if (employeeId) {
+      const user = await User.findOne({ employeeId });
+      if (user) {
+        filter.userId = user._id;
+      }
+    }
+
+    if (fromDate && toDate) {
+      filter.fromDate = {
+        $gte: new Date(fromDate),
+        $lte: new Date(toDate),
+      };
+    }
+
+    const leaves = await Leave.find(filter)
+      .sort({ createdAt: -1 })
+      .populate("userId", "name email employeeId department role")
+      .populate("approvedBy", "name email");
+
+    return ApiResponse.success(
+      res,
+      200,
+      "All leave requests retrieved successfully.",
+      leaves,
+    );
+  } catch (error) {
+    console.error("Get all leaves for admin error:", error);
+    return ApiResponse.serverError(
+      res,
+      error.message || "Failed to retrieve leave requests.",
+    );
   }
 };
 
