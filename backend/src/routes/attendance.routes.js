@@ -7,7 +7,6 @@ import {
   getMyAttendance,
   getTeamAttendance,
   downloadExcelReport,
-  updateAttendance,
 } from "../controllers/attendance.controller.js";
 
 const router = express.Router();
@@ -20,6 +19,5 @@ router.get("/my", authMiddleware, getMyAttendance);
 // Manager and admin routes
 router.get("/team", authMiddleware, isManager, getTeamAttendance);
 router.get("/export/excel", authMiddleware, isManager, downloadExcelReport);
-router.put("/:id", authMiddleware, isManager, updateAttendance);
 
 export default router;

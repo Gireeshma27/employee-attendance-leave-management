@@ -296,5 +296,5 @@ export default {
   checkOut,
   getMyAttendance,
   getTeamAttendance,
-  generateReport,
+  downloadExcelReport,
 };
