@@ -335,6 +335,18 @@ class ApiService {
   dashboard = {
     getAdminStats: () => this.request("/dashboard/admin", { method: "GET" }),
   };
+
+  /**
+   * Report Endpoints
+   */
+  report = {
+    getAdminData: (params = {}) => {
+      const qs = new URLSearchParams(params).toString();
+      return this.request(`/reports/admin${qs ? "?" + qs : ""}`, {
+        method: "GET",
+      });
+    },
+  };
 }
 
 export const apiService = new ApiService();
