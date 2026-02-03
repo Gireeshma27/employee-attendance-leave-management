@@ -89,6 +89,11 @@ class ApiService {
         console.error(`Request Headers:`, config.headers);
         console.error(`Full Error:`, error);
       }
+
+      // Throw error so it can be caught by the caller
+      const apiError = new Error(errorMessage);
+      apiError.originalError = error;
+      throw apiError;
     }
   }
 

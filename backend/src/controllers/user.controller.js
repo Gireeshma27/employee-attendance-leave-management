@@ -5,7 +5,11 @@ import ApiResponse from '../utils/apiResponse.js';
 // Get all users (Admin only)
 export const getAllUsers = async (req, res) => {
   try {
-    const { role, isActive, search } = req.query;
+    const { role, isActive, search, page = 1, limit = 10 } = req.query;
+    const pageNum = parseInt(page) || 1;
+    const limitNum = parseInt(limit) || 10;
+    const skip = (pageNum - 1) * limitNum;
+
     const filter = {};
 
     if (role) {
@@ -24,9 +28,25 @@ export const getAllUsers = async (req, res) => {
       ];
     }
 
-    const users = await User.find(filter).select('-password');
+    // Get total count for pagination
+    const totalRecords = await User.countDocuments(filter);
+    const totalPages = Math.ceil(totalRecords / limitNum);
 
-    return ApiResponse.success(res, 200, 'Users retrieved successfully.', users);
+    const users = await User.find(filter)
+      .select('-password')
+      .skip(skip)
+      .limit(limitNum)
+      .sort({ createdAt: -1 });
+
+    return ApiResponse.success(res, 200, 'Users retrieved successfully.', {
+      records: users,
+      pagination: {
+        totalRecords,
+        totalPages,
+        currentPage: pageNum,
+        limit: limitNum,
+      },
+    });
   } catch (error) {
     console.error('Get all users error:', error);
     return ApiResponse.serverError(res, error.message || 'Failed to retrieve users.');

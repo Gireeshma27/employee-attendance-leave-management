@@ -45,10 +45,10 @@ export default function ReportsPage() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 md:gap-4">
           <div className="min-w-0">
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Reports</h1>
-            <p className="text-xs md:text-sm text-gray-600 mt-1">Generate and view system reports</p>
+            <h1 className="text-lg sm:text-2xl md:text-3xl font-bold text-gray-900">Reports</h1>
+            <p className="text-xs sm:text-sm md:text-sm text-gray-600 mt-1">Generate and view system reports</p>
           </div>
-          <Button variant="primary" size="lg" className="flex items-center gap-2">
+          <Button variant="primary" size="lg" className="flex items-center gap-2 text-xs sm:text-sm">
             <Download size={20} />
             Export Report
           </Button>
@@ -87,33 +87,33 @@ export default function ReportsPage() {
             <CardTitle>Report Filters</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
                   From Date
                 </label>
                 <input
                   type="date"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-2 sm:px-4 py-2 text-xs sm:text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   value={fromDate}
                   onChange={(e) => setFromDate(e.target.value)}
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
                   To Date
                 </label>
                 <input
                   type="date"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-2 sm:px-4 py-2 text-xs sm:text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   value={toDate}
                   onChange={(e) => setToDate(e.target.value)}
                 />
               </div>
             </div>
 
-            <div className="flex gap-4 mt-6">
-              <Button variant="primary" onClick={generateReport}>
+            <div className="flex gap-2 sm:gap-4 mt-4 sm:mt-6">
+              <Button variant="primary" onClick={generateReport} className="text-xs sm:text-sm">
                 Generate Report
               </Button>
             </div>

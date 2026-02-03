@@ -18,6 +18,7 @@ router.get("/my", authMiddleware, getMyAttendance);
 
 // Manager and admin routes
 router.get("/team", authMiddleware, isManager, getTeamAttendance);
+router.get("/report", authMiddleware, isManager, downloadExcelReport);
 router.get("/export/excel", authMiddleware, isManager, downloadExcelReport);
 
 export default router;

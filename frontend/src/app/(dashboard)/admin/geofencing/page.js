@@ -91,9 +91,24 @@ export default function GeofencingPage() {
           setIsLocating(false);
         },
         (error) => {
-          console.error("Error getting location:", error);
+          // Handle geolocation errors gracefully
+          const errorMessages = {
+            1: "Location permission denied. Using default location.",
+            2: "Location unavailable. Using default location.",
+            3: "Location request timed out. Using default location.",
+          };
+          console.warn(
+            "Geolocation:",
+            errorMessages[error.code] || "Unknown error. Using default location."
+          );
+          // Keep using default India center coordinates
           setIsLocating(false);
         },
+        {
+          enableHighAccuracy: false,
+          timeout: 10000,
+          maximumAge: 300000, // Cache location for 5 minutes
+        }
       );
     }
   }, []);
@@ -137,69 +152,67 @@ export default function GeofencingPage() {
 
   return (
     <DashboardLayout role="admin">
-      <div className="max-w-7xl mx-auto space-y-8 pb-12">
+      <div className="max-w-7xl mx-auto space-y-6 md:space-y-8 pb-12 px-2 sm:px-4">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+          <div className="min-w-0">
+            <h1 className="text-lg sm:text-2xl md:text-3xl font-bold text-gray-900 tracking-tight">
               Geofence and Location Settings
             </h1>
-            <p className="text-sm text-gray-400 mt-1 font-medium">
+            <p className="text-xs sm:text-sm text-gray-400 mt-1 font-medium">
               Manage office perimeters and attendance boundaries.
             </p>
           </div>
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-full border border-gray-100 shadow-sm">
-              <div
-                className={`w-2 h-2 rounded-full animate-pulse ${isLocating ? "bg-orange-500" : "bg-green-500"}`}
-              ></div>
-              <span className="text-[11px] font-black text-gray-500 uppercase tracking-widest">
-                {isLocating ? "Locating..." : "Work Mode"}
-              </span>
-            </div>
+          <div className="flex items-center gap-2 bg-white px-2 sm:px-3 py-1 sm:py-1.5 rounded-full border border-gray-100 shadow-sm flex-shrink-0">
+            <div
+              className={`w-2 h-2 rounded-full animate-pulse ${isLocating ? "bg-orange-500" : "bg-green-500"}`}
+            ></div>
+            <span className="text-[9px] sm:text-[11px] font-black text-gray-500 uppercase tracking-widest">
+              {isLocating ? "Locating..." : "Work Mode"}
+            </span>
           </div>
         </div>
 
         {/* Setup Section */}
-        <div className="bg-white border border-gray-100 rounded-[32px] p-8 shadow-sm">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h2 className="text-lg font-bold text-gray-900">
+        <div className="bg-white border border-gray-100 rounded-[32px] p-4 sm:p-6 md:p-8 shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-6 md:mb-8">
+            <div className="min-w-0">
+              <h2 className="text-base sm:text-lg font-bold text-gray-900">
                 Office Geofence Setup
               </h2>
-              <p className="text-sm text-gray-400 font-medium whitespace-nowrap">
+              <p className="text-xs sm:text-sm text-gray-400 font-medium mt-1">
                 Search for an address and define the allowed attendance radius
               </p>
             </div>
             <button
               type="button"
               onClick={() => setIsAddModalOpen(true)}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold text-sm flex items-center gap-2 shadow-lg shadow-blue-100 active:scale-95 transition-all"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-3 sm:px-6 py-2 sm:py-3 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-blue-100 active:scale-95 transition-all w-full sm:w-auto"
             >
-              <Plus size={18} />
+              <Plus size={16} className="sm:w-[18px] sm:h-[18px]" />
               Add New Location
             </button>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-end mb-8">
-            <div className="lg:col-span-3">
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-2 sm:gap-4 md:gap-6 items-end mb-6 md:mb-8">
+            <div className="sm:col-span-3">
               <div className="relative">
                 <Search
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
-                  size={20}
+                  className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 text-gray-400"
+                  size={18}
                 />
                 <Input
                   placeholder="Search office address, city, or zip code..."
-                  className="pl-12 py-7 rounded-2xl border-gray-100 bg-gray-50/50 focus:bg-white transition-all text-base shadow-sm"
+                  className="pl-10 sm:pl-12 py-2 sm:py-3 rounded-2xl border-gray-100 bg-gray-50/50 focus:bg-white transition-all text-xs sm:text-sm shadow-sm"
                 />
               </div>
             </div>
-            <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
-              <div className="flex justify-between items-center mb-3">
-                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+            <div className="bg-white p-2 sm:p-4 rounded-2xl border border-gray-100 shadow-sm">
+              <div className="flex justify-between items-center mb-2 sm:mb-3">
+                <p className="text-[8px] sm:text-[10px] font-black text-gray-400 uppercase tracking-widest">
                   Radius
                 </p>
-                <p className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md">
+                <p className="text-[9px] sm:text-xs font-bold text-blue-600 bg-blue-50 px-1.5 sm:px-2 py-0.5 rounded-md">
                   {radius}m
                 </p>
               </div>
@@ -212,7 +225,7 @@ export default function GeofencingPage() {
                 onChange={(e) => setRadius(parseInt(e.target.value))}
                 className="w-full h-1.5 bg-gray-100 rounded-lg appearance-none cursor-pointer accent-blue-600 focus:outline-none"
               />
-              <div className="flex justify-between mt-2 text-[9px] font-bold text-gray-300">
+              <div className="flex justify-between mt-1 sm:mt-2 text-[8px] sm:text-[9px] font-bold text-gray-300">
                 <span>50m</span>
                 <span>500m</span>
               </div>
@@ -220,7 +233,7 @@ export default function GeofencingPage() {
           </div>
 
           {/* Real Map Integration */}
-          <div className="relative w-full aspect-[21/9] bg-gray-100 rounded-3xl overflow-hidden border-8 border-white shadow-xl group">
+          <div className="relative w-full h-[400px] sm:h-[500px] lg:h-[600px] bg-gray-100 rounded-3xl overflow-hidden border-4 sm:border-8 border-white shadow-xl group">
             <GeofencingMap
               center={center}
               radius={radius}
@@ -258,22 +271,22 @@ export default function GeofencingPage() {
 
         {/* Saved Locations Table */}
         <div className="bg-white border border-gray-100 rounded-[32px] overflow-hidden shadow-sm">
-          <div className="p-8 border-b border-gray-50 flex items-center justify-between">
-            <h3 className="font-bold text-lg text-gray-900">Saved Locations</h3>
-            <span className="text-xs font-bold text-gray-400">
+          <div className="p-4 sm:p-6 md:p-8 border-b border-gray-50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+            <h3 className="font-bold text-base sm:text-lg text-gray-900">Saved Locations</h3>
+            <span className="text-[10px] sm:text-xs font-bold text-gray-400">
               Showing {locations.length} results
             </span>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50/50 text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-50">
+          <div className="overflow-x-auto -mx-4 sm:mx-0">
+            <table className="w-full min-w-[640px]">
+              <thead className="bg-gray-50/50 text-[9px] sm:text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-50">
                 <tr>
-                  <th className="px-8 py-5 text-left">Office Name</th>
-                  <th className="px-8 py-5 text-left">Address</th>
-                  <th className="px-8 py-5 text-left">Coordinates</th>
-                  <th className="px-8 py-5 text-center">Radius</th>
-                  <th className="px-8 py-5 text-center">Status</th>
-                  <th className="px-8 py-5 text-right">Actions</th>
+                  <th className="px-3 sm:px-6 md:px-8 py-3 sm:py-4 md:py-5 text-left">Office Name</th>
+                  <th className="px-3 sm:px-6 md:px-8 py-3 sm:py-4 md:py-5 text-left hidden sm:table-cell">Address</th>
+                  <th className="px-3 sm:px-6 md:px-8 py-3 sm:py-4 md:py-5 text-left hidden md:table-cell">Coordinates</th>
+                  <th className="px-3 sm:px-6 md:px-8 py-3 sm:py-4 md:py-5 text-center">Radius</th>
+                  <th className="px-3 sm:px-6 md:px-8 py-3 sm:py-4 md:py-5 text-center">Status</th>
+                  <th className="px-3 sm:px-6 md:px-8 py-3 sm:py-4 md:py-5 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
@@ -282,37 +295,37 @@ export default function GeofencingPage() {
                     key={loc.id}
                     className="hover:bg-gray-50/50 transition-colors group"
                   >
-                    <td className="px-8 py-6 whitespace-nowrap">
+                    <td className="px-3 sm:px-6 md:px-8 py-3 sm:py-4 md:py-6 whitespace-nowrap">
                       <div>
-                        <p className="text-sm font-black text-gray-900 tracking-tight">
+                        <p className="text-xs sm:text-sm font-black text-gray-900 tracking-tight">
                           {loc.name}
                         </p>
-                        <p className="text-[11px] font-medium text-gray-400 mt-0.5">
+                        <p className="text-[9px] sm:text-[11px] font-medium text-gray-400 mt-0.5">
                           {loc.description}
                         </p>
                       </div>
                     </td>
-                    <td className="px-8 py-6 max-w-[200px]">
-                      <p className="text-[12px] font-medium text-gray-500 leading-relaxed truncate">
+                    <td className="px-3 sm:px-6 md:px-8 py-3 sm:py-4 md:py-6 max-w-[200px] hidden sm:table-cell">
+                      <p className="text-[10px] sm:text-[12px] font-medium text-gray-500 leading-relaxed truncate">
                         {loc.address}
                       </p>
                     </td>
-                    <td className="px-8 py-6">
-                      <p className="text-[11px] font-mono font-bold text-gray-400 bg-gray-50 px-2 py-1 rounded-md inline-block">
+                    <td className="px-3 sm:px-6 md:px-8 py-3 sm:py-4 md:py-6 hidden md:table-cell">
+                      <p className="text-[9px] sm:text-[11px] font-mono font-bold text-gray-400 bg-gray-50 px-2 py-1 rounded-md inline-block">
                         {loc.coordinates}
                       </p>
                     </td>
-                    <td className="px-8 py-6 text-center">
-                      <span className="bg-blue-50 text-blue-600 text-[11px] font-black px-3 py-1.5 rounded-full border border-blue-100 shadow-sm">
+                    <td className="px-3 sm:px-6 md:px-8 py-3 sm:py-4 md:py-6 text-center">
+                      <span className="bg-blue-50 text-blue-600 text-[9px] sm:text-[11px] font-black px-2 sm:px-3 py-1 sm:py-1.5 rounded-full border border-blue-100 shadow-sm">
                         {loc.radius}
                       </span>
                     </td>
-                    <td className="px-8 py-6 text-center">
+                    <td className="px-3 sm:px-6 md:px-8 py-3 sm:py-4 md:py-6 text-center">
                       <Badge
                         variant={
                           loc.status === "Active" ? "success" : "secondary"
                         }
-                        className="text-[10px] font-black py-1 px-3"
+                        className="text-[9px] sm:text-[10px] font-black py-1 px-2 sm:px-3"
                       >
                         {loc.status}
                       </Badge>

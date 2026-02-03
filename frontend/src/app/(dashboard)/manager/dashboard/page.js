@@ -86,10 +86,10 @@ export default function ManagerDashboard() {
       <div className="space-y-6 md:space-y-8">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">
+          <h1 className="text-lg sm:text-2xl md:text-3xl font-bold text-gray-900">
             Manager Dashboard
           </h1>
-          <p className="text-gray-600 mt-1">
+          <p className="text-xs sm:text-sm text-gray-600 mt-1">
             Team attendance and performance overview
           </p>
         </div>
@@ -167,42 +167,44 @@ export default function ManagerDashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto -mx-4 md:mx-0">
-              <table className="w-full text-xs md:text-sm">
-                <thead className="border-b border-gray-200">
-                  <tr className="text-gray-600">
-                    <th className="text-left py-2 md:py-3 px-4 md:px-0">
-                      Employee
-                    </th>
-                    <th className="text-left py-2 md:py-3 px-4 md:px-0 hidden sm:table-cell">
-                      Check-in
-                    </th>
-                    <th className="text-left py-2 md:py-3 px-4 md:px-0 hidden md:table-cell">
-                      Check-out
-                    </th>
-                    <th className="text-left py-2 md:py-3 px-4 md:px-0">
-                      Status
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {teamData.map((member, idx) => (
-                    <tr
-                      key={idx}
-                      className="border-b border-gray-100 hover:bg-gray-50"
-                    >
-                      <td className="py-3 text-gray-900 font-medium">
-                        {member.name}
-                      </td>
-                      <td className="py-3 text-gray-600">-</td>
-                      <td className="py-3 text-gray-600">-</td>
-                      <td className="py-3">
-                        <Badge variant="info">Active</Badge>
-                      </td>
+            <div className="rounded-md border border-gray-100 overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs md:text-sm text-left">
+                  <thead className="border-b border-gray-200">
+                    <tr className="text-gray-600">
+                      <th className="text-left py-2 md:py-3 px-4 md:px-0">
+                        Employee
+                      </th>
+                      <th className="text-left py-2 md:py-3 px-4 md:px-0 hidden sm:table-cell">
+                        Check-in
+                      </th>
+                      <th className="text-left py-2 md:py-3 px-4 md:px-0 hidden md:table-cell">
+                        Check-out
+                      </th>
+                      <th className="text-left py-2 md:py-3 px-4 md:px-0">
+                        Status
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {teamData.map((member, idx) => (
+                      <tr
+                        key={idx}
+                        className="border-b border-gray-100 hover:bg-gray-50"
+                      >
+                        <td className="py-3 text-gray-900 font-medium">
+                          {member.name}
+                        </td>
+                        <td className="py-3 text-gray-600">-</td>
+                        <td className="py-3 text-gray-600">-</td>
+                        <td className="py-3">
+                          <Badge variant="info">Active</Badge>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </CardContent>
         </Card>

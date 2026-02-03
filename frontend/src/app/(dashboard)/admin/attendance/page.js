@@ -222,18 +222,18 @@ export default function AttendancePage() {
         </div>
 
         {/* Summary Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
           <Card className="border-none shadow-sm bg-white overflow-hidden">
-            <CardContent className="p-6">
+            <CardContent className="p-4 md:p-6">
               <div className="flex items-center gap-4">
                 <div className="p-2.5 bg-blue-50 text-blue-600 rounded-lg">
                   <Users size={20} />
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500 font-medium">
+                  <p className="text-xs sm:text-sm text-gray-500 font-medium">
                     Total Employees
                   </p>
-                  <p className="text-2xl font-bold text-gray-900">
+                  <p className="text-xl sm:text-2xl font-bold text-gray-900">
                     {loading ? "..." : stats.total}
                   </p>
                 </div>
@@ -242,14 +242,14 @@ export default function AttendancePage() {
           </Card>
 
           <Card className="border-none shadow-sm bg-white overflow-hidden">
-            <CardContent className="p-6">
+            <CardContent className="p-4 md:p-6">
               <div className="flex items-center gap-4">
                 <div className="p-2.5 bg-green-50 text-green-600 rounded-lg">
                   <CheckCircle2 size={20} />
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500 font-medium">Present</p>
-                  <p className="text-2xl font-bold text-gray-900">
+                  <p className="text-xs sm:text-sm text-gray-500 font-medium">Present</p>
+                  <p className="text-xl sm:text-2xl font-bold text-gray-900">
                     {loading ? "..." : stats.present}
                   </p>
                 </div>
@@ -258,14 +258,14 @@ export default function AttendancePage() {
           </Card>
 
           <Card className="border-none shadow-sm bg-white overflow-hidden">
-            <CardContent className="p-6">
+            <CardContent className="p-4 md:p-6">
               <div className="flex items-center gap-4">
                 <div className="p-2.5 bg-red-50 text-red-600 rounded-lg">
                   <XCircle size={20} />
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500 font-medium">Absent</p>
-                  <p className="text-2xl font-bold text-gray-900">
+                  <p className="text-xs sm:text-sm text-gray-500 font-medium">Absent</p>
+                  <p className="text-xl sm:text-2xl font-bold text-gray-900">
                     {loading ? "..." : stats.absent}
                   </p>
                 </div>
@@ -274,16 +274,16 @@ export default function AttendancePage() {
           </Card>
 
           <Card className="border-none shadow-sm bg-white overflow-hidden">
-            <CardContent className="p-6">
+            <CardContent className="p-4 md:p-6">
               <div className="flex items-center gap-4">
                 <div className="p-2.5 bg-orange-50 text-orange-600 rounded-lg">
                   <Clock size={20} />
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500 font-medium">
+                  <p className="text-xs sm:text-sm text-gray-500 font-medium">
                     Late Arrivals
                   </p>
-                  <p className="text-2xl font-bold text-gray-900">
+                  <p className="text-xl sm:text-2xl font-bold text-gray-900">
                     {loading ? "..." : stats.late}
                   </p>
                 </div>
@@ -316,11 +316,10 @@ export default function AttendancePage() {
             />
             <button
               onClick={() => setIsFilterOpen(true)}
-              className={`flex items-center justify-center p-2.5 border rounded-lg bg-white shadow-sm transition-colors ${
-                Object.values(activeFilters).some((v) => v !== "")
-                  ? "border-blue-500 text-blue-600 bg-blue-50"
-                  : "border-gray-200 text-gray-600 hover:bg-gray-50"
-              }`}
+              className={`flex items-center justify-center p-2.5 border rounded-lg bg-white shadow-sm transition-colors ${Object.values(activeFilters).some((v) => v !== "")
+                ? "border-blue-500 text-blue-600 bg-blue-50"
+                : "border-gray-200 text-gray-600 hover:bg-gray-50"
+                }`}
             >
               <Filter size={18} />
             </button>
@@ -452,25 +451,25 @@ export default function AttendancePage() {
                         <td className="px-6 py-4 whitespace-nowrap text-gray-600">
                           {record.checkInTime
                             ? new Date(record.checkInTime).toLocaleTimeString(
-                                "en-US",
-                                {
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                  hour12: true,
-                                },
-                              )
+                              "en-US",
+                              {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                                hour12: true,
+                              },
+                            )
                             : "—"}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-gray-600">
                           {record.checkOutTime
                             ? new Date(record.checkOutTime).toLocaleTimeString(
-                                "en-US",
-                                {
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                  hour12: true,
-                                },
-                              )
+                              "en-US",
+                              {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                                hour12: true,
+                              },
+                            )
                             : "—"}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -501,9 +500,9 @@ export default function AttendancePage() {
                         <td className="px-6 py-4 whitespace-nowrap text-right">
                           <button
                             onClick={() => handleEditClick(record)}
-                            className="text-gray-400 hover:text-blue-600 transition-colors"
+                            className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                           >
-                            <Pencil size={16} />
+                            <Pencil size={18} />
                           </button>
                         </td>
                       </tr>
@@ -545,11 +544,10 @@ export default function AttendancePage() {
                     <button
                       key={i}
                       onClick={() => setCurrentPage(i + 1)}
-                      className={`min-w-[32px] h-8 flex items-center justify-center rounded-md text-sm font-medium transition-colors ${
-                        currentPage === i + 1
-                          ? "bg-blue-600 text-white shadow-sm"
-                          : "text-gray-500 hover:bg-gray-100"
-                      }`}
+                      className={`min-w-[32px] h-8 flex items-center justify-center rounded-md text-sm font-medium transition-colors ${currentPage === i + 1
+                        ? "bg-blue-600 text-white shadow-sm"
+                        : "text-gray-500 hover:bg-gray-100"
+                        }`}
                     >
                       {i + 1}
                     </button>

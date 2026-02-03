@@ -117,26 +117,26 @@ export default function LoginPage() {
         ></div>
       </div>
 
-      <div className="w-full max-w-md relative z-10">
+      <div className="w-full max-w-md relative z-10 px-4 sm:px-0">
         {/* Logo and Header */}
-        <div className="text-center mb-8">
-          <Link href="/" className="inline-flex items-center gap-3 mb-6">
-            <div className="w-12 h-12 bg-gradient-to-br from-indigo-600 to-emerald-600 rounded-xl flex items-center justify-center">
-              <Clock className="w-7 h-7 text-white" />
+        <div className="text-center mb-6 sm:mb-8">
+          <Link href="/" className="inline-flex items-center gap-3 mb-4 sm:mb-6">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-indigo-600 to-emerald-600 rounded-xl flex items-center justify-center">
+              <Clock className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
             </div>
-            <span className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-emerald-600 bg-clip-text text-transparent">
+            <span className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-indigo-600 to-emerald-600 bg-clip-text text-transparent">
               AttendEase
             </span>
           </Link>
-          <h1 className="text-3xl font-bold text-slate-800 mb-2">
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 mb-2">
             Welcome Back
           </h1>
-          <p className="text-slate-600">Sign in to access your dashboard</p>
+          <p className="text-sm sm:text-base text-slate-600">Sign in to access your dashboard</p>
         </div>
 
         {/* Login Card */}
-        <div className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl border border-indigo-100 p-8">
-          <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="bg-white/90 sm:bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl border border-indigo-100 p-6 sm:p-8">
+          <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-6">
             {/* Error Alert */}
             {errors.submit && (
               <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
@@ -167,11 +167,10 @@ export default function LoginPage() {
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
-                  className={`w-full pl-12 pr-4 py-3 bg-slate-50 border ${
-                    errors.email
+                  className={`w-full pl-12 pr-4 py-3 bg-slate-50 border ${errors.email
                       ? "border-red-300 focus:ring-red-500 focus:border-red-500"
                       : "border-slate-200 focus:ring-indigo-500 focus:border-indigo-500"
-                  } rounded-xl focus:outline-none focus:ring-2 transition-all`}
+                    } rounded-xl focus:outline-none focus:ring-2 transition-all`}
                   placeholder="you@company.com"
                   suppressHydrationWarning
                 />
@@ -202,11 +201,10 @@ export default function LoginPage() {
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
-                  className={`w-full pl-12 pr-12 py-3 bg-slate-50 border ${
-                    errors.password
+                  className={`w-full pl-12 pr-12 py-3 bg-slate-50 border ${errors.password
                       ? "border-red-300 focus:ring-red-500 focus:border-red-500"
                       : "border-slate-200 focus:ring-indigo-500 focus:border-indigo-500"
-                  } rounded-xl focus:outline-none focus:ring-2 transition-all`}
+                    } rounded-xl focus:outline-none focus:ring-2 transition-all`}
                   placeholder="••••••••"
                   suppressHydrationWarning
                 />

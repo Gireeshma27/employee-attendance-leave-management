@@ -18,13 +18,30 @@ import { useRouter } from "next/navigation";
 import apiService from "@/lib/api";
 
 export function DashboardLayout({ children, role = "employee" }) {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false); // Default closed on mobile
   const pathname = usePathname();
   const router = useRouter();
   const [user, setUser] = useState(null);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [wfhMode, setWfhMode] = useState(false);
   const [mounted, setMounted] = useState(false);
+
+  // Handle screen resize to auto-open sidebar on desktop
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) {
+        setSidebarOpen(true);
+      } else {
+        setSidebarOpen(false);
+      }
+    };
+
+    // Set initial state based on width
+    handleResize();
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     setMounted(true);
@@ -97,54 +114,60 @@ export function DashboardLayout({ children, role = "employee" }) {
   const links = getSidebarLinks();
 
   return (
-    <div className="flex flex-col md:flex-row h-screen bg-gray-50">
+    <div className="flex h-screen bg-gray-50 overflow-hidden">
       {/* Mobile Backdrop */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/50 md:hidden z-30"
+          className="fixed inset-0 bg-black/50 lg:hidden z-30 transition-opacity"
           onClick={() => setSidebarOpen(false)}
+          role="button"
+          tabIndex={0}
+          aria-label="Close sidebar"
         />
       )}
 
       {/* Sidebar */}
       <aside
-        className={`${
-          sidebarOpen ? "w-64" : "w-20"
-        } bg-gray-900 text-white transition-all duration-300 flex flex-col flex-shrink-0`}
+        className={`
+          fixed lg:static inset-y-0 left-0 z-40
+          w-64 bg-gray-900 text-white
+          transform transition-transform duration-300 ease-in-out
+          ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
+          flex flex-col flex-shrink-0 shadow-xl lg:shadow-none
+        `}
       >
         {/* Logo */}
-        <div className="px-6 py-8 border-b border-gray-800">
-          <h1 className={`font-bold text-xl ${!sidebarOpen && "hidden"}`}>
+        <div className="h-16 px-6 flex items-center border-b border-gray-800">
+          <h1 className="font-bold text-xl tracking-tight">
             AttendEase
           </h1>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 px-3 py-6 space-y-2">
+        <nav className="flex-1 px-3 py-6 space-y-1 overflow-y-auto">
           {links.map(({ href, label, icon: Icon }) => (
             <Link
               key={href}
               href={href}
-              onClick={() => setSidebarOpen(false)}
-              className={`flex items-center gap-4 px-4 py-3 rounded-lg transition-colors whitespace-nowrap ${
-                pathname === href
-                  ? "bg-blue-600 text-white"
-                  : "text-gray-300 hover:bg-gray-800"
-              }`}
+              onClick={() => {
+                if (window.innerWidth < 1024) setSidebarOpen(false);
+              }}
+              className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors group relative ${pathname === href
+                ? "bg-blue-600 text-white shadow-md"
+                : "text-gray-400 hover:bg-gray-800 hover:text-white"
+                }`}
             >
-              <Icon size={20} className="flex-shrink-0" />
-              <span>{label}</span>
+              <Icon size={20} className={`flex-shrink-0 ${pathname === href ? "" : "group-hover:text-white"}`} />
+              <span className="text-sm font-medium">{label}</span>
             </Link>
           ))}
         </nav>
 
-        {/* Logout removed from sidebar */}
-
         {/* WFH Mode Toggle */}
-        <div className="mt-auto p-4 border-t border-gray-800">
-          <div className="bg-gray-800/50 rounded-xl p-4">
+        <div className="p-4 border-t border-gray-800">
+          <div className="bg-gray-800/50 rounded-xl p-4 border border-gray-700/50">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[11px] font-black text-gray-400 uppercase tracking-widest">
+              <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
                 WFH Mode
               </span>
               <label className="relative inline-flex items-center cursor-pointer">
@@ -163,28 +186,43 @@ export function DashboardLayout({ children, role = "employee" }) {
               </label>
             </div>
             <p className="text-[10px] text-gray-500 leading-relaxed">
-              Bypass restrictions for remote employees
+              Bypass restrictions
             </p>
           </div>
         </div>
       </aside>
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col w-full min-w-0">
+      {/* Main Content Wrapper */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Topbar */}
-        <header className="bg-white border-b border-gray-200 px-8 py-4 flex items-center justify-end">
-          <div className="relative">
+        <header className="h-16 bg-white border-b border-gray-200 px-4 sm:px-6 lg:px-8 flex items-center justify-between shadow-sm z-20">
+          <button
+            type="button"
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="lg:hidden p-2 -ml-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-gray-200"
+            aria-label="Toggle sidebar"
+          >
+            {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+
+          {/* Spacer for mobile to push profile to right if no hamburger needed */}
+          <div className="relative ml-auto">
             <button
               type="button"
               onClick={() => setShowProfileDropdown(!showProfileDropdown)}
-              className="group flex items-center gap-2.5 pl-1 pr-4 py-1 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-full transition-all duration-200 shadow-sm"
+              className="flex items-center gap-3 p-1.5 rounded-full hover:bg-gray-50 transition-colors border border-transparent hover:border-gray-200"
             >
-              <div className="w-7 h-7 bg-blue-600 rounded-full flex items-center justify-center text-white text-[12px] font-bold shadow-sm">
+              <div className="w-8 h-8 sm:w-9 sm:h-9 bg-gradient-to-br from-blue-600 to-blue-700 rounded-full flex items-center justify-center text-white text-xs sm:text-sm font-bold shadow-md ring-2 ring-white">
                 {user?.name ? user.name.charAt(0).toUpperCase() : "?"}
               </div>
-              <p className="text-[13px] font-medium text-gray-700 group-hover:text-gray-900">
-                {user?.name || "Loading..."}
-              </p>
+              <div className="hidden md:block text-left mr-1">
+                <p className="text-sm font-semibold text-gray-700 leading-none">
+                  {user?.name || "Loading..."}
+                </p>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  {role.charAt(0).toUpperCase() + role.slice(1)}
+                </p>
+              </div>
             </button>
 
             {showProfileDropdown && (
@@ -193,16 +231,16 @@ export function DashboardLayout({ children, role = "employee" }) {
                   className="fixed inset-0 z-40"
                   onClick={() => setShowProfileDropdown(false)}
                 ></div>
-                <div className="absolute right-0 mt-2 w-64 bg-white border border-gray-100 rounded-2xl shadow-2xl z-50 p-2 animate-in fade-in zoom-in duration-200 origin-top-right">
+                <div className="absolute right-0 mt-2 w-64 bg-white border border-gray-100 rounded-xl shadow-xl z-50 p-2 animate-in fade-in zoom-in-95 duration-100 origin-top-right">
                   <div className="px-4 py-3 border-b border-gray-50 mb-1">
-                    <p className="text-sm font-bold text-gray-900">
+                    <p className="text-sm font-bold text-gray-900 truncate">
                       {user?.name}
                     </p>
-                    <p className="text-xs text-gray-500">{user?.email}</p>
+                    <p className="text-xs text-gray-500 truncate">{user?.email}</p>
                   </div>
                   <button
                     onClick={handleLogout}
-                    className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50 rounded-xl transition-colors font-semibold"
+                    className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors font-medium"
                   >
                     <LogOut size={18} />
                     Logout
@@ -214,8 +252,10 @@ export function DashboardLayout({ children, role = "employee" }) {
         </header>
 
         {/* Content */}
-        <main className="flex-1 overflow-auto p-4 md:p-6 lg:p-8 w-full">
-          {children}
+        <main className="flex-1 overflow-y-auto bg-gray-50 p-4 sm:p-6 lg:p-8">
+          <div className="max-w-7xl mx-auto">
+            {children}
+          </div>
         </main>
       </div>
     </div>

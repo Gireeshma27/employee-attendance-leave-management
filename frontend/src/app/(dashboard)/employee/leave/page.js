@@ -99,14 +99,14 @@ export default function LeavePage() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 md:gap-4">
           <div className="min-w-0">
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Leave Management</h1>
-            <p className="text-xs md:text-sm text-gray-600 mt-1">Apply and track your leaves</p>
+            <h1 className="text-lg sm:text-2xl md:text-3xl font-bold text-gray-900">Leave Management</h1>
+            <p className="text-xs sm:text-sm md:text-sm text-gray-600 mt-1">Apply and track your leaves</p>
           </div>
           <Button
             variant="primary"
             size="lg"
             onClick={() => setShowForm(!showForm)}
-            className="flex items-center justify-center gap-2 w-full sm:w-auto text-xs md:text-base"
+            className="flex items-center justify-center gap-2 w-full sm:w-auto text-xs sm:text-sm md:text-base"
           >
             <Plus size={16} className="md:w-5 md:h-5" />
             Apply Leave
