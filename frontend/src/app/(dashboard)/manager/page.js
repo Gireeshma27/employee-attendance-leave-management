@@ -1,5 +1,7 @@
-import { redirect } from 'next/navigation';
+import { redirect } from "next/navigation";
 
-export default function ManagerRoot() {
-  redirect('/manager/dashboard');
-}
+const ManagerRoot = () => {
+  redirect("/manager/dashboard");
+};
+
+export default ManagerRoot;

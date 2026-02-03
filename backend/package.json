@@ -28,9 +28,18 @@
     "express-validator": "^7.0.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^7.5.0",
-    "nodemailer": "^6.9.4"
+    "nodemailer": "^6.9.4",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"
+  },
+  "imports": {
+    "#config/*": "./src/config/*.js",
+    "#controllers/*": "./src/controllers/*.js",
+    "#middlewares/*": "./src/middlewares/*.js",
+    "#models/*": "./src/models/*.js",
+    "#utils/*": "./src/utils/*.js",
+    "#validations/*": "./src/validations/*.js"
   }
 }

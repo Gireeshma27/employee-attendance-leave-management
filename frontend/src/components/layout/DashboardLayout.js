@@ -16,11 +16,14 @@ import {
   Bell,
   Settings,
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import apiService from "@/lib/api";
+import { apiService } from "@/lib/api";
 
-export function DashboardLayout({ children, role = "employee" }) {
+/**
+ * @description Master layout for all dashboard pages, including Sidebar and Topbar.
+ */
+const DashboardLayout = ({ children, role = "employee" }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
@@ -31,11 +34,8 @@ export function DashboardLayout({ children, role = "employee" }) {
 
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth >= 1024) {
-        setSidebarOpen(true);
-      } else {
-        setSidebarOpen(false);
-      }
+      if (window.innerWidth >= 1024) setSidebarOpen(true);
+      else setSidebarOpen(false);
     };
     handleResize();
     window.addEventListener("resize", handleResize);
@@ -58,7 +58,7 @@ export function DashboardLayout({ children, role = "employee" }) {
     }
   }, []);
 
-  const handleLogout = async () => {
+  const handleLogout = useCallback(async () => {
     try {
       await apiService.auth.logout();
     } catch (error) {
@@ -68,9 +68,9 @@ export function DashboardLayout({ children, role = "employee" }) {
       localStorage.removeItem("user");
       router.push("/login");
     }
-  };
+  }, [router]);
 
-  const getSidebarLinks = () => {
+  const getSidebarLinks = useCallback(() => {
     const commonLinks = [
       {
         href: `/employee/dashboard`,
@@ -97,15 +97,19 @@ export function DashboardLayout({ children, role = "employee" }) {
       { href: `/admin/reports`, label: "Reports", icon: BarChart3 },
     ];
 
-    if (role === "manager") return managerLinks;
-    if (role === "admin") return adminLinks;
+    const lowerRole = role?.toLowerCase();
+    if (lowerRole === "manager") return managerLinks;
+    if (lowerRole === "admin") return adminLinks;
     return commonLinks;
-  };
+  }, [role]);
 
   const links = getSidebarLinks();
 
   return (
-    <div className="flex h-screen bg-[#F8FAFC] overflow-hidden font-sans" suppressHydrationWarning>
+    <div
+      className="flex h-screen bg-[#F8FAFC] overflow-hidden font-sans"
+      suppressHydrationWarning
+    >
       {/* Mobile Backdrop */}
       {sidebarOpen && (
         <div
@@ -124,14 +128,12 @@ export function DashboardLayout({ children, role = "employee" }) {
           flex flex-col flex-shrink-0 shadow-2xl lg:shadow-none
         `}
       >
-        {/* Logo */}
         <div className="h-20 px-8 flex items-center mb-4">
           <h1 className="font-black text-2xl tracking-tighter text-white">
             AttendEase
           </h1>
         </div>
 
-        {/* Navigation */}
         <nav className="flex-1 px-4 space-y-1.5 overflow-y-auto custom-scrollbar">
           {links.map(({ href, label, icon: Icon }) => (
             <Link
@@ -166,7 +168,6 @@ export function DashboardLayout({ children, role = "employee" }) {
           ))}
         </nav>
 
-        {/* WFH Mode Toggle (Sidebar Bottom) */}
         <div className="p-6">
           <div className="bg-slate-800/40 rounded-2xl p-5 border border-slate-700/50">
             <div className="flex items-center justify-between mb-2">
@@ -195,9 +196,7 @@ export function DashboardLayout({ children, role = "employee" }) {
         </div>
       </aside>
 
-      {/* Main Content Wrapper */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        {/* Topbar */}
         <header className="h-20 bg-white/80 backdrop-blur-md border-b border-slate-100 px-6 sm:px-8 flex items-center justify-between sticky top-0 z-20">
           <div className="flex items-center gap-6 flex-1">
             <button
@@ -208,7 +207,6 @@ export function DashboardLayout({ children, role = "employee" }) {
               {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
 
-            {/* Page Info */}
             <div className="hidden sm:block">
               <h2 className="text-xl font-black text-slate-900 tracking-tight leading-none mb-1">
                 {links.find((l) => l.href === pathname)?.label || "Dashboard"}
@@ -222,18 +220,15 @@ export function DashboardLayout({ children, role = "employee" }) {
           </div>
 
           <div className="flex items-center gap-3 sm:gap-6 ml-4">
-            {/* Search icon */}
             <button className="p-2.5 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-full transition-all">
               <Search size={20} strokeWidth={2.5} />
             </button>
 
-            {/* Notifications */}
             <button className="p-2.5 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-full transition-all relative">
               <Bell size={20} strokeWidth={2.5} />
               <span className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-white shadow-sm"></span>
             </button>
 
-            {/* User Profile */}
             <div className="relative">
               <button
                 type="button"
@@ -293,7 +288,6 @@ export function DashboardLayout({ children, role = "employee" }) {
           </div>
         </header>
 
-        {/* Content */}
         <main className="flex-1 overflow-y-auto bg-[#F8FAFC] custom-scrollbar">
           <div className="p-6 sm:p-8 lg:p-10 max-w-[1600px] mx-auto">
             {children}
@@ -302,30 +296,34 @@ export function DashboardLayout({ children, role = "employee" }) {
       </div>
     </div>
   );
-}
+};
 
-export function AuthLayout({ children }) {
-  return (
-    <div className="min-h-screen bg-[#0F172A] flex items-center justify-center px-4 py-8 font-sans overflow-hidden relative">
-      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/10 rounded-full blur-[120px]" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-500/10 rounded-full blur-[120px]" />
+/**
+ * @description Layout for authentication pages (Login, Forgot Password, etc.).
+ */
+const AuthLayout = ({ children }) => (
+  <div className="min-h-screen bg-[#0F172A] flex items-center justify-center px-4 py-8 font-sans overflow-hidden relative">
+    <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/10 rounded-full blur-[120px]" />
+    <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-500/10 rounded-full blur-[120px]" />
 
-      <div className="w-full max-w-md relative z-10">
-        <div className="text-center mb-10">
-          <div className="w-20 h-20 bg-blue-600 rounded-3xl mx-auto mb-6 flex items-center justify-center shadow-2xl shadow-blue-600/30 rotate-12">
-            <LayoutDashboard size={40} className="text-white -rotate-12" />
-          </div>
-          <h1 className="text-5xl font-black text-white mb-3 tracking-tighter">
-            AttendEase
-          </h1>
-          <p className="text-slate-400 font-medium tracking-wide">
-            Next-Gen Attendance & Leave Management
-          </p>
+    <div className="w-full max-w-md relative z-10">
+      <div className="text-center mb-10">
+        <div className="w-20 h-20 bg-blue-600 rounded-3xl mx-auto mb-6 flex items-center justify-center shadow-2xl shadow-blue-600/30 rotate-12">
+          <LayoutDashboard size={40} className="text-white -rotate-12" />
         </div>
-        <div className="bg-white p-8 rounded-[32px] shadow-2xl shadow-black/50 border border-slate-800/10">
-          {children}
-        </div>
+        <h1 className="text-5xl font-black text-white mb-3 tracking-tighter">
+          AttendEase
+        </h1>
+        <p className="text-slate-400 font-medium tracking-wide">
+          Next-Gen Attendance & Leave Management
+        </p>
+      </div>
+      <div className="bg-white p-8 rounded-[32px] shadow-2xl shadow-black/50 border border-slate-800/10">
+        {children}
       </div>
     </div>
-  );
-}
+  </div>
+);
+
+export { DashboardLayout, AuthLayout };
+export default DashboardLayout;

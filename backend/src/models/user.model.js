@@ -1,28 +1,27 @@
 import mongoose from "mongoose";
 
+/**
+ * @description Pure User Schema definition.
+ * @module models/usermodel
+ */
+
 const userSchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      required: [true, "Please provide a name"],
+      required: true,
       trim: true,
-      maxlength: [100, "Name cannot be more than 100 characters"],
     },
     email: {
       type: String,
-      required: [true, "Please provide an email"],
+      required: true,
       unique: true,
       lowercase: true,
-      match: [
-        /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
-        "Please provide a valid email",
-      ],
     },
     password: {
       type: String,
-      required: [true, "Please provide a password"],
-      minlength: [6, "Password must be at least 6 characters"],
-      select: false, // Don't return password by default in queries
+      required: true,
+      select: false,
     },
     role: {
       type: String,
@@ -32,8 +31,7 @@ const userSchema = new mongoose.Schema(
     employeeId: {
       type: String,
       unique: true,
-      sparse: true, // Allow null values
-      maxlength: [20, "Employee ID cannot be more than 20 characters"],
+      sparse: true,
     },
     isActive: {
       type: Boolean,
@@ -53,29 +51,15 @@ const userSchema = new mongoose.Schema(
     },
     phone: {
       type: String,
-      match: [/^\d{10}$/, "Please provide a valid phone number"],
     },
   },
   {
     timestamps: true,
-    toJSON: {
-      transform: (doc, ret) => {
-        ret.version = `${(ret.__v || 0) + 1}.0`;
-        delete ret.__v;
-        return ret;
-      },
-    },
-    toObject: {
-      transform: (doc, ret) => {
-        ret.version = `${(ret.__v || 0) + 1}.0`;
-        delete ret.__v;
-        return ret;
-      },
-    },
+    versionKey: false, // Cleaner response
   },
 );
 
-// Index for performance
+// Indexes
 userSchema.index({ email: 1 });
 userSchema.index({ employeeId: 1 });
 

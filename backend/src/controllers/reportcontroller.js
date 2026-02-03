@@ -1,11 +1,11 @@
-import Attendance from "../models/attendance.model.js";
-import User from "../models/user.model.js";
-import Leave from "../models/leave.model.js";
-import ApiResponse from "../utils/apiResponse.js";
+import Attendance from "#models/attendance.model";
+import User from "#models/user.model";
+import Leave from "#models/leave.model";
+import { sendSuccess, sendError } from "#utils/api_response_fix";
 
-export const getAdminReportData = async (req, res) => {
+const getAdminReportData = async (req, res) => {
   try {
-    const { fromDate, toDate, period = "monthly" } = req.query;
+    const { fromDate, toDate } = req.query;
 
     const start = fromDate
       ? new Date(fromDate)
@@ -13,22 +13,18 @@ export const getAdminReportData = async (req, res) => {
     const end = toDate ? new Date(toDate) : new Date();
     end.setHours(23, 59, 59, 999);
 
-    // 1. Get Top Stat Cards
     const totalEmployees = await User.countDocuments({ role: "EMPLOYEE" });
 
-    // Active WFH Users (distinct users who had at least one WFH record in the period)
     const wfhUsersCount = await Attendance.distinct("userId", {
       date: { $gte: start, $lte: end },
       status: "WFH",
     });
 
-    // Avg Attendance Rate
     const totalAttendanceRecords = await Attendance.countDocuments({
       date: { $gte: start, $lte: end },
       status: { $in: ["Present", "WFH"] },
     });
 
-    // For rate, we need working days in period. Simple approx: diff in days * totalEmployees
     const daysDiff = Math.max(
       1,
       Math.ceil((end - start) / (1000 * 60 * 60 * 24)),
@@ -39,7 +35,6 @@ export const getAdminReportData = async (req, res) => {
         ? Math.round((totalAttendanceRecords / possibleRecords) * 100)
         : 0;
 
-    // Avg Clock-in Time
     const checkInData = await Attendance.find({
       date: { $gte: start, $lte: end },
       checkInTime: { $exists: true },
@@ -62,13 +57,11 @@ export const getAdminReportData = async (req, res) => {
 
     const pendingLeaves = await Leave.countDocuments({ status: "Pending" });
 
-    // 2. Departmental Performance comparison
     const departments = ["IT", "HR", "Sales", "Legal", "Support"];
     const deptData = await Promise.all(
       departments.map(async (dept) => {
         const deptUsers = await User.find({ department: dept }).select("_id");
         const userIds = deptUsers.map((u) => u._id);
-
         if (userIds.length === 0) return { name: dept, value: 0 };
 
         const deptAttendance = await Attendance.countDocuments({
@@ -84,25 +77,22 @@ export const getAdminReportData = async (req, res) => {
       }),
     );
 
-    // 3. Staff Availability (Today)
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
     const todayEnd = new Date();
     todayEnd.setHours(23, 59, 59, 999);
 
-    const todayAttendance = await Attendance.find({
+    const todayAttendanceCount = await Attendance.countDocuments({
       date: { $gte: todayStart, $lte: todayEnd },
+      status: { $in: ["Present", "WFH"] },
     });
 
-    const onSite = todayAttendance.filter((a) => a.status === "Present").length;
-    const remote = todayAttendance.filter((a) => a.status === "WFH").length;
     const availabilityRate =
       totalEmployees > 0
-        ? Math.round(((onSite + remote) / totalEmployees) * 100)
+        ? Math.round((todayAttendanceCount / totalEmployees) * 100)
         : 0;
 
-    // 4. Employee Table Data
-    const users = await User.find({ role: "EMPLOYEE" }).limit(10); // Page 1 for mockup
+    const users = await User.find({ role: "EMPLOYEE" }).limit(10);
     const employeeReports = await Promise.all(
       users.map(async (u) => {
         const userAttendance = await Attendance.find({
@@ -113,14 +103,11 @@ export const getAdminReportData = async (req, res) => {
         const presentDays = userAttendance.filter(
           (a) => a.status === "Present" || a.status === "WFH",
         ).length;
-        // Mocking late marks for now or calculating if records have delay
-        const lateMarks = 0; // In a real app, compare checkInTime with expected 09:00
         const efficiency = Math.round((presentDays / daysDiff) * 100);
 
         return {
           id: u._id,
-          employeeId:
-            u.employeeId || `EMP-${Math.floor(10000 + Math.random() * 90000)}`,
+          employeeId: u.employeeId || "N/A",
           name: u.name,
           department: u.department || "Engineering",
           status:
@@ -130,13 +117,12 @@ export const getAdminReportData = async (req, res) => {
                 : "On-site"
               : "On Leave",
           daysPresent: `${presentDays} / ${daysDiff}`,
-          lateMarks,
           efficiency,
         };
       }),
     );
 
-    return ApiResponse.success(res, 200, "Report data retrieved successfully", {
+    return sendSuccess(res, "Report data retrieved successfully", {
       stats: {
         activeWFH: { value: wfhUsersCount.length, trend: "+12%" },
         attendanceRate: { value: `${avgAttendanceRate}%`, trend: "Stable" },
@@ -146,16 +132,12 @@ export const getAdminReportData = async (req, res) => {
       deptPerformance: deptData,
       availability: {
         rate: availabilityRate,
-        onSite,
-        remote,
       },
       employees: employeeReports,
     });
   } catch (error) {
-    console.error("Report data error:", error);
-    return ApiResponse.serverError(
-      res,
-      error.message || "Failed to retrieve report data",
-    );
+    return sendError(res, "Failed to retrieve report data", error.message);
   }
 };
+
+export { getAdminReportData };

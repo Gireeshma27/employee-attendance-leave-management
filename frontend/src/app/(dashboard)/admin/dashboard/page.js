@@ -16,25 +16,21 @@ import {
   ShieldCheck,
   Zap,
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import apiService from "@/lib/api";
 
-export default function AdminDashboard() {
+const AdminDashboard = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [mounted, setMounted] = useState(false);
 
-  useEffect(() => {
-    setMounted(true);
-    fetchDashboardData();
-  }, []);
-
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
       const response = await apiService.dashboard.getAdminStats();
+
       if (response.success) {
         setData(response.data);
       } else {
@@ -46,7 +42,12 @@ export default function AdminDashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    setMounted(true);
+    fetchDashboardData();
+  }, [fetchDashboardData]);
 
   if (loading) {
     return (
@@ -194,7 +195,10 @@ export default function AdminDashboard() {
           <Card className="lg:col-span-2 shadow-xl shadow-slate-100/50">
             <CardHeader>
               <CardTitle>Live Activity Log</CardTitle>
-              <button className="text-[10px] font-black text-blue-600 uppercase tracking-widest hover:underline px-4 py-2 bg-blue-50 rounded-lg">
+              <button
+                onClick={fetchDashboardData}
+                className="text-[10px] font-black text-blue-600 uppercase tracking-widest hover:underline px-4 py-2 bg-blue-50 rounded-lg"
+              >
                 Refresh Feed
               </button>
             </CardHeader>
@@ -265,7 +269,7 @@ export default function AdminDashboard() {
             </div>
           </Card>
 
-          {/* System Status Table */}
+          {/* System Status */}
           <div className="space-y-8">
             <Card className="shadow-xl shadow-slate-100/50">
               <CardHeader>
@@ -317,7 +321,7 @@ export default function AdminDashboard() {
                       No active sessions
                     </div>
                   )}
-                  {summary?.presentToday > activeSessions?.length && (
+                  {summary?.presentToday > (activeSessions?.length || 0) && (
                     <div className="w-11 h-11 rounded-full border-4 border-white bg-slate-100 text-slate-500 flex items-center justify-center text-[10px] font-black shadow-sm z-10">
                       +{summary.presentToday - activeSessions.length}
                     </div>
@@ -330,9 +334,9 @@ export default function AdminDashboard() {
       </div>
     </DashboardLayout>
   );
-}
+};
 
-function StatCard({ label, value, icon: Icon, color }) {
+const StatCard = ({ label, value, icon: Icon, color }) => {
   const colors = {
     blue: "bg-blue-600 text-white shadow-blue-600/20",
     emerald: "bg-emerald-500 text-white shadow-emerald-500/20",
@@ -361,36 +365,32 @@ function StatCard({ label, value, icon: Icon, color }) {
       </div>
     </Card>
   );
-}
+};
 
-function StatusItem({ icon: Icon, label, status, variant }) {
-  return (
-    <div className="flex items-center justify-between group py-1">
-      <div className="flex items-center gap-4">
-        <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 group-hover:bg-blue-50 group-hover:text-blue-500 transition-colors">
-          <Icon size={18} strokeWidth={2.5} />
-        </div>
-        <span className="text-sm font-bold text-slate-700 tracking-tight">
-          {label}
-        </span>
+const StatusItem = ({ icon: Icon, label, status, variant }) => (
+  <div className="flex items-center justify-between group py-1">
+    <div className="flex items-center gap-4">
+      <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 group-hover:bg-blue-50 group-hover:text-blue-500 transition-colors">
+        <Icon size={18} strokeWidth={2.5} />
       </div>
-      <Badge variant={variant} className="border-none px-4 py-1.5 shadow-sm">
-        {status}
-      </Badge>
+      <span className="text-sm font-bold text-slate-700 tracking-tight">
+        {label}
+      </span>
     </div>
-  );
-}
+    <Badge variant={variant} className="border-none px-4 py-1.5 shadow-sm">
+      {status}
+    </Badge>
+  </div>
+);
 
-function AttendanceChart({ trends }) {
+const AttendanceChart = ({ trends }) => {
   if (!trends || trends.length === 0) return null;
 
-  // Normalize points for a 800x300 SVG viewbox
   const padding = 50;
   const width = 800;
   const height = 300;
   const spacing = (width - padding * 2) / (trends.length - 1);
 
-  // Simple scaling helper
   const maxVal = Math.max(...trends.map((t) => Math.max(t.office, t.wfh, 5)));
   const getY = (val) =>
     height - padding - (val / (maxVal * 1.5)) * (height - padding * 2);
@@ -420,7 +420,6 @@ function AttendanceChart({ trends }) {
         </linearGradient>
       </defs>
 
-      {/* Grid Lines */}
       {[0, 1, 2, 3].map((i) => {
         const y = padding + i * ((height - padding * 2) / 3);
         return (
@@ -436,7 +435,6 @@ function AttendanceChart({ trends }) {
         );
       })}
 
-      {/* Office Area & Path */}
       <path
         d={`M ${padding},${height - padding} L ${officePoints.join(" L ")} L ${width - padding},${height - padding} Z`}
         fill="url(#officeGrad)"
@@ -452,7 +450,6 @@ function AttendanceChart({ trends }) {
         className="transition-all duration-1000 opacity-90"
       />
 
-      {/* WFH Path */}
       <path
         d={`M ${wfhPoints.join(" L ")}`}
         fill="none"
@@ -464,7 +461,6 @@ function AttendanceChart({ trends }) {
         className="transition-all duration-1000 opacity-60"
       />
 
-      {/* Interactive Dots */}
       {trends.map((t, i) => (
         <g key={i} className="cursor-pointer group">
           <circle
@@ -483,4 +479,6 @@ function AttendanceChart({ trends }) {
       ))}
     </svg>
   );
-}
+};
+
+export default AdminDashboard;

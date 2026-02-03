@@ -1,10 +1,15 @@
 import mongoose from "mongoose";
 
+/**
+ * @description Pure Office Schema definition.
+ * @module models/officemodel
+ */
+
 const officeSchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      required: [true, "Please provide an office name"],
+      required: true,
       trim: true,
     },
     description: {
@@ -13,15 +18,15 @@ const officeSchema = new mongoose.Schema(
     },
     address: {
       type: String,
-      required: [true, "Please provide an address"],
+      required: true,
     },
     coords: {
       type: [Number], // [latitude, longitude]
-      required: [true, "Please provide coordinates"],
+      required: true,
     },
     radius: {
       type: Number,
-      required: [true, "Please provide a radius in meters"],
+      required: true,
       default: 100,
     },
     status: {
@@ -32,20 +37,7 @@ const officeSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-    toJSON: {
-      transform: (doc, ret) => {
-        ret.version = `${(ret.__v || 0) + 1}.0`;
-        delete ret.__v;
-        return ret;
-      },
-    },
-    toObject: {
-      transform: (doc, ret) => {
-        ret.version = `${(ret.__v || 0) + 1}.0`;
-        delete ret.__v;
-        return ret;
-      },
-    },
+    versionKey: false,
   },
 );
 
