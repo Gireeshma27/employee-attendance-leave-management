@@ -110,21 +110,16 @@ export function AddGeofenceModal({
               <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1.5 ml-1">
                 Address
               </label>
-              <div className="relative">
-                <MapPin
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-                  size={16}
-                />
-                <Input
-                  required
-                  placeholder="Street, City, State..."
-                  value={formData.address}
-                  onChange={(e) =>
-                    setFormData({ ...formData, address: e.target.value })
-                  }
-                  className="pl-10 rounded-xl border-gray-100 bg-gray-50/50 focus:bg-white"
-                />
-              </div>
+              <Input
+                icon={MapPin}
+                required
+                placeholder="Street, City, State..."
+                value={formData.address}
+                onChange={(e) =>
+                  setFormData({ ...formData, address: e.target.value })
+                }
+                className="rounded-xl border-gray-100 bg-gray-50/50 focus:bg-white"
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -132,27 +127,22 @@ export function AddGeofenceModal({
                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1.5 ml-1">
                   Radius (meters)
                 </label>
-                <div className="relative">
-                  <Target
-                    className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-                    size={16}
-                  />
-                  <Input
-                    type="number"
-                    required
-                    min="50"
-                    max="1000"
-                    value={formData.radius}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        radius:
-                          e.target.value === "" ? "" : parseInt(e.target.value),
-                      })
-                    }
-                    className="pl-10 rounded-xl border-gray-100 bg-gray-50/50 focus:bg-white"
-                  />
-                </div>
+                <Input
+                  icon={Target}
+                  type="number"
+                  required
+                  min="50"
+                  max="1000"
+                  value={formData.radius}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      radius:
+                        e.target.value === "" ? "" : parseInt(e.target.value),
+                    })
+                  }
+                  className="rounded-xl border-gray-100 bg-gray-50/50 focus:bg-white"
+                />
               </div>
               <div>
                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1.5 ml-1">

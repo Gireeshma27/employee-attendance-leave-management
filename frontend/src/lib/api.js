@@ -304,6 +304,30 @@ class ApiService {
     cancel: (leaveId) =>
       this.request(`/leaves/${leaveId}`, { method: "DELETE" }),
   };
+
+  /**
+   * Office/Location Endpoints
+   */
+  office = {
+    getAll: () => this.request("/offices", { method: "GET" }),
+
+    create: (data) =>
+      this.request("/offices", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+
+    update: (id, data) =>
+      this.request(`/offices/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+      }),
+
+    delete: (id) =>
+      this.request(`/offices/${id}`, {
+        method: "DELETE",
+      }),
+  };
 }
 
 export const apiService = new ApiService();

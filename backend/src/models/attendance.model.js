@@ -1,15 +1,15 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 const attendanceSchema = new mongoose.Schema(
   {
     userId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-      required: [true, 'Please provide a user ID'],
+      ref: "User",
+      required: [true, "Please provide a user ID"],
     },
     date: {
       type: Date,
-      required: [true, 'Please provide a date'],
+      required: [true, "Please provide a date"],
     },
     checkInTime: {
       type: Date,
@@ -23,21 +23,35 @@ const attendanceSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['Present', 'Absent', 'Half-day', 'WFH', 'Leave'],
-      default: 'Absent',
+      enum: ["Present", "Absent", "Half-day", "WFH", "Leave"],
+      default: "Absent",
     },
     remarks: {
       type: String,
-      maxlength: [500, 'Remarks cannot be more than 500 characters'],
+      maxlength: [500, "Remarks cannot be more than 500 characters"],
     },
     approvedBy: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+      ref: "User",
     },
   },
   {
     timestamps: true,
-  }
+    toJSON: {
+      transform: (doc, ret) => {
+        ret.version = `${(ret.__v || 0) + 1}.0`;
+        delete ret.__v;
+        return ret;
+      },
+    },
+    toObject: {
+      transform: (doc, ret) => {
+        ret.version = `${(ret.__v || 0) + 1}.0`;
+        delete ret.__v;
+        return ret;
+      },
+    },
+  },
 );
 
 // Index for performance
@@ -47,6 +61,6 @@ attendanceSchema.index({ date: 1 });
 // Compound index for efficient queries
 attendanceSchema.index({ userId: 1, date: -1 });
 
-const Attendance = mongoose.model('Attendance', attendanceSchema);
+const Attendance = mongoose.model("Attendance", attendanceSchema);
 
 export default Attendance;

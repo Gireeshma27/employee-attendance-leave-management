@@ -20,6 +20,7 @@ import { useState, useMemo, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { AddGeofenceModal } from "@/components/modals/AddGeofenceModal";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
+import apiService from "@/lib/api";
 
 // Dynamically import the Map component with no SSR
 const GeofencingMap = dynamic(() => import("@/components/GeofencingMap"), {
@@ -42,47 +43,44 @@ export default function GeofencingPage() {
   const [mounted, setMounted] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState({
     isOpen: false,
     id: null,
   });
 
-  const [locations, setLocations] = useState([
-    {
-      id: 1,
-      name: "Main Headquarters",
-      description: "Primary Hub",
-      address: "123 Tech Avenue, Silicon Valley, CA",
-      coordinates: "37.7749° N, 122.4194° W",
-      coords: [37.7749, -122.4194],
-      radius: "100",
-      status: "Active",
-    },
-    {
-      id: 2,
-      name: "East Coast Branch",
-      description: "Satellite Office",
-      address: "456 Innovation Dr, New York, NY",
-      coordinates: "40.7128° N, 74.0060° W",
-      coords: [40.7128, -74.006],
-      radius: "150",
-      status: "Active",
-    },
-    {
-      id: 3,
-      name: "London Workspace",
-      description: "European Hub",
-      address: "78 Thames St, London, UK",
-      coordinates: "51.5074° N, 0.1278° W",
-      coords: [51.5074, -0.1278],
-      radius: "75",
-      status: "Inactive",
-    },
-  ]);
+  const [locations, setLocations] = useState([]);
+
+  // Fetch offices from API
+  const fetchOffices = async () => {
+    try {
+      setIsLoading(true);
+      const response = await apiService.office.getAll();
+      if (response.success) {
+        // Map backend data to frontend format if necessary
+        const mappedOffices = (response.data || []).map((off) => ({
+          ...off,
+          id: off._id, // Map _id to id for table keys
+          coordinates: off.coords
+            ? `${off.coords[0].toFixed(4)}° N, ${off.coords[1].toFixed(4)}° E`
+            : "N/A",
+        }));
+        setLocations(mappedOffices);
+      }
+    } catch (err) {
+      console.error("Error fetching offices:", err);
+      setError("Failed to load locations");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Handle Mounting & Geolocation
   useEffect(() => {
     setMounted(true);
+    fetchOffices();
+
     if ("geolocation" in navigator) {
       setIsLocating(true);
       navigator.geolocation.getCurrentPosition(
@@ -91,7 +89,6 @@ export default function GeofencingPage() {
           setIsLocating(false);
         },
         (error) => {
-          // Handle geolocation errors gracefully
           const errorMessages = {
             1: "Location permission denied. Using default location.",
             2: "Location unavailable. Using default location.",
@@ -99,16 +96,16 @@ export default function GeofencingPage() {
           };
           console.warn(
             "Geolocation:",
-            errorMessages[error.code] || "Unknown error. Using default location."
+            errorMessages[error.code] ||
+              "Unknown error. Using default location.",
           );
-          // Keep using default India center coordinates
           setIsLocating(false);
         },
         {
           enableHighAccuracy: false,
           timeout: 10000,
-          maximumAge: 300000, // Cache location for 5 minutes
-        }
+          maximumAge: 300000,
+        },
       );
     }
   }, []);
@@ -117,20 +114,43 @@ export default function GeofencingPage() {
     setCenter(newCenter);
   };
 
-  const handleAddSuccess = (newLoc) => {
-    if (selectedLocation) {
-      setLocations(
-        locations.map((loc) => (loc.id === newLoc.id ? newLoc : loc)),
-      );
-    } else {
-      setLocations([...locations, newLoc]);
+  const handleAddSuccess = async (locData) => {
+    try {
+      let response;
+      if (selectedLocation) {
+        // Update existing location
+        response = await apiService.office.update(
+          selectedLocation._id,
+          locData,
+        );
+        if (response.success) {
+          await fetchOffices(); // Refresh list
+        }
+      } else {
+        // Create new location
+        response = await apiService.office.create(locData);
+        if (response.success) {
+          await fetchOffices(); // Refresh list
+        }
+      }
+    } catch (err) {
+      console.error("Error saving office:", err);
+      alert("Failed to save office location");
     }
     setSelectedLocation(null);
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (deleteConfirm.id) {
-      setLocations(locations.filter((loc) => loc.id !== deleteConfirm.id));
+      try {
+        const response = await apiService.office.delete(deleteConfirm.id);
+        if (response.success) {
+          await fetchOffices();
+        }
+      } catch (err) {
+        console.error("Error deleting office:", err);
+        alert("Failed to delete office location");
+      }
       setDeleteConfirm({ isOpen: false, id: null });
     }
   };
@@ -196,16 +216,11 @@ export default function GeofencingPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-2 sm:gap-4 md:gap-6 items-end mb-6 md:mb-8">
             <div className="sm:col-span-3">
-              <div className="relative">
-                <Search
-                  className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 text-gray-400"
-                  size={18}
-                />
-                <Input
-                  placeholder="Search office address, city, or zip code..."
-                  className="pl-10 sm:pl-12 py-2 sm:py-3 rounded-2xl border-gray-100 bg-gray-50/50 focus:bg-white transition-all text-xs sm:text-sm shadow-sm"
-                />
-              </div>
+              <Input
+                icon={Search}
+                placeholder="Search office address, city, or zip code..."
+                className="rounded-2xl border-gray-100 bg-gray-50/50 focus:bg-white transition-all text-xs sm:text-sm shadow-sm"
+              />
             </div>
             <div className="bg-white p-2 sm:p-4 rounded-2xl border border-gray-100 shadow-sm">
               <div className="flex justify-between items-center mb-2 sm:mb-3">
@@ -272,90 +287,115 @@ export default function GeofencingPage() {
         {/* Saved Locations Table */}
         <div className="bg-white border border-gray-100 rounded-[32px] overflow-hidden shadow-sm">
           <div className="p-4 sm:p-6 md:p-8 border-b border-gray-50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-            <h3 className="font-bold text-base sm:text-lg text-gray-900">Saved Locations</h3>
+            <h3 className="font-bold text-base sm:text-lg text-gray-900">
+              Saved Locations
+            </h3>
             <span className="text-[10px] sm:text-xs font-bold text-gray-400">
               Showing {locations.length} results
             </span>
           </div>
           <div className="overflow-x-auto -mx-4 sm:mx-0">
-            <table className="w-full min-w-[640px]">
-              <thead className="bg-gray-50/50 text-[9px] sm:text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-50">
-                <tr>
-                  <th className="px-3 sm:px-6 md:px-8 py-3 sm:py-4 md:py-5 text-left">Office Name</th>
-                  <th className="px-3 sm:px-6 md:px-8 py-3 sm:py-4 md:py-5 text-left hidden sm:table-cell">Address</th>
-                  <th className="px-3 sm:px-6 md:px-8 py-3 sm:py-4 md:py-5 text-left hidden md:table-cell">Coordinates</th>
-                  <th className="px-3 sm:px-6 md:px-8 py-3 sm:py-4 md:py-5 text-center">Radius</th>
-                  <th className="px-3 sm:px-6 md:px-8 py-3 sm:py-4 md:py-5 text-center">Status</th>
-                  <th className="px-3 sm:px-6 md:px-8 py-3 sm:py-4 md:py-5 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50">
-                {locations.map((loc) => (
-                  <tr
-                    key={loc.id}
-                    className="hover:bg-gray-50/50 transition-colors group"
-                  >
-                    <td className="px-3 sm:px-6 md:px-8 py-3 sm:py-4 md:py-6 whitespace-nowrap">
-                      <div>
-                        <p className="text-xs sm:text-sm font-black text-gray-900 tracking-tight">
-                          {loc.name}
-                        </p>
-                        <p className="text-[9px] sm:text-[11px] font-medium text-gray-400 mt-0.5">
-                          {loc.description}
-                        </p>
-                      </div>
-                    </td>
-                    <td className="px-3 sm:px-6 md:px-8 py-3 sm:py-4 md:py-6 max-w-[200px] hidden sm:table-cell">
-                      <p className="text-[10px] sm:text-[12px] font-medium text-gray-500 leading-relaxed truncate">
-                        {loc.address}
-                      </p>
-                    </td>
-                    <td className="px-3 sm:px-6 md:px-8 py-3 sm:py-4 md:py-6 hidden md:table-cell">
-                      <p className="text-[9px] sm:text-[11px] font-mono font-bold text-gray-400 bg-gray-50 px-2 py-1 rounded-md inline-block">
-                        {loc.coordinates}
-                      </p>
-                    </td>
-                    <td className="px-3 sm:px-6 md:px-8 py-3 sm:py-4 md:py-6 text-center">
-                      <span className="bg-blue-50 text-blue-600 text-[9px] sm:text-[11px] font-black px-2 sm:px-3 py-1 sm:py-1.5 rounded-full border border-blue-100 shadow-sm">
-                        {loc.radius}
-                      </span>
-                    </td>
-                    <td className="px-3 sm:px-6 md:px-8 py-3 sm:py-4 md:py-6 text-center">
-                      <Badge
-                        variant={
-                          loc.status === "Active" ? "success" : "secondary"
-                        }
-                        className="text-[9px] sm:text-[10px] font-black py-1 px-2 sm:px-3"
-                      >
-                        {loc.status}
-                      </Badge>
-                    </td>
-                    <td className="px-8 py-6 text-right">
-                      <div className="flex items-center justify-end gap-2 transition-opacity">
-                        <button
-                          type="button"
-                          onClick={() => handleEditClick(loc)}
-                          className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all active:scale-90"
-                          title="Edit Location"
-                        >
-                          <Edit2 size={16} />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setDeleteConfirm({ isOpen: true, id: loc.id })
-                          }
-                          className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all active:scale-90"
-                          title="Delete Location"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </td>
+            {isLoading ? (
+              <div className="p-12 text-center text-gray-400 font-medium">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                Loading saved locations...
+              </div>
+            ) : locations.length === 0 ? (
+              <div className="p-12 text-center text-gray-400 font-medium">
+                No office locations found. Add your first location above.
+              </div>
+            ) : (
+              <table className="w-full min-w-[640px]">
+                <thead className="bg-gray-50/50 text-[9px] sm:text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-50">
+                  <tr>
+                    <th className="px-3 sm:px-6 md:px-8 py-3 sm:py-4 md:py-5 text-left">
+                      Office Name
+                    </th>
+                    <th className="px-3 sm:px-6 md:px-8 py-3 sm:py-4 md:py-5 text-left hidden sm:table-cell">
+                      Address
+                    </th>
+                    <th className="px-3 sm:px-6 md:px-8 py-3 sm:py-4 md:py-5 text-left hidden md:table-cell">
+                      Coordinates
+                    </th>
+                    <th className="px-3 sm:px-6 md:px-8 py-3 sm:py-4 md:py-5 text-center">
+                      Radius
+                    </th>
+                    <th className="px-3 sm:px-6 md:px-8 py-3 sm:py-4 md:py-5 text-center">
+                      Status
+                    </th>
+                    <th className="px-3 sm:px-6 md:px-8 py-3 sm:py-4 md:py-5 text-right">
+                      Actions
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {locations.map((loc) => (
+                    <tr
+                      key={loc.id}
+                      className="hover:bg-gray-50/50 transition-colors group"
+                    >
+                      <td className="px-3 sm:px-6 md:px-8 py-3 sm:py-4 md:py-6 whitespace-nowrap">
+                        <div>
+                          <p className="text-xs sm:text-sm font-black text-gray-900 tracking-tight">
+                            {loc.name}
+                          </p>
+                          <p className="text-[9px] sm:text-[11px] font-medium text-gray-400 mt-0.5">
+                            {loc.description}
+                          </p>
+                        </div>
+                      </td>
+                      <td className="px-3 sm:px-6 md:px-8 py-3 sm:py-4 md:py-6 max-w-[200px] hidden sm:table-cell">
+                        <p className="text-[10px] sm:text-[12px] font-medium text-gray-500 leading-relaxed truncate">
+                          {loc.address}
+                        </p>
+                      </td>
+                      <td className="px-3 sm:px-6 md:px-8 py-3 sm:py-4 md:py-6 hidden md:table-cell">
+                        <p className="text-[9px] sm:text-[11px] font-mono font-bold text-gray-400 bg-gray-50 px-2 py-1 rounded-md inline-block">
+                          {loc.coordinates}
+                        </p>
+                      </td>
+                      <td className="px-3 sm:px-6 md:px-8 py-3 sm:py-4 md:py-6 text-center">
+                        <span className="bg-blue-50 text-blue-600 text-[9px] sm:text-[11px] font-black px-2 sm:px-3 py-1 sm:py-1.5 rounded-full border border-blue-100 shadow-sm">
+                          {loc.radius}m
+                        </span>
+                      </td>
+                      <td className="px-3 sm:px-6 md:px-8 py-3 sm:py-4 md:py-6 text-center">
+                        <Badge
+                          variant={
+                            loc.status === "Active" ? "success" : "secondary"
+                          }
+                          className="text-[9px] sm:text-[10px] font-black py-1 px-2 sm:px-3"
+                        >
+                          {loc.status}
+                        </Badge>
+                      </td>
+                      <td className="px-8 py-6 text-right">
+                        <div className="flex items-center justify-end gap-2 transition-opacity">
+                          <button
+                            type="button"
+                            onClick={() => handleEditClick(loc)}
+                            className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all active:scale-90"
+                            title="Edit Location"
+                          >
+                            <Edit2 size={16} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setDeleteConfirm({ isOpen: true, id: loc._id })
+                            }
+                            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all active:scale-90"
+                            title="Delete Location"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
         </div>
       </div>
