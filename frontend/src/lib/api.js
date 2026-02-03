@@ -328,6 +328,13 @@ class ApiService {
         method: "DELETE",
       }),
   };
+
+  /**
+   * Dashboard Endpoints
+   */
+  dashboard = {
+    getAdminStats: () => this.request("/dashboard/admin", { method: "GET" }),
+  };
 }
 
 export const apiService = new ApiService();

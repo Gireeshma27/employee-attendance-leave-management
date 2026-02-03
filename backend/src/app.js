@@ -8,6 +8,7 @@ import userRoutes from "./routes/user.routes.js";
 import attendanceRoutes from "./routes/attendance.routes.js";
 import leaveRoutes from "./routes/leave.routes.js";
 import officeRoutes from "./routes/office.routes.js";
+import dashboardRoutes from "./routes/dashboard.routes.js";
 
 const app = express();
 
@@ -71,6 +72,7 @@ app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/attendance", attendanceRoutes);
 app.use("/api/v1/leaves", leaveRoutes);
 app.use("/api/v1/offices", officeRoutes);
+app.use("/api/v1/dashboard", dashboardRoutes);
 
 // 404 Route
 app.use((req, res) => {
