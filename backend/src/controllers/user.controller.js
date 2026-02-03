@@ -1,33 +1,55 @@
 import User from '../models/user.model.js';
 import { hashPassword } from '../utils/password.js';
+import ApiResponse from '../utils/apiResponse.js';
 
 // Get all users (Admin only)
 export const getAllUsers = async (req, res) => {
   try {
-    const { role, isActive } = req.query;
+    const { role, isActive, search, page = 1, limit = 10 } = req.query;
+    const pageNum = parseInt(page) || 1;
+    const limitNum = parseInt(limit) || 10;
+    const skip = (pageNum - 1) * limitNum;
+
     const filter = {};
 
     if (role) {
-      filter.role = role;
+      filter.role = role.toUpperCase();
     }
 
     if (isActive !== undefined) {
       filter.isActive = isActive === 'true';
     }
 
-    const users = await User.find(filter).select('-password');
+    // Search by name or email
+    if (search) {
+      filter.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } },
+      ];
+    }
 
-    return res.status(200).json({
-      success: true,
-      message: 'Users retrieved successfully.',
-      data: users,
+    // Get total count for pagination
+    const totalRecords = await User.countDocuments(filter);
+    const totalPages = Math.ceil(totalRecords / limitNum);
+
+    const users = await User.find(filter)
+      .select('-password')
+      .skip(skip)
+      .limit(limitNum)
+      .sort({ createdAt: -1 });
+
+    return ApiResponse.success(res, 200, 'Users retrieved successfully.', {
+      records: users,
+      pagination: {
+        totalRecords,
+        totalPages,
+        currentPage: pageNum,
+        limit: limitNum,
+      },
     });
   } catch (error) {
     console.error('Get all users error:', error);
-    return res.status(500).json({
-      success: false,
-      message: error.message || 'Failed to retrieve users.',
-    });
+    return ApiResponse.serverError(res, error.message || 'Failed to retrieve users.');
   }
 };
 
@@ -39,23 +61,13 @@ export const getUserById = async (req, res) => {
     const user = await User.findById(id).select('-password');
 
     if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found.',
-      });
+      return ApiResponse.notFound(res, 'User not found.');
     }
 
-    return res.status(200).json({
-      success: true,
-      message: 'User retrieved successfully.',
-      data: user,
-    });
+    return ApiResponse.success(res, 200, 'User retrieved successfully.', user);
   } catch (error) {
     console.error('Get user by ID error:', error);
-    return res.status(500).json({
-      success: false,
-      message: error.message || 'Failed to retrieve user.',
-    });
+    return ApiResponse.serverError(res, error.message || 'Failed to retrieve user.');
   }
 };
 
@@ -67,23 +79,13 @@ export const getProfile = async (req, res) => {
     const user = await User.findById(userId).select('-password');
 
     if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found.',
-      });
+      return ApiResponse.notFound(res, 'User not found.');
     }
 
-    return res.status(200).json({
-      success: true,
-      message: 'Profile retrieved successfully.',
-      data: user,
-    });
+    return ApiResponse.success(res, 200, 'Profile retrieved successfully.', user);
   } catch (error) {
     console.error('Get profile error:', error);
-    return res.status(500).json({
-      success: false,
-      message: error.message || 'Failed to retrieve profile.',
-    });
+    return ApiResponse.serverError(res, error.message || 'Failed to retrieve profile.');
   }
 };
 
@@ -104,40 +106,35 @@ export const updateProfile = async (req, res) => {
       runValidators: true,
     }).select('-password');
 
-    return res.status(200).json({
-      success: true,
-      message: 'Profile updated successfully.',
-      data: user,
-    });
+    return ApiResponse.success(res, 200, 'Profile updated successfully.', user);
   } catch (error) {
     console.error('Update profile error:', error);
-    return res.status(500).json({
-      success: false,
-      message: error.message || 'Failed to update profile.',
-    });
+    return ApiResponse.serverError(res, error.message || 'Failed to update profile.');
   }
 };
 
 // Create user (Admin only)
 export const createUser = async (req, res) => {
   try {
-    const { name, email, password, role, employeeId, department, phone } = req.body;
+    const { name, email, password, role, employeeId } = req.body;
 
     // Validation
     if (!name || !email || !password) {
-      return res.status(400).json({
-        success: false,
-        message: 'Please provide name, email, and password.',
-      });
+      return ApiResponse.badRequest(res, 'Please provide name, email, and password.');
     }
 
-    // Check if user already exists
+    // Check if user already exists by email
     const existingUser = await User.findOne({ email: email.toLowerCase() });
     if (existingUser) {
-      return res.status(400).json({
-        success: false,
-        message: 'User with this email already exists.',
-      });
+      return ApiResponse.conflict(res, 'User with this email already exists.');
+    }
+
+    // Check if employeeId already exists
+    if (employeeId) {
+      const existingEmployeeId = await User.findOne({ employeeId });
+      if (existingEmployeeId) {
+        return ApiResponse.conflict(res, 'Employee ID already exists.');
+      }
     }
 
     // Hash password
@@ -148,26 +145,18 @@ export const createUser = async (req, res) => {
       name,
       email: email.toLowerCase(),
       password: hashedPassword,
-      role: role || 'EMPLOYEE',
+      role: role ? role.toUpperCase() : 'EMPLOYEE',
       employeeId,
-      department,
-      phone,
+      isActive: true,
     });
 
     const userResponse = user.toObject();
     delete userResponse.password;
 
-    return res.status(201).json({
-      success: true,
-      message: 'User created successfully.',
-      data: userResponse,
-    });
+    return ApiResponse.created(res, 'User created successfully.', userResponse);
   } catch (error) {
     console.error('Create user error:', error);
-    return res.status(500).json({
-      success: false,
-      message: error.message || 'Failed to create user.',
-    });
+    return ApiResponse.serverError(res, error.message || 'Failed to create user.');
   }
 };
 
@@ -175,66 +164,38 @@ export const createUser = async (req, res) => {
 export const updateUser = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, role, isActive, department, phone } = req.body;
+    const { name, email, role, isActive } = req.body;
+
+    // Check if user exists
+    const user = await User.findById(id);
+    if (!user) {
+      return ApiResponse.notFound(res, 'User not found.');
+    }
+
+    // Check for duplicate email (if email is being changed)
+    if (email && email.toLowerCase() !== user.email) {
+      const existingEmail = await User.findOne({ email: email.toLowerCase() });
+      if (existingEmail) {
+        return ApiResponse.conflict(res, 'Email already in use.');
+      }
+    }
 
     const updateData = {};
 
     if (name) updateData.name = name;
-    if (role) updateData.role = role;
+    if (email) updateData.email = email.toLowerCase();
+    if (role) updateData.role = role.toUpperCase();
     if (isActive !== undefined) updateData.isActive = isActive;
-    if (department) updateData.department = department;
-    if (phone) updateData.phone = phone;
 
-    const user = await User.findByIdAndUpdate(id, updateData, {
+    const updatedUser = await User.findByIdAndUpdate(id, updateData, {
       new: true,
       runValidators: true,
     }).select('-password');
 
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found.',
-      });
-    }
-
-    return res.status(200).json({
-      success: true,
-      message: 'User updated successfully.',
-      data: user,
-    });
+    return ApiResponse.success(res, 200, 'User updated successfully.', updatedUser);
   } catch (error) {
     console.error('Update user error:', error);
-    return res.status(500).json({
-      success: false,
-      message: error.message || 'Failed to update user.',
-    });
-  }
-};
-
-// Delete user (Admin only)
-export const deleteUser = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const user = await User.findByIdAndDelete(id);
-
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found.',
-      });
-    }
-
-    return res.status(200).json({
-      success: true,
-      message: 'User deleted successfully.',
-    });
-  } catch (error) {
-    console.error('Delete user error:', error);
-    return res.status(500).json({
-      success: false,
-      message: error.message || 'Failed to delete user.',
-    });
+    return ApiResponse.serverError(res, error.message || 'Failed to update user.');
   }
 };
 
@@ -245,5 +206,4 @@ export default {
   updateProfile,
   createUser,
   updateUser,
-  deleteUser,
 };

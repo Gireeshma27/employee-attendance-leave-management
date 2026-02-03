@@ -28,14 +28,14 @@ export default function EmployeeDashboard() {
 
       // Get user's attendance records
       const attendanceData = await apiService.attendance.getMyAttendance();
-      
+
       // Get today's attendance from the records
       const today = new Date().toISOString().split('T')[0];
       const todayRecord = attendanceData.data?.find(r => {
         const recordDate = new Date(r.date).toISOString().split('T')[0];
         return recordDate === today;
       });
-      
+
       setTodayStatus(todayRecord || null);
       setAttendanceHistory(attendanceData.data || []);
     } catch (err) {
@@ -61,42 +61,42 @@ export default function EmployeeDashboard() {
 
   return (
     <DashboardLayout role="employee">
-      <div className="space-y-8">
+      <div className="space-y-6 md:space-y-8">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">
+          <h1 className="text-lg sm:text-2xl md:text-3xl font-bold text-gray-900">
             Welcome back, {user?.firstName || 'Employee'}!
           </h1>
-          <p className="text-gray-600 mt-1">Here's your attendance overview for today</p>
+          <p className="text-xs sm:text-sm md:text-base text-gray-600 mt-1">Here's your attendance overview for today</p>
         </div>
 
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-            <p className="text-red-600 text-sm">{error}</p>
+          <div className="bg-red-50 border border-red-200 rounded-lg p-3 md:p-4">
+            <p className="text-xs sm:text-sm text-red-600">{error}</p>
           </div>
         )}
 
         {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
           <Card>
             <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                  <p className="text-gray-600 text-sm">Today's Status</p>
-                  <p className="text-2xl font-bold text-gray-900 mt-2">
+                  <p className="text-gray-600 text-xs md:text-sm">Today's Status</p>
+                  <p className="text-xl md:text-2xl font-bold text-gray-900 mt-2">
                     <Badge variant={todayStatus?.status === 'checked-in' ? 'success' : 'secondary'}>
                       {todayStatus?.status === 'checked-in' ? 'Present' : 'Not Checked In'}
                     </Badge>
                   </p>
                 </div>
-                <Clock className="text-blue-600" size={32} />
+                <Clock className="text-blue-600 flex-shrink-0" size={32} />
               </div>
             </CardContent>
           </Card>
 
           <Card>
             <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
                   <p className="text-gray-600 text-sm">Working Hours</p>
                   <p className="text-2xl font-bold text-gray-900 mt-2">
@@ -157,24 +157,24 @@ export default function EmployeeDashboard() {
                     attendanceHistory.map((record, idx) => (
                       <tr key={idx} className="border-b border-gray-100 hover:bg-gray-50">
                         <td className="py-3 text-gray-900">
-                          {new Date(record.date).toLocaleDateString('en-US', { 
-                            month: 'short', 
-                            day: 'numeric', 
-                            year: 'numeric' 
+                          {new Date(record.date).toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric'
                           })}
                         </td>
                         <td className="py-3 text-gray-600">
-                          {record.checkIn ? new Date(record.checkIn).toLocaleTimeString('en-US', { 
-                            hour: '2-digit', 
+                          {record.checkIn ? new Date(record.checkIn).toLocaleTimeString('en-US', {
+                            hour: '2-digit',
                             minute: '2-digit',
-                            hour12: true 
+                            hour12: true
                           }) : '-'}
                         </td>
                         <td className="py-3 text-gray-600">
-                          {record.checkOut ? new Date(record.checkOut).toLocaleTimeString('en-US', { 
-                            hour: '2-digit', 
+                          {record.checkOut ? new Date(record.checkOut).toLocaleTimeString('en-US', {
+                            hour: '2-digit',
                             minute: '2-digit',
-                            hour12: true 
+                            hour12: true
                           }) : '-'}
                         </td>
                         <td className="py-3 text-gray-900 font-medium">
@@ -186,8 +186,8 @@ export default function EmployeeDashboard() {
                               record.status === 'present'
                                 ? 'success'
                                 : record.status === 'absent'
-                                ? 'danger'
-                                : 'secondary'
+                                  ? 'danger'
+                                  : 'secondary'
                             }
                           >
                             {record.status?.charAt(0).toUpperCase() + record.status?.slice(1)}
@@ -209,11 +209,11 @@ export default function EmployeeDashboard() {
         </Card>
 
         {/* Quick Actions */}
-        <div className="flex gap-4">
-          <Button variant="primary" size="lg">
+        <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
+          <Button variant="primary" size="lg" className="w-full sm:w-auto">
             Check In Now
           </Button>
-          <Button variant="secondary" size="lg">
+          <Button variant="secondary" size="lg" className="w-full sm:w-auto">
             View Full Attendance
           </Button>
         </div>

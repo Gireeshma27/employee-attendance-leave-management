@@ -8,7 +8,6 @@ import {
   updateProfile,
   createUser,
   updateUser,
-  deleteUser,
 } from '../controllers/user.controller.js';
 
 const router = express.Router();
@@ -22,6 +21,5 @@ router.get('/', authMiddleware, isAdmin, getAllUsers);
 router.post('/', authMiddleware, isAdmin, createUser);
 router.get('/:id', authMiddleware, isAdmin, getUserById);
 router.put('/:id', authMiddleware, isAdmin, updateUser);
-router.delete('/:id', authMiddleware, isAdmin, deleteUser);
 
 export default router;

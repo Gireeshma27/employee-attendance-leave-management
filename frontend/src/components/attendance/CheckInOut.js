@@ -86,34 +86,34 @@ export default function CheckInOut() {
   };
 
   return (
-    <div className="bg-gradient-to-br from-white to-indigo-50 rounded-2xl p-8 border border-indigo-100 shadow-lg">
-      <div className="grid lg:grid-cols-2 gap-8">
+    <div className="bg-gradient-to-br from-white to-indigo-50 rounded-xl md:rounded-2xl p-4 md:p-8 border border-indigo-100 shadow-lg">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
         {/* Left Section - Time Display */}
-        <div className="space-y-6">
+        <div className="space-y-4 md:space-y-6">
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <Calendar className="w-5 h-5 text-indigo-600" />
-              <h3 className="text-sm font-semibold text-slate-600 uppercase tracking-wide">Today's Date</h3>
+              <Calendar className="w-4 md:w-5 h-4 md:h-5 text-indigo-600" />
+              <h3 className="text-xs md:text-sm font-semibold text-slate-600 uppercase tracking-wide">Today's Date</h3>
             </div>
-            <p className="text-lg text-slate-700 font-medium">{formatDate(currentTime)}</p>
+            <p className="text-base md:text-lg text-slate-700 font-medium">{formatDate(currentTime)}</p>
           </div>
 
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <Clock className="w-5 h-5 text-indigo-600" />
-              <h3 className="text-sm font-semibold text-slate-600 uppercase tracking-wide">Current Time</h3>
+              <Clock className="w-4 md:w-5 h-4 md:h-5 text-indigo-600" />
+              <h3 className="text-xs md:text-sm font-semibold text-slate-600 uppercase tracking-wide">Current Time</h3>
             </div>
-            <p className="text-5xl font-bold bg-gradient-to-r from-indigo-600 to-emerald-600 bg-clip-text text-transparent">
+            <p className="text-3xl md:text-5xl font-bold bg-gradient-to-r from-indigo-600 to-emerald-600 bg-clip-text text-transparent">
               {formatTime(currentTime)}
             </p>
           </div>
 
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <MapPin className="w-5 h-5 text-indigo-600" />
-              <h3 className="text-sm font-semibold text-slate-600 uppercase tracking-wide">Location</h3>
+              <MapPin className="w-4 md:w-5 h-4 md:h-5 text-indigo-600" />
+              <h3 className="text-xs md:text-sm font-semibold text-slate-600 uppercase tracking-wide">Location</h3>
             </div>
-            <p className="text-sm text-slate-700 font-medium">{location.address}</p>
+            <p className="text-xs md:text-sm text-slate-700 font-medium">{location.address}</p>
             {location.lat && location.lng && (
               <p className="text-xs text-slate-500 mt-1">
                 {location.lat.toFixed(6)}, {location.lng.toFixed(6)}
@@ -125,13 +125,13 @@ export default function CheckInOut() {
         {/* Right Section - Check In/Out Actions */}
         <div className="flex flex-col justify-between">
           {/* Status Card */}
-          <div className={`p-6 rounded-xl border-2 mb-6 ${
+          <div className={`p-4 md:p-6 rounded-lg md:rounded-xl border-2 mb-4 md:mb-6 ${
             isCheckedIn 
               ? 'bg-emerald-50 border-emerald-200' 
               : 'bg-slate-50 border-slate-200'
           }`}>
             <div className="flex items-center justify-between mb-4">
-              <span className="text-sm font-semibold text-slate-600 uppercase tracking-wide">Status</span>
+              <span className="text-xs md:text-sm font-semibold text-slate-600 uppercase tracking-wide">Status</span>
               <span className={`px-3 py-1 rounded-full text-xs font-bold ${
                 isCheckedIn 
                   ? 'bg-emerald-500 text-white' 
@@ -145,17 +145,17 @@ export default function CheckInOut() {
               <div className="space-y-3">
                 <div>
                   <p className="text-xs text-slate-600 mb-1">Check-in Time</p>
-                  <p className="text-lg font-bold text-slate-800">{formatTime(checkInTime)}</p>
+                  <p className="text-base md:text-lg font-bold text-slate-800">{formatTime(checkInTime)}</p>
                 </div>
                 <div>
                   <p className="text-xs text-slate-600 mb-1">Working Hours</p>
-                  <p className="text-3xl font-bold bg-gradient-to-r from-emerald-600 to-emerald-700 bg-clip-text text-transparent">
+                  <p className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-emerald-600 to-emerald-700 bg-clip-text text-transparent">
                     {workingHours}
                   </p>
                 </div>
               </div>
             ) : (
-              <p className="text-slate-600">Click the button below to start your work day</p>
+              <p className="text-xs md:text-sm text-slate-600">Click the button below to start your work day</p>
             )}
           </div>
 
@@ -163,29 +163,29 @@ export default function CheckInOut() {
           {!isCheckedIn ? (
             <button
               onClick={handleCheckIn}
-              className="group relative w-full py-4 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white font-bold rounded-xl hover:shadow-xl hover:shadow-indigo-500/50 transition-all duration-300 hover:scale-105 overflow-hidden"
+              className="group relative w-full py-3 md:py-4 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white font-bold rounded-lg md:rounded-xl hover:shadow-xl hover:shadow-indigo-500/50 transition-all duration-300 hover:scale-105 overflow-hidden text-sm md:text-base"
             >
               <div className="absolute inset-0 bg-gradient-to-r from-indigo-700 to-indigo-800 opacity-0 group-hover:opacity-100 transition-opacity"></div>
               <div className="relative flex items-center justify-center gap-2">
-                <LogIn className="w-5 h-5" />
-                <span className="text-lg">Check In Now</span>
+                <LogIn className="w-4 md:w-5 h-4 md:h-5" />
+                <span>Check In Now</span>
               </div>
             </button>
           ) : (
             <button
               onClick={handleCheckOut}
-              className="group relative w-full py-4 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white font-bold rounded-xl hover:shadow-xl hover:shadow-emerald-500/50 transition-all duration-300 hover:scale-105 overflow-hidden"
+              className="group relative w-full py-3 md:py-4 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white font-bold rounded-lg md:rounded-xl hover:shadow-xl hover:shadow-emerald-500/50 transition-all duration-300 hover:scale-105 overflow-hidden text-sm md:text-base"
             >
               <div className="absolute inset-0 bg-gradient-to-r from-emerald-700 to-emerald-800 opacity-0 group-hover:opacity-100 transition-opacity"></div>
               <div className="relative flex items-center justify-center gap-2">
-                <LogOut className="w-5 h-5" />
-                <span className="text-lg">Check Out</span>
+                <LogOut className="w-4 md:w-5 h-4 md:h-5" />
+                <span>Check Out</span>
               </div>
             </button>
           )}
 
           {/* Info Text */}
-          <p className="text-xs text-center text-slate-500 mt-4">
+          <p className="text-xs text-center text-slate-500 mt-3 md:mt-4">
             {isCheckedIn 
               ? "Don't forget to check out before leaving"
               : "Your location will be recorded for attendance verification"
@@ -196,18 +196,18 @@ export default function CheckInOut() {
 
       {/* Bottom Info Bar */}
       <div className="mt-6 pt-6 border-t border-indigo-100">
-        <div className="grid grid-cols-3 gap-4 text-center">
+        <div className="grid grid-cols-3 gap-2 md:gap-4 text-center">
           <div>
             <p className="text-xs text-slate-600 mb-1">Expected Hours</p>
-            <p className="text-sm font-bold text-slate-800">9:00:00</p>
+            <p className="text-xs md:text-sm font-bold text-slate-800">9:00:00</p>
           </div>
           <div>
             <p className="text-xs text-slate-600 mb-1">Break Time</p>
-            <p className="text-sm font-bold text-slate-800">1:00:00</p>
+            <p className="text-xs md:text-sm font-bold text-slate-800">1:00:00</p>
           </div>
           <div>
             <p className="text-xs text-slate-600 mb-1">Office Entry</p>
-            <p className="text-sm font-bold text-slate-800">09:00 AM</p>
+            <p className="text-xs md:text-sm font-bold text-slate-800">09:00 AM</p>
           </div>
         </div>
       </div>
