@@ -78,15 +78,21 @@ export const checkOut = async (req, res) => {
       });
     }
 
-    // Calculate working hours
+    // Calculate working duration
     const checkInTime = new Date(attendance.checkInTime);
     const checkOutTime = new Date();
     const workingMilliseconds = checkOutTime - checkInTime;
-    const workingHours =
-      Math.round((workingMilliseconds / (1000 * 60 * 60)) * 2) / 2; // Round to nearest 0.5
+
+    // Exact minutes and fractional hours
+    const totalMinutes = Math.max(
+      0,
+      Math.floor(workingMilliseconds / (1000 * 60)),
+    );
+    const fractionalHours = Number((totalMinutes / 60).toFixed(2));
 
     attendance.checkOutTime = checkOutTime;
-    attendance.workingHours = workingHours;
+    attendance.workingMinutes = totalMinutes;
+    attendance.workingHours = fractionalHours;
 
     const updatedAttendance = await attendance.save();
 

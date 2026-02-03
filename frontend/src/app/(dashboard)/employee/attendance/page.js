@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { apiService } from "@/lib/api";
+import { SuccessModal } from "@/components/ui/SuccessModal";
 
 export default function AttendancePage() {
   const [loading, setLoading] = useState(true);
@@ -23,6 +24,12 @@ export default function AttendancePage() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [error, setError] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successConfig, setSuccessConfig] = useState({
+    title: "",
+    message: "",
+    time: "",
+  });
 
   // Geofence Simulation State (can be wired to actual GPS later)
   const [isOutOfRange, setIsOutOfRange] = useState(false);
@@ -38,10 +45,10 @@ export default function AttendancePage() {
       setLoading(true);
       const historyData = await apiService.attendance.getMyAttendance();
 
-      const today = new Date().toISOString().split("T")[0];
+      // Better today detection: compare local date strings
+      const todayStr = new Date().toLocaleDateString();
       const todayRecord = historyData.data?.find((r) => {
-        const recordDate = new Date(r.date).toISOString().split("T")[0];
-        return recordDate === today;
+        return new Date(r.date).toLocaleDateString() === todayStr;
       });
 
       setTodayAttendance(todayRecord || null);
@@ -58,10 +65,26 @@ export default function AttendancePage() {
     if (isOutOfRange) return;
     try {
       setIsSubmitting(true);
-      await apiService.attendance.checkIn({
-        checkInTime: new Date(),
+      const checkInTime = new Date();
+      const response = await apiService.attendance.checkIn({
+        checkInTime,
       });
-      await fetchAttendanceData();
+
+      if (response.success) {
+        setTodayAttendance(response.data);
+        // Refresh history in background
+        apiService.attendance.getMyAttendance().then((historyData) => {
+          setAttendanceHistory(historyData.data || []);
+        });
+      }
+
+      setSuccessConfig({
+        title: "Check-in Successful!",
+        message:
+          "Your attendance has been recorded for today. Have a productive day ahead!",
+        time: formatTime(checkInTime),
+      });
+      setShowSuccess(true);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -72,10 +95,25 @@ export default function AttendancePage() {
   const handleCheckOut = async () => {
     try {
       setIsSubmitting(true);
-      await apiService.attendance.checkOut({
-        checkOutTime: new Date(),
+      const checkOutTime = new Date();
+      const response = await apiService.attendance.checkOut({
+        checkOutTime,
       });
-      await fetchAttendanceData();
+
+      if (response.success) {
+        setTodayAttendance(response.data);
+        // Refresh history in background
+        apiService.attendance.getMyAttendance().then((historyData) => {
+          setAttendanceHistory(historyData.data || []);
+        });
+      }
+
+      setSuccessConfig({
+        title: "Check-out Successful!",
+        message: "You've been successfully checked out. Have a great evening!",
+        time: formatTime(checkOutTime),
+      });
+      setShowSuccess(true);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -91,6 +129,27 @@ export default function AttendancePage() {
       hour12: true,
     });
   };
+
+  const getActiveDuration = () => {
+    const checkIn = todayAttendance?.checkInTime;
+    const checkOut = todayAttendance?.checkOutTime;
+
+    if (!checkIn) return { h: 0, m: 0 };
+
+    const startTime = new Date(checkIn);
+    const endTime = checkOut ? new Date(checkOut) : currentTime;
+
+    const diffMs = endTime - startTime;
+    if (diffMs < 0) return { h: 0, m: 0 };
+
+    const totalMinutes = Math.floor(diffMs / (1000 * 60));
+    return {
+      h: Math.floor(totalMinutes / 60),
+      m: totalMinutes % 60,
+    };
+  };
+
+  const activeDuration = getActiveDuration();
 
   if (loading) {
     return (
@@ -128,7 +187,9 @@ export default function AttendancePage() {
 
         {/* Page Title */}
         <div className="pt-1 md:pt-2">
-          <h1 className="text-lg sm:text-2xl md:text-3xl font-bold text-gray-900">Attendance</h1>
+          <h1 className="text-lg sm:text-2xl md:text-3xl font-bold text-gray-900">
+            Attendance
+          </h1>
           <p className="text-xs sm:text-sm md:text-sm text-gray-500 mt-1">
             Track your daily check-in, check-out and location data.
           </p>
@@ -142,7 +203,7 @@ export default function AttendancePage() {
                 <LogIn size={20} />
               </div>
               <div>
-              <p className="text-[9px] md:text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                <p className="text-[9px] md:text-[10px] font-bold text-gray-400 uppercase tracking-wider">
                   Check-in Time
                 </p>
                 <p className="text-lg sm:text-xl md:text-2xl font-black text-gray-900 mt-1">
@@ -203,13 +264,10 @@ export default function AttendancePage() {
                 </p>
                 <div className="flex items-baseline gap-1 mt-1 justify-center">
                   <p className="text-xl md:text-2xl font-black text-gray-900">
-                    {Math.floor(todayAttendance?.workingHours || 0)}h
+                    {activeDuration.h}h
                   </p>
                   <p className="text-base md:text-lg font-bold text-gray-400">
-                    {Math.round(
-                      ((todayAttendance?.workingHours || 0) % 1) * 60,
-                    )}
-                    m
+                    {activeDuration.m}m
                   </p>
                 </div>
               </div>
@@ -222,7 +280,9 @@ export default function AttendancePage() {
           {/* Action Center */}
           <div className="lg:col-span-2 bg-white border border-gray-100 rounded-3xl p-6 md:p-8 shadow-sm">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6 md:mb-8">
-              <h2 className="text-base md:text-lg font-bold text-gray-900">Action Center</h2>
+              <h2 className="text-base md:text-lg font-bold text-gray-900">
+                Action Center
+              </h2>
               <div
                 onClick={() => setIsOutOfRange(!isOutOfRange)}
                 className="cursor-pointer"
@@ -296,8 +356,8 @@ export default function AttendancePage() {
             <div className="mt-6 md:mt-8 text-center bg-gray-50/50 border border-gray-100 rounded-2xl p-3 md:p-4">
               {isOutOfRange ? (
                 <p className="text-xs md:text-sm text-red-500 font-medium flex items-center justify-center gap-2">
-                  <AlertTriangle size={16} className="flex-shrink-0" /> Check-in disabled: You are outside
-                  the office geofence.
+                  <AlertTriangle size={16} className="flex-shrink-0" /> Check-in
+                  disabled: You are outside the office geofence.
                 </p>
               ) : todayAttendance?.checkInTime ? (
                 <p className="text-xs md:text-sm text-gray-500 font-medium">
@@ -417,11 +477,21 @@ export default function AttendancePage() {
               <thead className="bg-gray-50/50 text-[9px] md:text-[10px] font-black text-gray-400 uppercase tracking-widest">
                 <tr>
                   <th className="px-4 md:px-6 py-3 md:py-4 text-left">Date</th>
-                  <th className="px-4 md:px-6 py-3 md:py-4 text-left hidden sm:table-cell">Check-in</th>
-                  <th className="px-4 md:px-6 py-3 md:py-4 text-left hidden md:table-cell">Check-out</th>
-                  <th className="px-4 md:px-6 py-3 md:py-4 text-left">Duration</th>
-                  <th className="px-4 md:px-6 py-3 md:py-4 text-left">Status</th>
-                  <th className="px-4 md:px-6 py-3 md:py-4 text-center hidden xs:table-cell">Action</th>
+                  <th className="px-4 md:px-6 py-3 md:py-4 text-left hidden sm:table-cell">
+                    Check-in
+                  </th>
+                  <th className="px-4 md:px-6 py-3 md:py-4 text-left hidden md:table-cell">
+                    Check-out
+                  </th>
+                  <th className="px-4 md:px-6 py-3 md:py-4 text-left">
+                    Duration
+                  </th>
+                  <th className="px-4 md:px-6 py-3 md:py-4 text-left">
+                    Status
+                  </th>
+                  <th className="px-4 md:px-6 py-3 md:py-4 text-center hidden xs:table-cell">
+                    Action
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
@@ -477,6 +547,14 @@ export default function AttendancePage() {
             </table>
           </div>
         </div>
+
+        <SuccessModal
+          isOpen={showSuccess}
+          onClose={() => setShowSuccess(false)}
+          title={successConfig.title}
+          message={successConfig.message}
+          time={successConfig.time}
+        />
       </div>
     </DashboardLayout>
   );
