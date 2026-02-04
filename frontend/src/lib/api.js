@@ -134,7 +134,7 @@ class ApiService {
         method: "POST",
         body: JSON.stringify(data),
       }),
-    getMyAttendance: () => this.request("/attendance/my"),
+    getMyAttendance: () => this.request("/attendance/my-attendance"),
     getTeamAttendance: (filters = {}) => {
       const params = new URLSearchParams(filters).toString();
       return this.request(`/attendance/team${params ? "?" + params : ""}`);
@@ -177,9 +177,9 @@ class ApiService {
         method: "POST",
         body: JSON.stringify(data),
       }),
-    getMyLeaves: () => this.request("/leaves/my"),
+    getMyLeaves: () => this.request("/leaves/my-leaves"),
     getPendingLeaves: () => this.request("/leaves/pending"),
-    getAllLeavesAdmin: () => this.request("/leaves/admin/all"),
+    getAllLeavesAdmin: () => this.request("/leaves/all"),
     approve: (leaveId, data) =>
       this.request(`/leaves/${leaveId}/approve`, {
         method: "PUT",
