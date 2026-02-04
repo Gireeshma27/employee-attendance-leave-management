@@ -1,5 +1,6 @@
-import Leave from "#models/leave.model";
-import User from "#models/user.model";
+import Leave from "#models/leave";
+import User from "#models/user";
+import Notification from "#models/notification";
 import { sendSuccess, sendError } from "#utils/api_response_fix";
 
 const applyLeave = async (req, res) => {
@@ -42,6 +43,20 @@ const applyLeave = async (req, res) => {
       "userId",
       "name email employeeId",
     );
+
+    // Notify Admins
+    const admins = await User.find({ role: "ADMIN" });
+    const notificationPromises = admins.map((admin) =>
+      Notification.create({
+        recipient: admin._id,
+        sender: userId,
+        type: "LEAVE_REQUEST",
+        title: "New Leave Request",
+        message: `${populatedLeave.userId.name} has requested ${numberOfDays} days of leave.`,
+        relatedId: leave._id,
+      }),
+    );
+    await Promise.all(notificationPromises);
 
     return sendSuccess(
       res,
@@ -128,6 +143,16 @@ const approveLeave = async (req, res) => {
       .populate("userId", "name email employeeId")
       .populate("approvedBy", "name email");
 
+    // Notify Employee
+    await Notification.create({
+      recipient: leave.userId,
+      sender: approverId,
+      type: "LEAVE_RESPONSE",
+      title: "Leave Request Approved",
+      message: `Your leave request from ${new Date(leave.fromDate).toLocaleDateString()} to ${new Date(leave.toDate).toLocaleDateString()} has been approved.`,
+      relatedId: leave._id,
+    });
+
     return sendSuccess(
       res,
       "Leave request approved successfully",
@@ -165,6 +190,16 @@ const rejectLeave = async (req, res) => {
     const populatedLeave = await Leave.findById(leave._id)
       .populate("userId", "name email employeeId")
       .populate("approvedBy", "name email");
+
+    // Notify Employee
+    await Notification.create({
+      recipient: leave.userId,
+      sender: approverId,
+      type: "LEAVE_RESPONSE",
+      title: "Leave Request Rejected",
+      message: `Your leave request from ${new Date(leave.fromDate).toLocaleDateString()} to ${new Date(leave.toDate).toLocaleDateString()} has been rejected. Reason: ${rejectionReason}`,
+      relatedId: leave._id,
+    });
 
     return sendSuccess(
       res,

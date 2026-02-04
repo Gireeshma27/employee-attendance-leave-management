@@ -9,17 +9,17 @@ import env from "./config/env.js";
 
 const startServer = async () => {
   try {
-    // Database Connection
-    await mongoose.connect(env.MONGODB_URI);
-    console.log("✅ Connected to MongoDB");
-
-    // Start Express Server
+    // Start Express Server Immediately
     const PORT = env.PORT || 5000;
     app.listen(PORT, () => {
       console.log(`🚀 Server running in ${env.NODE_ENV} mode on port ${PORT}`);
     });
+
+    // Database Connection (Async - Queries will buffer)
+    await mongoose.connect(env.MONGODB_URI);
+    console.log("✅ Connected to MongoDB");
   } catch (error) {
-    console.error("❌ Database connection failed:", error.message);
+    console.error("❌ Backend startup failed:", error.message);
     process.exit(1);
   }
 };

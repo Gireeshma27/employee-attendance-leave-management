@@ -12,6 +12,7 @@ import officeRoutes from "./routes/officeroutes.js";
 import reportRoutes from "./routes/reportroutes.js";
 import userRoutes from "./routes/userroutes.js";
 import dashboardRoutes from "./routes/dashboardroutes.js";
+import notificationRoutes from "./routes/notificationroutes.js";
 // We'll import other routes as we refactor them
 
 /**
@@ -47,6 +48,7 @@ app.use("/api/v1/offices", officeRoutes);
 app.use("/api/v1/reports", reportRoutes);
 app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/dashboard", dashboardRoutes);
+app.use("/api/v1/notifications", notificationRoutes);
 
 // 404 Handler
 app.use((req, res) => {

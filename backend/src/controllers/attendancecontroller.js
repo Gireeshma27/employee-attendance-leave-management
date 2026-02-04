@@ -1,5 +1,6 @@
-import Attendance from "#models/attendance.model";
-import User from "#models/user.model";
+import Attendance from "#models/attendance";
+import User from "#models/user";
+import Notification from "#models/notification";
 import { sendSuccess, sendError } from "#utils/api_response_fix";
 
 const checkIn = async (req, res) => {
@@ -34,6 +35,25 @@ const checkIn = async (req, res) => {
         checkInTime: new Date(),
         status: "Present",
       });
+    }
+
+    // Notify Admins about check-in
+    try {
+      const user = await User.findById(userId);
+      const admins = await User.find({ role: "ADMIN" });
+      const notificationPromises = admins.map((admin) =>
+        Notification.create({
+          recipient: admin._id,
+          sender: userId,
+          type: "ATTENDANCE_UPDATE",
+          title: "New Check-in",
+          message: `${user.name} has checked in at ${new Date().toLocaleTimeString()}.`,
+          relatedId: attendance._id,
+        }),
+      );
+      await Promise.all(notificationPromises);
+    } catch (notifError) {
+      console.error("Failed to create check-in notification:", notifError);
     }
 
     return sendSuccess(res, "Check-in successful", attendance);

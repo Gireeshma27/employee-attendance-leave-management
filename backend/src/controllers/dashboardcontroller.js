@@ -1,6 +1,7 @@
-import Attendance from "#models/attendance.model";
-import User from "#models/user.model";
-import Leave from "#models/leave.model";
+import Attendance from "#models/attendance";
+import User from "#models/user";
+import Leave from "#models/leave";
+import Office from "#models/office";
 import { sendSuccess, sendError } from "#utils/api_response_fix";
 
 const getAdminDashboardStats = async (req, res) => {

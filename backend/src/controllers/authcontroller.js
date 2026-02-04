@@ -1,5 +1,5 @@
 import crypto from "crypto";
-import User from "#models/user.model";
+import User from "#models/user";
 import { hashPassword, comparePassword } from "../utils/password.js";
 import { generateToken } from "../utils/jwt.js";
 import { sendPasswordResetEmail } from "../utils/mailer.js";

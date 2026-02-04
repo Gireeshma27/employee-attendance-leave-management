@@ -1,4 +1,4 @@
-import Office from "#models/office.model";
+import Office from "#models/office";
 import { sendSuccess, sendError } from "#utils/api_response_fix";
 
 const getAllOffices = async (req, res) => {

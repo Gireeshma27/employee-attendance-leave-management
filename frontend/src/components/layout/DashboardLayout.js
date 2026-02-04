@@ -29,8 +29,23 @@ const DashboardLayout = ({ children, role = "employee" }) => {
   const router = useRouter();
   const [user, setUser] = useState(null);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [wfhMode, setWfhMode] = useState(false);
   const [mounted, setMounted] = useState(false);
+
+  const fetchNotifications = useCallback(async () => {
+    try {
+      const response = await apiService.notification.getAll();
+      if (response.success) {
+        setNotifications(response.data);
+        setUnreadCount(response.data.filter((n) => !n.isRead).length);
+      }
+    } catch (error) {
+      console.error("Failed to fetch notifications:", error);
+    }
+  }, []);
 
   useEffect(() => {
     const handleResize = () => {
@@ -41,6 +56,23 @@ const DashboardLayout = ({ children, role = "employee" }) => {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+
+  useEffect(() => {
+    if (mounted && user) {
+      fetchNotifications();
+      const interval = setInterval(fetchNotifications, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [mounted, user, fetchNotifications]);
+
+  const handleMarkAsRead = async (id) => {
+    try {
+      await apiService.notification.markAsRead(id);
+      fetchNotifications();
+    } catch (error) {
+      console.error("Failed to mark notification as read:", error);
+    }
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -220,29 +252,143 @@ const DashboardLayout = ({ children, role = "employee" }) => {
           </div>
 
           <div className="flex items-center gap-3 sm:gap-6 ml-4">
-            <button className="p-2.5 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-full transition-all">
-              <Search size={20} strokeWidth={2.5} />
-            </button>
+            <div className="relative">
+              <button
+                onClick={() => setShowNotifications(!showNotifications)}
+                className={`p-2.5 rounded-full transition-all relative ${showNotifications ? "bg-slate-100 text-blue-600" : "text-slate-400 hover:text-slate-600 hover:bg-slate-50"}`}
+              >
+                <Bell size={20} strokeWidth={2.5} />
+                {unreadCount > 0 && (
+                  <span className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-white shadow-sm"></span>
+                )}
+              </button>
 
-            <button className="p-2.5 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-full transition-all relative">
-              <Bell size={20} strokeWidth={2.5} />
-              <span className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-white shadow-sm"></span>
-            </button>
+              {showNotifications && (
+                <>
+                  <div
+                    className="fixed inset-0 z-40"
+                    onClick={() => setShowNotifications(false)}
+                  />
+                  <div className="absolute right-0 mt-3 w-80 sm:w-96 bg-white border border-slate-100 rounded-2xl shadow-2xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 origin-top-right">
+                    <div className="px-5 py-4 border-b border-slate-50 flex items-center justify-between bg-slate-50/50">
+                      <h3 className="font-black text-slate-900 text-sm uppercase tracking-wider">
+                        Notifications
+                      </h3>
+                      {unreadCount > 0 && (
+                        <span className="bg-blue-100 text-blue-700 text-[10px] font-black px-2 py-0.5 rounded-full">
+                          {unreadCount} NEW
+                        </span>
+                      )}
+                    </div>
+                    <div className="max-h-[400px] overflow-y-auto custom-scrollbar">
+                      {notifications.length > 0 ? (
+                        <div className="p-2">
+                          {notifications.slice(0, 5).map((notif) => (
+                            <div
+                              key={notif._id}
+                              onClick={() => {
+                                handleMarkAsRead(notif._id);
+                                setShowNotifications(false);
+                                if (notif.type.includes("LEAVE")) {
+                                  router.push(
+                                    role === "admin"
+                                      ? "/admin/leaves"
+                                      : "/employee/leave",
+                                  );
+                                } else if (notif.type.includes("ATTENDANCE")) {
+                                  router.push(
+                                    role === "admin"
+                                      ? "/admin/attendance"
+                                      : "/employee/attendance",
+                                  );
+                                }
+                              }}
+                              className={`p-3 hover:bg-slate-50 rounded-xl transition-colors cursor-pointer group border border-transparent hover:border-slate-100 ${!notif.isRead ? "bg-blue-50/30" : ""}`}
+                            >
+                              <div className="flex gap-3">
+                                <div
+                                  className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
+                                    notif.type === "LEAVE_REQUEST"
+                                      ? "bg-amber-50 text-amber-600"
+                                      : notif.type === "LEAVE_RESPONSE"
+                                        ? "bg-emerald-50 text-emerald-600"
+                                        : notif.type === "ATTENDANCE_UPDATE"
+                                          ? "bg-blue-50 text-blue-600"
+                                          : "bg-slate-50 text-slate-600"
+                                  }`}
+                                >
+                                  {notif.type === "LEAVE_REQUEST" ? (
+                                    <Users size={18} />
+                                  ) : notif.type === "LEAVE_RESPONSE" ? (
+                                    <Calendar size={18} />
+                                  ) : (
+                                    <Bell size={18} />
+                                  )}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p
+                                    className={`text-sm mb-0.5 ${!notif.isRead ? "font-bold text-slate-900" : "font-medium text-slate-700"}`}
+                                  >
+                                    {notif.title}
+                                  </p>
+                                  <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">
+                                    {notif.message}
+                                  </p>
+                                  <p className="text-[10px] text-slate-400 mt-2 font-medium">
+                                    {new Date(
+                                      notif.createdAt,
+                                    ).toLocaleTimeString([], {
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                    })}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="py-12 text-center">
+                          <Bell
+                            size={40}
+                            className="mx-auto text-slate-200 mb-3"
+                          />
+                          <p className="text-sm text-slate-400 font-medium">
+                            No notifications yet
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-3 bg-slate-50 border-t border-slate-100">
+                      <button
+                        onClick={() => {
+                          setShowNotifications(false);
+                          router.push("/notifications");
+                        }}
+                        className="w-full py-2.5 text-[11px] font-black text-slate-500 hover:text-blue-600 transition-colors uppercase tracking-widest leading-none pointer-events-auto"
+                      >
+                        View All Notifications
+                      </button>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
 
             <div className="relative">
               <button
                 type="button"
                 onClick={() => setShowProfileDropdown(!showProfileDropdown)}
-                className="flex items-center gap-3.5 pl-1.5 pr-3.5 py-1.5 rounded-full hover:bg-slate-50 transition-all border border-transparent hover:border-slate-100 group"
+                className="flex items-center gap-3.5 pl-1.5 pr-5 py-1.5 rounded-full bg-slate-50 border border-slate-200/60 hover:bg-slate-100 transition-all group shadow-sm hover:shadow-md h-fit self-center"
               >
-                <div className="w-10 h-10 bg-[#0F172A] rounded-full flex items-center justify-center text-white text-sm font-black shadow-lg shadow-slate-200 group-hover:scale-105 transition-transform border-4 border-slate-50">
+                <div className="w-10 h-10 bg-[#0F172A] rounded-full flex items-center justify-center text-white text-sm font-black shadow-sm group-hover:scale-105 transition-transform border-2 border-white">
                   {user?.name ? user.name.charAt(0).toUpperCase() : "A"}
                 </div>
                 <div className="hidden md:block text-left mr-1">
-                  <p className="text-sm font-bold text-slate-800 leading-none mb-0.5">
+                  <p className="text-sm font-bold text-slate-800 leading-none mb-1">
                     {user?.name || "Admin User"}
                   </p>
-                  <p className="text-[11px] text-slate-400 font-black uppercase tracking-widest leading-none">
+                  <p className="text-[10px] text-slate-400 font-extrabold uppercase tracking-widest leading-none">
                     {role === "admin" ? "Administrator" : role}
                   </p>
                 </div>

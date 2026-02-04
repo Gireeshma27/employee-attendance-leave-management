@@ -16,7 +16,7 @@ class ApiService {
    * @param {Object} options - Fetch options.
    * @returns {Promise<any>} - Decoupled data from backend response.
    */
-  async request(endpoint, options = {}) {
+  async request(endpoint, options = {}, retryCount = 0) {
     const url = `${API_BASE_URL}${endpoint}`;
     const token =
       typeof window !== "undefined" ? localStorage.getItem("token") : null;
@@ -47,6 +47,18 @@ class ApiService {
       // Automatically return .data if it exists (standard shape), otherwise return the result
       return result;
     } catch (error) {
+      // Retry logic for connection failures
+      if (error.message === "Failed to fetch" && retryCount < 1) {
+        if (process.env.NODE_ENV === "development") {
+          console.warn(
+            `[API RETRY] Retrying ${endpoint} due to connection failure...`,
+          );
+        }
+        // Wait 1 second before retrying
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        return this.request(endpoint, options, retryCount + 1);
+      }
+
       if (error.message === "Failed to fetch") {
         error.message =
           "Unable to connect to the server. Please check your internet connection or backend status.";
@@ -206,6 +218,17 @@ class ApiService {
       const qs = new URLSearchParams(params).toString();
       return this.request(`/reports/admin${qs ? "?" + qs : ""}`);
     },
+  };
+
+  // --- Notification Endpoints ---
+  notification = {
+    getAll: () => this.request("/notifications"),
+    markAsRead: (id) =>
+      this.request(`/notifications/${id}/read`, { method: "PATCH" }),
+    markAllAsRead: () =>
+      this.request("/notifications/read-all", { method: "PATCH" }),
+    clearAll: () =>
+      this.request("/notifications/clear-all", { method: "DELETE" }),
   };
 
   /**

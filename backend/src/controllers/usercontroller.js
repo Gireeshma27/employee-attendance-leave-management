@@ -1,4 +1,4 @@
-import User from "#models/user.model";
+import User from "#models/user";
 import { hashPassword } from "../utils/password.js";
 import { sendSuccess, sendError } from "#utils/api_response_fix";
 

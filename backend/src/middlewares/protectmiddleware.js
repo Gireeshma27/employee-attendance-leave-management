@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import User from "#models/user.model";
+import User from "#models/user";
 import env from "../config/env.js";
 import { sendError } from "#utils/api_response_fix";
 
