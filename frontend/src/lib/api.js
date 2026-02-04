@@ -313,6 +313,60 @@ class ApiService {
     cancel: (leaveId) =>
       this.request(`/leaves/${leaveId}`, { method: "DELETE" }),
   };
+
+  /**
+   * Notification Endpoints
+   */
+  notification = {
+    getAll: () =>
+      this.request("/notifications", { method: "GET" }),
+
+    markAsRead: (id) =>
+      this.request(`/notifications/${id}/read`, {
+        method: "PUT",
+      }),
+  };
+
+  /**
+   * Office/Geofencing Endpoints
+   */
+  office = {
+    getAll: () =>
+      this.request("/offices", { method: "GET" }),
+
+    getById: (id) =>
+      this.request(`/offices/${id}`, { method: "GET" }),
+
+    create: (data) =>
+      this.request("/offices", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+
+    update: (id, data) =>
+      this.request(`/offices/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+      }),
+
+    delete: (id) =>
+      this.request(`/offices/${id}`, { method: "DELETE" }),
+  };
+
+  /**
+   * Report Endpoints
+   */
+  report = {
+    getAdminData: (filters = {}) => {
+      const params = new URLSearchParams();
+      if (filters.period) params.append("period", filters.period);
+
+      const query = params.toString();
+      return this.request(`/reports/admin${query ? "?" + query : ""}`, {
+        method: "GET",
+      });
+    },
+  };
 }
 
 export const apiService = new ApiService();

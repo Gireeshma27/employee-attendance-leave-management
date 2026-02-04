@@ -59,7 +59,7 @@ export default function AdminReports() {
       <DashboardLayout role="admin">
         <div className="h-[60vh] flex flex-col items-center justify-center space-y-4">
           <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-slate-500 font-bold animate-pulse">
+          <p className="text-slate-500 font-medium animate-pulse">
             Generating Reports...
           </p>
         </div>
@@ -79,7 +79,7 @@ export default function AdminReports() {
               <button
                 key={range}
                 onClick={() => setTimeRange(range)}
-                className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
+                className={`px-6 py-2.5 rounded-xl text-xs font-semibold uppercase tracking-widest transition-all ${
                   timeRange === range
                     ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20"
                     : "text-slate-400 hover:text-slate-600 hover:bg-slate-50"
@@ -93,11 +93,11 @@ export default function AdminReports() {
           <div className="flex items-center gap-4">
             <div className="bg-white px-5 py-3 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-3">
               <Calendar size={18} className="text-slate-400" />
-              <span className="text-xs font-bold text-slate-700 tracking-tight">
+              <span className="text-xs font-semibold text-slate-700 tracking-tight">
                 Jan 01, 2026 - Jan 31, 2026
               </span>
             </div>
-            <button className="flex items-center gap-3 px-6 py-3 bg-blue-600 text-white rounded-2xl font-black uppercase tracking-widest text-[11px] shadow-xl shadow-blue-600/20 hover:scale-105 active:scale-95 transition-all">
+            <button className="flex items-center gap-3 px-6 py-3 bg-blue-600 text-white rounded-2xl font-semibold uppercase tracking-widest text-[11px] shadow-xl shadow-blue-600/20 hover:scale-105 active:scale-95 transition-all">
               <FileSpreadsheet size={18} />
               Export to Excel
             </button>
@@ -157,12 +157,12 @@ export default function AdminReports() {
                       className="absolute bottom-0 w-full bg-blue-500 rounded-t-2xl shadow-lg shadow-blue-500/20 transition-all duration-1000 ease-out cursor-pointer hover:bg-blue-600"
                       style={{ height: `${dept.value * 2.5}px` }}
                     >
-                      <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-[#0F172A] text-white text-[10px] font-bold px-2 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                      <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-[#0F172A] text-white text-[10px] font-semibold px-2 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
                         {dept.value}% Score
                       </div>
                     </div>
                   </div>
-                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                  <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">
                     {dept.name}
                   </span>
                 </div>
@@ -177,13 +177,13 @@ export default function AdminReports() {
               <div className="flex gap-4 mt-2">
                 <div className="flex items-center gap-1.5">
                   <div className="w-2 h-2 rounded-full bg-blue-600"></div>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">
+                  <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-tighter">
                     On-site
                   </span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">
+                  <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-tighter">
                     Remote
                   </span>
                 </div>
@@ -232,10 +232,10 @@ export default function AdminReports() {
                 />
               </svg>
               <div className="absolute flex flex-col items-center">
-                <span className="text-4xl font-black text-slate-900 tracking-tighter">
+                <span className="text-4xl font-bold text-slate-900 tracking-tighter">
                   {availability?.rate || 0}%
                 </span>
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1">
+                <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-[0.2em] mt-1">
                   Available
                 </span>
               </div>
@@ -248,12 +248,12 @@ export default function AdminReports() {
           <CardHeader className="flex flex-row items-center justify-between border-b border-slate-50 pb-6">
             <CardTitle>Comprehensive Employee Report</CardTitle>
             <div className="flex gap-4">
-              <select className="bg-slate-50 border border-slate-200 text-[10px] font-black text-slate-500 uppercase tracking-widest px-4 py-2 rounded-xl focus:ring-0">
+              <select className="bg-slate-50 border border-slate-200 text-[10px] font-semibold text-slate-500 uppercase tracking-widest px-4 py-2 rounded-xl focus:ring-0">
                 <option>Status: All</option>
                 <option>On-site</option>
                 <option>Remote</option>
               </select>
-              <select className="bg-slate-50 border border-slate-200 text-[10px] font-black text-slate-500 uppercase tracking-widest px-4 py-2 rounded-xl focus:ring-0">
+              <select className="bg-slate-50 border border-slate-200 text-[10px] font-semibold text-slate-500 uppercase tracking-widest px-4 py-2 rounded-xl focus:ring-0">
                 <option>Dept: All</option>
                 <option>IT</option>
                 <option>HR</option>
@@ -276,7 +276,7 @@ export default function AdminReports() {
                   ].map((head) => (
                     <th
                       key={head}
-                      className="text-left px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap"
+                      className="text-left px-8 py-5 text-[10px] font-semibold text-slate-400 uppercase tracking-widest whitespace-nowrap"
                     >
                       {head}
                     </th>
@@ -291,18 +291,18 @@ export default function AdminReports() {
                   >
                     <td className="px-8 py-6">
                       <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 bg-[#0F172A] rounded-full flex items-center justify-center text-white text-[10px] font-black">
+                        <div className="w-10 h-10 bg-[#0F172A] rounded-full flex items-center justify-center text-white text-[10px] font-bold">
                           {emp.name
                             .split(" ")
                             .map((n) => n[0])
                             .join("")}
                         </div>
-                        <p className="text-sm font-bold text-slate-800">
+                        <p className="text-sm font-semibold text-slate-800">
                           {emp.name}
                         </p>
                       </div>
                     </td>
-                    <td className="px-8 py-6 text-[11px] font-bold text-slate-400 font-mono tracking-tight">
+                    <td className="px-8 py-6 text-[11px] font-semibold text-slate-400 font-mono tracking-tight">
                       {emp.employeeId}
                     </td>
                     <td className="px-8 py-6 text-sm font-medium text-slate-600">
@@ -319,12 +319,12 @@ export default function AdminReports() {
                                 : "bg-amber-500"
                           }`}
                         />
-                        <span className="text-xs font-bold text-slate-700">
+                        <span className="text-xs font-semibold text-slate-700">
                           {emp.status}
                         </span>
                       </div>
                     </td>
-                    <td className="px-8 py-6 text-sm font-bold text-slate-800">
+                    <td className="px-8 py-6 text-sm font-semibold text-slate-800">
                       {emp.daysPresent}
                     </td>
                     <td className="px-8 py-6">
@@ -354,8 +354,8 @@ export default function AdminReports() {
           </div>
           <div className="px-8 py-6 border-t border-slate-50 flex items-center justify-between">
             <p className="text-xs font-medium text-slate-400">
-              Showing <span className="text-slate-900 font-bold">1-10</span> of{" "}
-              <span className="text-slate-900 font-bold">248</span> results
+              Showing <span className="text-slate-900 font-semibold">1-10</span> of{" "}
+              <span className="text-slate-900 font-semibold">248</span> results
             </p>
             <div className="flex items-center gap-2">
               <button
@@ -397,17 +397,17 @@ function ReportStatCard({ label, value, trend, icon: Icon, color }) {
           </div>
           {trend && (
             <div
-              className={`px-2.5 py-1 rounded-full text-[10px] font-black ${isTrendPositive ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"} flex items-center gap-0.5`}
+              className={`px-2.5 py-1 rounded-full text-[10px] font-semibold ${isTrendPositive ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"} flex items-center gap-0.5`}
             >
               {trend}
             </div>
           )}
         </div>
         <div>
-          <p className="text-3xl font-black text-slate-900 tracking-tighter leading-none mb-2">
+          <p className="text-3xl font-bold text-slate-900 tracking-tighter leading-none mb-2">
             {value}
           </p>
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+          <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">
             {label}
           </p>
         </div>

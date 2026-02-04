@@ -28,7 +28,7 @@ const GeofencingMap = dynamic(() => import("@/components/GeofencingMap"), {
   loading: () => (
     <div className="w-full h-full bg-gray-50 flex flex-col items-center justify-center gap-3">
       <Navigation className="text-blue-600 animate-bounce" size={40} />
-      <p className="text-sm font-bold text-gray-400">
+      <p className="text-sm font-medium text-gray-400">
         Loading interactive map...
       </p>
     </div>
@@ -187,7 +187,7 @@ export default function GeofencingPage() {
             <div
               className={`w-2 h-2 rounded-full animate-pulse ${isLocating ? "bg-orange-500" : "bg-green-500"}`}
             ></div>
-            <span className="text-[9px] sm:text-[11px] font-black text-gray-500 uppercase tracking-widest">
+            <span className="text-[9px] sm:text-[11px] font-semibold text-gray-500 uppercase tracking-widest">
               {isLocating ? "Locating..." : "Work Mode"}
             </span>
           </div>
@@ -197,7 +197,7 @@ export default function GeofencingPage() {
         <div className="bg-white border border-gray-100 rounded-[32px] p-4 sm:p-6 md:p-8 shadow-sm">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-6 md:mb-8">
             <div className="min-w-0">
-              <h2 className="text-base sm:text-lg font-bold text-gray-900">
+              <h2 className="text-base sm:text-lg font-semibold text-gray-900">
                 Office Geofence Setup
               </h2>
               <p className="text-xs sm:text-sm text-gray-400 font-medium mt-1">
@@ -207,7 +207,7 @@ export default function GeofencingPage() {
             <button
               type="button"
               onClick={() => setIsAddModalOpen(true)}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-3 sm:px-6 py-2 sm:py-3 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-blue-100 active:scale-95 transition-all w-full sm:w-auto"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-3 sm:px-6 py-2 sm:py-3 rounded-xl font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-blue-100 active:scale-95 transition-all w-full sm:w-auto"
             >
               <Plus size={16} className="sm:w-[18px] sm:h-[18px]" />
               Add New Location
@@ -224,7 +224,7 @@ export default function GeofencingPage() {
             </div>
             <div className="bg-white p-2 sm:p-4 rounded-2xl border border-gray-100 shadow-sm">
               <div className="flex justify-between items-center mb-2 sm:mb-3">
-                <p className="text-[8px] sm:text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                <p className="text-[8px] sm:text-[10px] font-semibold text-gray-400 uppercase tracking-widest">
                   Radius
                 </p>
                 <p className="text-[9px] sm:text-xs font-bold text-blue-600 bg-blue-50 px-1.5 sm:px-2 py-0.5 rounded-md">
@@ -264,7 +264,7 @@ export default function GeofencingPage() {
                     className="text-blue-600 animate-pulse"
                     size={14}
                   />
-                  <span className="text-[10px] font-black text-gray-800 uppercase tracking-tight">
+                  <span className="text-[10px] font-semibold text-gray-800 uppercase tracking-tight">
                     Click Map to Set Center
                   </span>
                 </div>
@@ -273,7 +273,7 @@ export default function GeofencingPage() {
 
             <div className="absolute bottom-6 left-6 z-[40]">
               <div className="bg-white/95 backdrop-blur-sm p-3 rounded-2xl border border-gray-100 shadow-2xl min-w-[200px]">
-                <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest leading-none mb-2">
+                <p className="text-[9px] font-semibold text-gray-400 uppercase tracking-widest leading-none mb-2">
                   Live Coordinates
                 </p>
                 <p className="text-[11px] font-bold text-gray-800 font-mono tracking-tight leading-none">
@@ -287,7 +287,7 @@ export default function GeofencingPage() {
         {/* Saved Locations Table */}
         <div className="bg-white border border-gray-100 rounded-[32px] overflow-hidden shadow-sm">
           <div className="p-4 sm:p-6 md:p-8 border-b border-gray-50 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-            <h3 className="font-bold text-base sm:text-lg text-gray-900">
+            <h3 className="font-semibold text-base sm:text-lg text-gray-900">
               Saved Locations
             </h3>
             <span className="text-[10px] sm:text-xs font-bold text-gray-400">
@@ -306,7 +306,7 @@ export default function GeofencingPage() {
               </div>
             ) : (
               <table className="w-full min-w-[640px]">
-                <thead className="bg-gray-50/50 text-[9px] sm:text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-50">
+                <thead className="bg-gray-50/50 text-[9px] sm:text-[10px] font-semibold text-gray-400 uppercase tracking-widest border-b border-gray-50">
                   <tr>
                     <th className="px-3 sm:px-6 md:px-8 py-3 sm:py-4 md:py-5 text-left">
                       Office Name
@@ -336,7 +336,7 @@ export default function GeofencingPage() {
                     >
                       <td className="px-3 sm:px-6 md:px-8 py-3 sm:py-4 md:py-6 whitespace-nowrap">
                         <div>
-                          <p className="text-xs sm:text-sm font-black text-gray-900 tracking-tight">
+                          <p className="text-xs sm:text-sm font-semibold text-gray-900 tracking-tight">
                             {loc.name}
                           </p>
                           <p className="text-[9px] sm:text-[11px] font-medium text-gray-400 mt-0.5">
@@ -355,7 +355,7 @@ export default function GeofencingPage() {
                         </p>
                       </td>
                       <td className="px-3 sm:px-6 md:px-8 py-3 sm:py-4 md:py-6 text-center">
-                        <span className="bg-blue-50 text-blue-600 text-[9px] sm:text-[11px] font-black px-2 sm:px-3 py-1 sm:py-1.5 rounded-full border border-blue-100 shadow-sm">
+                        <span className="bg-blue-50 text-blue-600 text-[9px] sm:text-[11px] font-semibold px-2 sm:px-3 py-1 sm:py-1.5 rounded-full border border-blue-100 shadow-sm">
                           {loc.radius}m
                         </span>
                       </td>
@@ -364,7 +364,7 @@ export default function GeofencingPage() {
                           variant={
                             loc.status === "Active" ? "success" : "secondary"
                           }
-                          className="text-[9px] sm:text-[10px] font-black py-1 px-2 sm:px-3"
+                          className="text-[9px] sm:text-[10px] font-semibold py-1 px-2 sm:px-3"
                         >
                           {loc.status}
                         </Badge>
