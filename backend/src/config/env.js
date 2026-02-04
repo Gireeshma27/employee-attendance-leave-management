@@ -1,18 +1,36 @@
-import dotenv from 'dotenv';
+import dotenv from "dotenv";
+import { z } from "zod";
 
 dotenv.config();
 
-export const config = {
-  PORT: process.env.PORT || 5000,
-  NODE_ENV: process.env.NODE_ENV || 'development',
-  MONGODB_URI: process.env.MONGODB_URI || 'mongodb://localhost:27017/attendance-leave-db',
-  JWT_SECRET: process.env.JWT_SECRET || 'your_super_secret_jwt_key_change_this_in_production',
-  JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || '7d',
-  EMAIL_SERVICE: process.env.EMAIL_SERVICE || 'gmail',
-  EMAIL_USER: process.env.EMAIL_USER,
-  EMAIL_PASSWORD: process.env.EMAIL_PASSWORD,
-  EMAIL_FROM: process.env.EMAIL_FROM || 'noreply@attendanceleave.com',
-  FRONTEND_URL: process.env.FRONTEND_URL || 'http://localhost:3000',
-};
+/**
+ * @description Centralized environment configuration and validation.
+ * @module config/env
+ */
 
-export default config;
+const envSchema = z.object({
+  NODE_ENV: z
+    .enum(["development", "production", "test"])
+    .default("development"),
+  PORT: z.string().default("5000"),
+  MONGODB_URI: z.string().url(),
+  JWT_SECRET: z.string().min(10),
+  JWT_EXPIRES_IN: z.string().default("7d"),
+  EMAIL_USER: z.string().email(),
+  EMAIL_PASSWORD: z.string(),
+  FRONTEND_URL: z.string().url().default("http://localhost:3000"),
+});
+
+const _env = envSchema.safeParse(process.env);
+
+if (!_env.success) {
+  console.error(
+    "❌ Invalid environment variables:",
+    JSON.stringify(_env.error.format(), null, 2),
+  );
+  process.exit(1);
+}
+
+const env = _env.data;
+
+export default env;

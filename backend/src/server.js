@@ -1,38 +1,47 @@
+import mongoose from "mongoose";
 import app from "./app.js";
-import { connectDB } from "./config/db.js";
-import { config } from "./config/env.js";
+import env from "./config/env.js";
+
+/**
+ * @description Server Entry Point
+ * @module server
+ */
 
 const startServer = async () => {
   try {
-    // Connect to MongoDB
-    await connectDB();
-
-    // Start Express server
-    const server = app.listen(config.PORT, () => {
-      console.log(`server running  on port ${config.PORT}
-      `);
+    // Start Express Server Immediately
+    const PORT = env.PORT || 5000;
+    app.listen(PORT, () => {
+      console.log(`🚀 Server running in ${env.NODE_ENV} mode on port ${PORT}`);
     });
 
-    // Graceful shutdown
-    process.on("SIGTERM", () => {
-      console.log("\n✓ SIGTERM received, shutting down gracefully...");
-      server.close(() => {
-        console.log("✓ Server closed");
-        process.exit(0);
-      });
-    });
-
-    process.on("SIGINT", () => {
-      console.log("\n✓ SIGINT received, shutting down gracefully...");
-      server.close(() => {
-        console.log("✓ Server closed");
-        process.exit(0);
-      });
-    });
+    // Database Connection (Async - Queries will buffer)
+    await mongoose.connect(env.MONGODB_URI);
+    console.log("✅ Connected to MongoDB");
   } catch (error) {
-    console.error("✗ Failed to start server:", error);
+    console.error("❌ Backend startup failed:", error.message);
     process.exit(1);
   }
 };
+
+// Handle unhandled rejections
+process.on("unhandledRejection", (err) => {
+  console.error(
+    "❌ UNHANDLED REJECTION! Shutting down...",
+    err.name,
+    err.message,
+  );
+  process.exit(1);
+});
+
+// Handle uncaught exceptions
+process.on("uncaughtException", (err) => {
+  console.error(
+    "❌ UNCAUGHT EXCEPTION! Shutting down...",
+    err.name,
+    err.message,
+  );
+  process.exit(1);
+});
 
 startServer();

@@ -1,15 +1,20 @@
 import mongoose from "mongoose";
 
+/**
+ * @description Pure Attendance Schema definition.
+ * @module models/attendancemodel
+ */
+
 const attendanceSchema = new mongoose.Schema(
   {
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: [true, "Please provide a user ID"],
+      required: true,
     },
     date: {
       type: Date,
-      required: [true, "Please provide a date"],
+      required: true,
     },
     checkInTime: {
       type: Date,
@@ -32,7 +37,6 @@ const attendanceSchema = new mongoose.Schema(
     },
     remarks: {
       type: String,
-      maxlength: [500, "Remarks cannot be more than 500 characters"],
     },
     approvedBy: {
       type: mongoose.Schema.Types.ObjectId,
@@ -41,28 +45,13 @@ const attendanceSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-    toJSON: {
-      transform: (doc, ret) => {
-        ret.version = `${(ret.__v || 0) + 1}.0`;
-        delete ret.__v;
-        return ret;
-      },
-    },
-    toObject: {
-      transform: (doc, ret) => {
-        ret.version = `${(ret.__v || 0) + 1}.0`;
-        delete ret.__v;
-        return ret;
-      },
-    },
+    versionKey: false,
   },
 );
 
-// Index for performance
+// Indexes
 attendanceSchema.index({ userId: 1, date: 1 });
 attendanceSchema.index({ date: 1 });
-
-// Compound index for efficient queries
 attendanceSchema.index({ userId: 1, date: -1 });
 
 const Attendance = mongoose.model("Attendance", attendanceSchema);

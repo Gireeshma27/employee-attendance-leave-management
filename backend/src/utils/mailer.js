@@ -1,18 +1,30 @@
-import nodemailer from 'nodemailer';
-import { config } from '../config/env.js';
+import nodemailer from "nodemailer";
+import env from "#config/env";
+
+/**
+ * @description Email utility using Nodemailer.
+ * @module utils/mailer
+ */
 
 const transporter = nodemailer.createTransport({
-  service: config.EMAIL_SERVICE,
+  service: "gmail",
   auth: {
-    user: config.EMAIL_USER,
-    pass: config.EMAIL_PASSWORD,
+    user: env.EMAIL_USER,
+    pass: env.EMAIL_PASSWORD,
   },
 });
 
+/**
+ * Sends a generic email.
+ * @param {string} to - Recipient email.
+ * @param {string} subject - Email subject.
+ * @param {string} html - HTML content.
+ * @returns {Promise<Object>} Transporter response.
+ */
 export const sendEmail = async (to, subject, html) => {
   try {
     const mailOptions = {
-      from: config.EMAIL_FROM,
+      from: env.EMAIL_USER,
       to,
       subject,
       html,
@@ -22,13 +34,19 @@ export const sendEmail = async (to, subject, html) => {
     console.log(`✓ Email sent: ${info.response}`);
     return info;
   } catch (error) {
-    console.error('✗ Email sending failed:', error.message);
+    console.error("✗ Email sending failed:", error.message);
     throw new Error(`Email sending failed: ${error.message}`);
   }
 };
 
+/**
+ * Sends a password reset email.
+ * @param {string} email - Recipient email.
+ * @param {string} resetUrl - Password reset URL.
+ * @returns {Promise<Object>} Transporter response.
+ */
 export const sendPasswordResetEmail = async (email, resetUrl) => {
-  const subject = 'Password Reset Request';
+  const subject = "Password Reset Request";
   const html = `
     <h2>Password Reset Request</h2>
     <p>You requested a password reset. Click the link below to reset your password:</p>

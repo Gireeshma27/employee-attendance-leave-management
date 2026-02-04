@@ -6,7 +6,10 @@ import { useRouter } from "next/navigation";
 import { Clock, Mail, Lock, Eye, EyeOff, AlertCircle } from "lucide-react";
 import { apiService } from "@/lib/api";
 
-export default function LoginPage() {
+/**
+ * @description Standardized LoginPage with modern syntax and enhanced error handling.
+ */
+const LoginPage = () => {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -23,7 +26,8 @@ export default function LoginPage() {
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }));
-    // Clear error when user starts typing
+
+    // Clear targeted error
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: "" }));
     }
@@ -34,7 +38,7 @@ export default function LoginPage() {
 
     if (!formData.email) {
       newErrors.email = "Email is required";
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+    } else if (!/\S+@\S+\.\S/.test(formData.email)) {
       newErrors.email = "Email is invalid";
     }
 
@@ -59,48 +63,35 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      // First, verify backend is reachable
-      const backendHealthy = await apiService.healthCheck();
-      if (!backendHealthy) {
-        throw new Error(
-          "Backend server is not responding. Please ensure the server is running on http://localhost:5000",
-        );
-      }
-
+      // Direct login attempt - apiService handles health internally or we could keep it for better UX
       const response = await apiService.auth.login({
         email: formData.email,
         password: formData.password,
       });
 
-      // Store token and user (API wraps response in data object)
-      if (response.data && response.data.token) {
+      // apiService now returns the standard result object
+      if (response.success && response.data?.token) {
         localStorage.setItem("token", response.data.token);
         localStorage.setItem("user", JSON.stringify(response.data.user));
+
+        const userRole = response.data?.user?.role?.toLowerCase();
+        let redirectPath = "/employee/dashboard";
+
+        if (userRole === "admin") {
+          redirectPath = "/admin/dashboard";
+        } else if (userRole === "manager") {
+          redirectPath = "/manager/dashboard";
+        }
+
+        router.push(redirectPath);
+      } else {
+        throw new Error(response.message || "Invalid login credentials");
       }
-
-      // Redirect based on user role to dashboard pages
-      const userRole = response.data?.user?.role?.toLowerCase();
-      let redirectPath = "/employee/dashboard"; // default
-
-      if (userRole === "admin") {
-        redirectPath = "/admin/dashboard";
-      } else if (userRole === "manager") {
-        redirectPath = "/manager/dashboard";
-      } else if (userRole === "employee") {
-        redirectPath = "/employee/dashboard";
-      }
-
-      router.push(redirectPath);
     } catch (error) {
-      const errorMessage = error?.message || "Login failed. Please try again.";
       setErrors({
-        submit: errorMessage,
+        submit: error.message || "Login failed. Please try again.",
       });
-
-      // Log error for debugging
-      if (process.env.NODE_ENV === "development") {
-        console.error("Login error details:", error);
-      }
+      console.error("[LOGIN ERROR]:", error);
     } finally {
       setIsLoading(false);
     }
@@ -120,7 +111,10 @@ export default function LoginPage() {
       <div className="w-full max-w-md relative z-10 px-4 sm:px-0">
         {/* Logo and Header */}
         <div className="text-center mb-6 sm:mb-8">
-          <Link href="/" className="inline-flex items-center gap-3 mb-4 sm:mb-6">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-3 mb-4 sm:mb-6"
+          >
             <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-indigo-600 to-emerald-600 rounded-xl flex items-center justify-center">
               <Clock className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
             </div>
@@ -131,7 +125,9 @@ export default function LoginPage() {
           <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 mb-2">
             Welcome Back
           </h1>
-          <p className="text-sm sm:text-base text-slate-600">Sign in to access your dashboard</p>
+          <p className="text-sm sm:text-base text-slate-600">
+            Sign in to access your dashboard
+          </p>
         </div>
 
         {/* Login Card */}
@@ -139,7 +135,7 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-6">
             {/* Error Alert */}
             {errors.submit && (
-              <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
+              <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3 animate-in shake duration-500">
                 <AlertCircle
                   className="text-red-600 flex-shrink-0 mt-0.5"
                   size={20}
@@ -167,12 +163,12 @@ export default function LoginPage() {
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
-                  className={`w-full pl-12 pr-4 py-3 bg-slate-50 border ${errors.email
+                  className={`w-full pl-12 pr-4 py-3 bg-slate-50 border ${
+                    errors.email
                       ? "border-red-300 focus:ring-red-500 focus:border-red-500"
                       : "border-slate-200 focus:ring-indigo-500 focus:border-indigo-500"
-                    } rounded-xl focus:outline-none focus:ring-2 transition-all`}
+                  } rounded-xl focus:outline-none focus:ring-2 transition-all`}
                   placeholder="you@company.com"
-                  suppressHydrationWarning
                 />
               </div>
               {errors.email && (
@@ -201,12 +197,12 @@ export default function LoginPage() {
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
-                  className={`w-full pl-12 pr-12 py-3 bg-slate-50 border ${errors.password
+                  className={`w-full pl-12 pr-12 py-3 bg-slate-50 border ${
+                    errors.password
                       ? "border-red-300 focus:ring-red-500 focus:border-red-500"
                       : "border-slate-200 focus:ring-indigo-500 focus:border-indigo-500"
-                    } rounded-xl focus:outline-none focus:ring-2 transition-all`}
+                  } rounded-xl focus:outline-none focus:ring-2 transition-all`}
                   placeholder="••••••••"
-                  suppressHydrationWarning
                 />
                 <button
                   type="button"
@@ -240,20 +236,19 @@ export default function LoginPage() {
                 />
                 <span className="text-sm text-slate-600">Remember me</span>
               </label>
-              <a
-                href="#"
+              <Link
+                href="/forgot-password"
                 className="text-sm font-semibold text-indigo-600 hover:text-indigo-700 transition"
               >
                 Forgot password?
-              </a>
+              </Link>
             </div>
 
             {/* Submit Button */}
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-3.5 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-indigo-500/50 transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-              suppressHydrationWarning
+              className="w-full py-3.5 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-indigo-500/50 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? (
                 <span className="flex items-center justify-center gap-2">
@@ -307,14 +302,16 @@ export default function LoginPage() {
         {/* Sign Up Link */}
         <p className="text-center mt-6 text-slate-600">
           Don't have an account?{" "}
-          <a
-            href="#"
+          <Link
+            href="/contact"
             className="font-semibold text-indigo-600 hover:text-indigo-700 transition"
           >
             Contact Admin
-          </a>
+          </Link>
         </p>
       </div>
     </div>
   );
-}
+};
+
+export default LoginPage;
