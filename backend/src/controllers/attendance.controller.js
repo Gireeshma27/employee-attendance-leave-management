@@ -1,5 +1,6 @@
 import Attendance from '../models/attendance.model.js';
 import User from '../models/user.model.js';
+import ApiResponse from '../utils/apiResponse.js';
 
 // Check In
 export const checkIn = async (req, res) => {
@@ -15,10 +16,7 @@ export const checkIn = async (req, res) => {
     });
 
     if (existingAttendance && existingAttendance.checkInTime) {
-      return res.status(400).json({
-        success: false,
-        message: 'You have already checked in today.',
-      });
+      return ApiResponse.badRequest(res, 'You have already checked in today.');
     }
 
     let attendance;
@@ -38,17 +36,10 @@ export const checkIn = async (req, res) => {
       });
     }
 
-    return res.status(200).json({
-      success: true,
-      message: 'Check-in successful.',
-      data: attendance,
-    });
+    return ApiResponse.success(res, 200, 'Check-in successful.', attendance);
   } catch (error) {
     console.error('Check-in error:', error);
-    return res.status(500).json({
-      success: false,
-      message: error.message || 'Check-in failed.',
-    });
+    return ApiResponse.serverError(res, error.message || 'Check-in failed.');
   }
 };
 
@@ -65,17 +56,11 @@ export const checkOut = async (req, res) => {
     });
 
     if (!attendance) {
-      return res.status(404).json({
-        success: false,
-        message: 'No check-in record found for today.',
-      });
+      return ApiResponse.notFound(res, 'No check-in record found for today.');
     }
 
     if (attendance.checkOutTime) {
-      return res.status(400).json({
-        success: false,
-        message: 'You have already checked out today.',
-      });
+      return ApiResponse.badRequest(res, 'You have already checked out today.');
     }
 
     // Calculate working hours
@@ -89,17 +74,10 @@ export const checkOut = async (req, res) => {
 
     const updatedAttendance = await attendance.save();
 
-    return res.status(200).json({
-      success: true,
-      message: 'Check-out successful.',
-      data: updatedAttendance,
-    });
+    return ApiResponse.success(res, 200, 'Check-out successful.', updatedAttendance);
   } catch (error) {
     console.error('Check-out error:', error);
-    return res.status(500).json({
-      success: false,
-      message: error.message || 'Check-out failed.',
-    });
+    return ApiResponse.serverError(res, error.message || 'Check-out failed.');
   }
 };
 
@@ -122,17 +100,10 @@ export const getMyAttendance = async (req, res) => {
       .sort({ date: -1 })
       .populate('userId', 'name email employeeId');
 
-    return res.status(200).json({
-      success: true,
-      message: 'Attendance records retrieved successfully.',
-      data: records,
-    });
+    return ApiResponse.success(res, 200, 'Attendance records retrieved successfully.', records);
   } catch (error) {
     console.error('Get my attendance error:', error);
-    return res.status(500).json({
-      success: false,
-      message: error.message || 'Failed to retrieve attendance records.',
-    });
+    return ApiResponse.serverError(res, error.message || 'Failed to retrieve attendance records.');
   }
 };
 
@@ -163,17 +134,10 @@ export const getTeamAttendance = async (req, res) => {
       .sort({ date: -1 })
       .populate('userId', 'name email employeeId role');
 
-    return res.status(200).json({
-      success: true,
-      message: 'Team attendance records retrieved successfully.',
-      data: records,
-    });
+    return ApiResponse.success(res, 200, 'Team attendance records retrieved successfully.', records);
   } catch (error) {
     console.error('Get team attendance error:', error);
-    return res.status(500).json({
-      success: false,
-      message: error.message || 'Failed to retrieve team attendance records.',
-    });
+    return ApiResponse.serverError(res, error.message || 'Failed to retrieve team attendance records.');
   }
 };
 
@@ -213,20 +177,13 @@ export const generateReport = async (req, res) => {
       totalWorkingHours: records.reduce((sum, r) => sum + (r.workingHours || 0), 0),
     };
 
-    return res.status(200).json({
-      success: true,
-      message: 'Attendance report generated successfully.',
-      data: {
-        records,
-        statistics: stats,
-      },
+    return ApiResponse.success(res, 200, 'Attendance report generated successfully.', {
+      records,
+      statistics: stats,
     });
   } catch (error) {
     console.error('Generate report error:', error);
-    return res.status(500).json({
-      success: false,
-      message: error.message || 'Failed to generate attendance report.',
-    });
+    return ApiResponse.serverError(res, error.message || 'Failed to generate attendance report.');
   }
 };
 

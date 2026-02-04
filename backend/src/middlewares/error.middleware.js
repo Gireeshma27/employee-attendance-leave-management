@@ -1,3 +1,5 @@
+import ApiResponse from '../utils/apiResponse.js';
+
 export const errorHandler = (err, req, res, next) => {
   console.error('Error:', err);
 
@@ -7,41 +9,28 @@ export const errorHandler = (err, req, res, next) => {
   // Handle MongoDB validation errors
   if (err.name === 'ValidationError') {
     const messages = Object.values(err.errors).map((e) => e.message);
-    return res.status(400).json({
-      success: false,
-      message: 'Validation Error',
-      errors: messages,
-    });
+    const validationError = messages.join(', ');
+    return ApiResponse.badRequest(res, validationError);
   }
 
   // Handle MongoDB duplicate key error
   if (err.code === 11000) {
     const field = Object.keys(err.keyPattern)[0];
-    return res.status(400).json({
-      success: false,
-      message: `${field} already exists. Please use a different value.`,
-    });
+    const duplicateError = `${field} already exists. Please use a different value.`;
+    return ApiResponse.conflict(res, duplicateError);
   }
 
   // Handle JWT errors
   if (err.name === 'JsonWebTokenError') {
-    return res.status(401).json({
-      success: false,
-      message: 'Invalid token.',
-    });
+    return ApiResponse.unauthorized(res, 'Invalid token.');
   }
 
   if (err.name === 'TokenExpiredError') {
-    return res.status(401).json({
-      success: false,
-      message: 'Token has expired.',
-    });
+    return ApiResponse.unauthorized(res, 'Token has expired.');
   }
 
-  return res.status(statusCode).json({
-    success: false,
-    message,
-  });
+  // Generic error response
+  return ApiResponse.error(res, statusCode, message);
 };
 
 export default errorHandler;
