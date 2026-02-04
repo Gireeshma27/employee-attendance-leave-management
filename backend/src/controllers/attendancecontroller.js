@@ -23,17 +23,40 @@ const checkIn = async (req, res) => {
       );
     }
 
+    const { isWFH } = req.body;
+
     let attendance;
     if (existingAttendance) {
       existingAttendance.checkInTime = new Date();
-      existingAttendance.status = "Present";
+      existingAttendance.status = isWFH ? "WFH" : "Present";
       attendance = await existingAttendance.save();
     } else {
+      const user = await User.findById(userId);
+
+      // WFH Validation
+      if (isWFH) {
+        if (!user.wfhAllowed) {
+          return sendError(
+            res,
+            "WFH is not enabled for your account",
+            "Forbidden",
+            403,
+          );
+        }
+        if (user.wfhDaysRemaining <= 0) {
+          return sendError(res, "No WFH days remaining", "Bad Request", 400);
+        }
+
+        // Decrement WFH days
+        user.wfhDaysRemaining -= 1;
+        await user.save();
+      }
+
       attendance = await Attendance.create({
         userId,
         date: today,
         checkInTime: new Date(),
-        status: "Present",
+        status: isWFH ? "WFH" : "Present",
       });
     }
 

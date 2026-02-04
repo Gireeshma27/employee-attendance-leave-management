@@ -1,10 +1,5 @@
 import mongoose from "mongoose";
 
-/**
- * @description Pure Leave Schema definition.
- * @module models/leavemodel
- */
-
 const leaveSchema = new mongoose.Schema(
   {
     userId: {

@@ -1,10 +1,5 @@
 import mongoose from "mongoose";
 
-/**
- * @description Pure Office Schema definition.
- * @module models/officemodel
- */
-
 const officeSchema = new mongoose.Schema(
   {
     name: {

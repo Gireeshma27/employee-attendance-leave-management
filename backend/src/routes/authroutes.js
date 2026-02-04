@@ -14,11 +14,6 @@ import {
   resetPasswordSchema,
 } from "../validations/authvalidation.js";
 
-/**
- * @description Authentication Routes
- * @module routes/authroutes
- */
-
 const router = express.Router();
 
 // Fix: The validation schema names in authvalidation.js were registerSchema, etc.
