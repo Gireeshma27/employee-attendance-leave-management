@@ -84,8 +84,13 @@ const AdminDashboard = () => {
     );
   }
 
-  const { summary, trends, deptPerformance, activities, activeSessions } =
-    data || {};
+  const {
+    summary = {},
+    trends = [],
+    deptPerformance = [],
+    activities = [],
+    activeSessions = [],
+  } = data || {};
 
   return (
     <DashboardLayout role="admin">
@@ -323,7 +328,7 @@ const AdminDashboard = () => {
                   )}
                   {summary?.presentToday > (activeSessions?.length || 0) && (
                     <div className="w-11 h-11 rounded-full border-4 border-white bg-slate-100 text-slate-500 flex items-center justify-center text-[10px] font-black shadow-sm z-10">
-                      +{summary.presentToday - activeSessions.length}
+                      +{(summary?.presentToday || 0) - activeSessions.length}
                     </div>
                   )}
                 </div>

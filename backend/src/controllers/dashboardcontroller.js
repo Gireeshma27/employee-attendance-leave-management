@@ -98,6 +98,59 @@ const getAdminDashboardStats = async (req, res) => {
       .sort((a, b) => new Date(b.time) - new Date(a.time))
       .slice(0, 10);
 
+    // Calculate Department Performance
+    const departments = [
+      "IT",
+      "HR",
+      "Sales",
+      "Marketing",
+      "Finance",
+      "Operations",
+    ];
+    const deptPerformance = await Promise.all(
+      departments.map(async (dept) => {
+        const deptTotal = await User.countDocuments({
+          department: dept,
+          role: "EMPLOYEE",
+        });
+        if (deptTotal === 0) return { name: dept, value: 0 };
+
+        const deptPresent = await Attendance.countDocuments({
+          date: { $gte: today, $lt: tomorrow },
+          status: { $in: ["Present", "WFH"] },
+          userId: {
+            $in: await User.find({ department: dept }).distinct("_id"),
+          },
+        });
+
+        return {
+          name: dept,
+          value: Math.round((deptPresent / deptTotal) * 100) || 0,
+        };
+      }),
+    );
+
+    // Get Active Sessions (Users checked in today)
+    const activeSessions = (
+      await Attendance.find({
+        date: { $gte: today, $lt: tomorrow },
+        status: { $in: ["Present", "WFH"] },
+      })
+        .limit(5)
+        .populate("userId", "name initials")
+    ).map((a) => ({
+      name: a.userId?.name || "User",
+      initials:
+        a.userId?.initials ||
+        a.userId?.name
+          ?.split(" ")
+          .map((n) => n[0])
+          .join("")
+          .toUpperCase()
+          .slice(0, 2) ||
+        "??",
+    }));
+
     return sendSuccess(res, "Dashboard stats retrieved successfully", {
       summary: {
         totalEmployees,
@@ -108,6 +161,8 @@ const getAdminDashboardStats = async (req, res) => {
       },
       trends,
       activities,
+      deptPerformance: deptPerformance.sort((a, b) => b.value - a.value),
+      activeSessions,
     });
   } catch (error) {
     return sendError(res, "Failed to retrieve dashboard stats", error.message);
