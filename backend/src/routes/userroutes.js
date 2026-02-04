@@ -6,6 +6,8 @@ import {
   updateProfile,
   createUser,
   updateUser,
+  assignLocation,
+  updateWFHPermission,
 } from "../controllers/usercontroller.js";
 import protect from "../middlewares/protectmiddleware.js";
 import isAdmin from "../middlewares/isadminmiddleware.js";
@@ -16,20 +18,24 @@ import {
   updateProfileSchema,
 } from "../validations/uservalidation.js";
 
-/**
- * @description User Management Routes
- * @module routes/userroutes
- */
-
 const router = express.Router();
 
 router.use(protect);
 
-// Profile routes
+// Profile routes (All authenticated users)
 router.get("/profile", getProfile);
 router.put("/profile", validate(updateProfileSchema), updateProfile);
 
-// Admin routes
+/**
+ * MANAGEMENT ROUTES
+ * (Accessed by Admin or Manager - check logic in controller)
+ */
+router.patch("/:id/assign-location", assignLocation);
+router.patch("/:id/wfh-permission", updateWFHPermission);
+
+/**
+ * ADMIN ONLY ROUTES
+ */
 router.use(isAdmin);
 router.get("/", getAllUsers);
 router.post("/", validate(createUserSchema), createUser);

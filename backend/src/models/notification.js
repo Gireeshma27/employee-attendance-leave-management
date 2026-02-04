@@ -1,10 +1,5 @@
 import mongoose from "mongoose";
 
-/**
- * @description Notification Schema for system-wide alerts.
- * @module models/notification.model
- */
-
 const notificationSchema = new mongoose.Schema(
   {
     recipient: {

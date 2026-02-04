@@ -15,11 +15,6 @@ import dashboardRoutes from "./routes/dashboardroutes.js";
 import notificationRoutes from "./routes/notificationroutes.js";
 // We'll import other routes as we refactor them
 
-/**
- * @description Express Application Configuration
- * @module app
- */
-
 const app = express();
 
 // Middlewares

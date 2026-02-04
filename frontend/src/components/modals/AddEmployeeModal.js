@@ -1,25 +1,49 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Modal } from '@/components/ui/Modal';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { AlertCircle } from 'lucide-react';
-import apiService from '@/lib/api';
+import { useState } from "react";
+import { Modal } from "@/components/ui/Modal";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
+import { AlertCircle } from "lucide-react";
+import apiService from "@/lib/api";
 
 export function AddEmployeeModal({ isOpen, onClose, onSuccess }) {
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    employeeId: '',
-    role: 'EMPLOYEE',
-    password: '',
-    confirmPassword: '',
+    name: "",
+    email: "",
+    employeeId: "",
+    role: "EMPLOYEE",
+    password: "",
+    confirmPassword: "",
+    officeId: "",
+    managerId: "",
+    wfhDaysRemaining: 0,
   });
 
+  const [offices, setOffices] = useState([]);
+  const [managers, setManagers] = useState([]);
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState(null);
+
+  useState(() => {
+    if (isOpen) {
+      fetchDependentData();
+    }
+  }, [isOpen]);
+
+  const fetchDependentData = async () => {
+    try {
+      const [officesRes, managersRes] = await Promise.all([
+        apiService.office.getAll(),
+        apiService.user.getAll({ role: "MANAGER" }),
+      ]);
+      setOffices(officesRes.data || []);
+      setManagers(managersRes.data?.records || []);
+    } catch (err) {
+      console.error("Error fetching dependent data:", err);
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -27,11 +51,10 @@ export function AddEmployeeModal({ isOpen, onClose, onSuccess }) {
       ...prev,
       [name]: value,
     }));
-    // Clear error for this field
     if (errors[name]) {
       setErrors((prev) => ({
         ...prev,
-        [name]: '',
+        [name]: "",
       }));
     }
   };
@@ -40,27 +63,27 @@ export function AddEmployeeModal({ isOpen, onClose, onSuccess }) {
     const newErrors = {};
 
     if (!formData.name.trim()) {
-      newErrors.name = 'Name is required';
+      newErrors.name = "Name is required";
     }
 
     if (!formData.email.trim()) {
-      newErrors.email = 'Email is required';
+      newErrors.email = "Email is required";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Invalid email format';
+      newErrors.email = "Invalid email format";
     }
 
     if (!formData.employeeId.trim()) {
-      newErrors.employeeId = 'Employee ID is required';
+      newErrors.employeeId = "Employee ID is required";
     }
 
     if (!formData.password) {
-      newErrors.password = 'Password is required';
+      newErrors.password = "Password is required";
     } else if (formData.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
+      newErrors.password = "Password must be at least 6 characters";
     }
 
     if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
+      newErrors.confirmPassword = "Passwords do not match";
     }
 
     return newErrors;
@@ -80,34 +103,32 @@ export function AddEmployeeModal({ isOpen, onClose, onSuccess }) {
 
     try {
       await apiService.user.create({
-        name: formData.name,
-        email: formData.email,
-        employeeId: formData.employeeId,
-        role: formData.role,
-        password: formData.password,
+        ...formData,
+        email: formData.email.toLowerCase(),
       });
 
       setFormData({
-        name: '',
-        email: '',
-        employeeId: '',
-        role: 'EMPLOYEE',
-        password: '',
-        confirmPassword: '',
+        name: "",
+        email: "",
+        employeeId: "",
+        role: "EMPLOYEE",
+        password: "",
+        confirmPassword: "",
+        officeId: "",
+        managerId: "",
+        wfhDaysRemaining: 0,
       });
       setErrors({});
 
       onSuccess?.();
       onClose();
     } catch (error) {
-      let errorMessage = error?.message || 'Failed to create employee';
-      
-      // Handle specific error scenarios
-      if (error?.message?.includes('already exists')) {
-        if (error?.message?.includes('email')) {
-          setErrors({ email: 'This email is already registered' });
-        } else if (error?.message?.includes('Employee ID')) {
-          setErrors({ employeeId: 'This Employee ID is already in use' });
+      let errorMessage = error?.message || "Failed to create employee";
+      if (error?.message?.includes("already exists")) {
+        if (error?.message?.includes("email")) {
+          setErrors({ email: "This email is already registered" });
+        } else if (error?.message?.includes("Employee ID")) {
+          setErrors({ employeeId: "This Employee ID is already in use" });
         } else {
           setApiError(errorMessage);
         }
@@ -121,12 +142,12 @@ export function AddEmployeeModal({ isOpen, onClose, onSuccess }) {
 
   const handleClose = () => {
     setFormData({
-      name: '',
-      email: '',
-      employeeId: '',
-      role: 'EMPLOYEE',
-      password: '',
-      confirmPassword: '',
+      name: "",
+      email: "",
+      employeeId: "",
+      role: "EMPLOYEE",
+      password: "",
+      confirmPassword: "",
     });
     setErrors({});
     setApiError(null);
@@ -155,7 +176,7 @@ export function AddEmployeeModal({ isOpen, onClose, onSuccess }) {
             value={formData.name}
             onChange={handleChange}
             placeholder="Enter employee name"
-            className={errors.name ? 'border-red-500' : ''}
+            className={errors.name ? "border-red-500" : ""}
           />
           {errors.name && (
             <p className="text-sm text-red-600 mt-1">{errors.name}</p>
@@ -173,7 +194,7 @@ export function AddEmployeeModal({ isOpen, onClose, onSuccess }) {
             value={formData.email}
             onChange={handleChange}
             placeholder="Enter email address"
-            className={errors.email ? 'border-red-500' : ''}
+            className={errors.email ? "border-red-500" : ""}
           />
           {errors.email && (
             <p className="text-sm text-red-600 mt-1">{errors.email}</p>
@@ -191,7 +212,7 @@ export function AddEmployeeModal({ isOpen, onClose, onSuccess }) {
             value={formData.employeeId}
             onChange={handleChange}
             placeholder="Enter employee ID"
-            className={errors.employeeId ? 'border-red-500' : ''}
+            className={errors.employeeId ? "border-red-500" : ""}
           />
           {errors.employeeId && (
             <p className="text-sm text-red-600 mt-1">{errors.employeeId}</p>
@@ -199,20 +220,77 @@ export function AddEmployeeModal({ isOpen, onClose, onSuccess }) {
         </div>
 
         {/* Role */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Role <span className="text-red-500">*</span>
-          </label>
-          <select
-            name="role"
-            value={formData.role}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="EMPLOYEE">Employee</option>
-            <option value="MANAGER">Manager</option>
-            <option value="ADMIN">Admin</option>
-          </select>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Role <span className="text-red-500">*</span>
+            </label>
+            <select
+              name="role"
+              value={formData.role}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="EMPLOYEE">Employee</option>
+              <option value="MANAGER">Manager</option>
+              <option value="ADMIN">Admin</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Office Location
+            </label>
+            <select
+              name="officeId"
+              value={formData.officeId}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">Select Location</option>
+              {offices.map((off) => (
+                <option key={off._id} value={off._id}>
+                  {off.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {/* Manager & WFH */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Reporting Manager
+            </label>
+            <select
+              name="managerId"
+              value={formData.managerId}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">Select Manager</option>
+              {managers.map((mgr) => (
+                <option key={mgr._id} value={mgr._id}>
+                  {mgr.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              WFH Days (Quota)
+            </label>
+            <Input
+              type="number"
+              name="wfhDaysRemaining"
+              value={formData.wfhDaysRemaining}
+              onChange={handleChange}
+              min="0"
+              placeholder="0"
+            />
+          </div>
         </div>
 
         {/* Password */}
@@ -226,7 +304,7 @@ export function AddEmployeeModal({ isOpen, onClose, onSuccess }) {
             value={formData.password}
             onChange={handleChange}
             placeholder="Enter password (min 6 characters)"
-            className={errors.password ? 'border-red-500' : ''}
+            className={errors.password ? "border-red-500" : ""}
           />
           {errors.password && (
             <p className="text-sm text-red-600 mt-1">{errors.password}</p>
@@ -244,10 +322,12 @@ export function AddEmployeeModal({ isOpen, onClose, onSuccess }) {
             value={formData.confirmPassword}
             onChange={handleChange}
             placeholder="Confirm password"
-            className={errors.confirmPassword ? 'border-red-500' : ''}
+            className={errors.confirmPassword ? "border-red-500" : ""}
           />
           {errors.confirmPassword && (
-            <p className="text-sm text-red-600 mt-1">{errors.confirmPassword}</p>
+            <p className="text-sm text-red-600 mt-1">
+              {errors.confirmPassword}
+            </p>
           )}
         </div>
 
@@ -266,7 +346,7 @@ export function AddEmployeeModal({ isOpen, onClose, onSuccess }) {
             className="flex-1"
             disabled={isLoading}
           >
-            {isLoading ? 'Adding...' : 'Add Employee'}
+            {isLoading ? "Adding..." : "Add Employee"}
           </Button>
         </div>
       </form>

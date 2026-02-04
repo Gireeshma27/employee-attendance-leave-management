@@ -1,10 +1,5 @@
 import mongoose from "mongoose";
 
-/**
- * @description Pure User Schema definition.
- * @module models/usermodel
- */
-
 const userSchema = new mongoose.Schema(
   {
     name: {
@@ -51,6 +46,22 @@ const userSchema = new mongoose.Schema(
     },
     phone: {
       type: String,
+    },
+    officeId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Office",
+    },
+    managerId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+    wfhAllowed: {
+      type: Boolean,
+      default: false,
+    },
+    wfhDaysRemaining: {
+      type: Number,
+      default: 0,
     },
   },
   {

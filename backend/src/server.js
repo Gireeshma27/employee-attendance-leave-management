@@ -2,11 +2,6 @@ import mongoose from "mongoose";
 import app from "./app.js";
 import env from "./config/env.js";
 
-/**
- * @description Server Entry Point
- * @module server
- */
-
 const startServer = async () => {
   try {
     // Start Express Server Immediately

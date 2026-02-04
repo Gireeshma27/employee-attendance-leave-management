@@ -3,17 +3,6 @@ import User from "#models/user";
 import env from "../config/env.js";
 import { sendError } from "#utils/api_response_fix";
 
-/**
- * @description Authentication middleware to protect routes.
- * @module middlewares/protect
- */
-
-/**
- * Middleware to verify JWT and attach user to request.
- * @param {Object} req - Express request object.
- * @param {Object} res - Express response object.
- * @param {Function} next - Next middleware function.
- */
 const protect = async (req, res, next) => {
   try {
     let token;
