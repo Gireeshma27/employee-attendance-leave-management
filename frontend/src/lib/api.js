@@ -1,226 +1,260 @@
 /**
- * Centralized API service for all backend calls
- * Base URL: http://localhost:5000/api/v1
+ * @description Centralized API service for all backend calls.
+ * @module lib/api
  */
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000/api/v1';
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000/api/v1";
 
+/**
+ * Enhanced API Service with standardized response handling.
+ */
 class ApiService {
   /**
-   * Check if backend is reachable
+   * Generic fetch wrapper with standardized error and response handling.
+   * @param {string} endpoint - API endpoint.
+   * @param {Object} options - Fetch options.
+   * @returns {Promise<any>} - Decoupled data from backend response.
    */
-  async healthCheck() {
-    try {
-      const response = await fetch(`${API_BASE_URL}/health`, {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
-      });
-      return response.ok;
-    } catch (error) {
-      console.warn('Health check failed:', error.message);
-      return false;
-    }
-  }
-
-  /**
-   * Generic fetch wrapper with error handling
-   */
-  async request(endpoint, options = {}) {
+  async request(endpoint, options = {}, retryCount = 0) {
     const url = `${API_BASE_URL}${endpoint}`;
-    
+    const token =
+      typeof window !== "undefined" ? localStorage.getItem("token") : null;
+
     const config = {
+      ...options,
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
+        ...(token && { Authorization: `Bearer ${token}` }),
         ...options.headers,
       },
-      credentials: 'include', // Ensure cookies are sent with requests
-      ...options,
+      credentials: "include",
     };
-
-    // Add authorization token if available
-    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
 
     try {
       const response = await fetch(url, config);
-      
+      const result = await response.json();
+
       if (!response.ok) {
-        let errorMessage = `API error: ${response.status}`;
-        let errorData = null;
-        
-        try {
-          errorData = await response.json();
-          // Extract error message from standardized response format
-          errorMessage = errorData.error || errorData.message || errorMessage;
-        } catch {
-          // If response is not JSON, use status message
-          errorMessage = response.statusText || errorMessage;
-        }
-        
-        const error = new Error(errorMessage);
+        const error = new Error(
+          result.message || result.error || `HTTP Error: ${response.status}`,
+        );
         error.status = response.status;
-        error.data = errorData;
+        error.data = result;
         throw error;
       }
 
-      return await response.json();
+      // Automatically return .data if it exists (standard shape), otherwise return the result
+      return result;
     } catch (error) {
-      // Handle network errors more explicitly
-      let errorMessage = error instanceof Error ? error.message : String(error);
-      
-      // Distinguish between network errors and other fetch errors
-      if (error.message === 'Failed to fetch') {
-        // This usually indicates CORS issue, network connectivity, or backend not running
-        const backendUrl = new URL(API_BASE_URL).origin;
-        errorMessage = `Cannot connect to server (${backendUrl}). Ensure the backend is running and CORS is configured correctly.`;
+      // Retry logic for connection failures
+      if (error.message === "Failed to fetch" && retryCount < 1) {
+        if (process.env.NODE_ENV === "development") {
+          console.warn(
+            `[API RETRY] Retrying ${endpoint} due to connection failure...`,
+          );
+        }
+        // Wait 1 second before retrying
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        return this.request(endpoint, options, retryCount + 1);
       }
-      
-      // Log detailed errors in development mode
-      if (process.env.NODE_ENV === 'development') {
-        console.error(`API Error [${endpoint}]:`, errorMessage);
-        console.error(`Request URL: ${url}`);
-        console.error(`API Base URL: ${API_BASE_URL}`);
-        console.error(`Request Method: ${config.method || 'GET'}`);
-        console.error(`Request Headers:`, config.headers);
-        console.error(`Full Error:`, error);
+
+      if (error.message === "Failed to fetch") {
+        error.message =
+          "Unable to connect to the server. Please check your internet connection or backend status.";
       }
-      
+
+      if (process.env.NODE_ENV === "development") {
+        console.error(
+          `[API ERROR] ${options.method || "GET"} ${endpoint}:`,
+          error.message,
+        );
+      }
+
       throw error;
     }
   }
 
-  /**
-   * Auth Endpoints
-   */
+  // --- Auth Endpoints ---
   auth = {
     login: (credentials) =>
-      this.request('/auth/login', {
-        method: 'POST',
+      this.request("/auth/login", {
+        method: "POST",
         body: JSON.stringify(credentials),
       }),
-
     register: (data) =>
-      this.request('/auth/register', {
-        method: 'POST',
+      this.request("/auth/register", {
+        method: "POST",
         body: JSON.stringify(data),
       }),
-
-    logout: () =>
-      this.request('/auth/logout', {
-        method: 'POST',
-      }),
-
+    logout: () => this.request("/auth/logout", { method: "POST" }),
     forgotPassword: (email) =>
-      this.request('/auth/forgot-password', {
-        method: 'POST',
+      this.request("/auth/forgot-password", {
+        method: "POST",
         body: JSON.stringify({ email }),
       }),
-
     resetPassword: (token, password) =>
-      this.request('/auth/reset-password', {
-        method: 'POST',
+      this.request("/auth/reset-password", {
+        method: "POST",
         body: JSON.stringify({ token, password }),
       }),
   };
 
-  /**
-   * User Endpoints
-   */
+  // --- User Endpoints ---
   user = {
-    getProfile: () =>
-      this.request('/users/profile', { method: 'GET' }),
-
+    getProfile: () => this.request("/users/profile"),
     updateProfile: (data) =>
-      this.request('/users/profile', {
-        method: 'PUT',
+      this.request("/users/profile", {
+        method: "PUT",
         body: JSON.stringify(data),
       }),
-
     getAll: (filters = {}) => {
-      const params = new URLSearchParams();
-      if (filters.search) params.append('search', filters.search);
-      if (filters.role) params.append('role', filters.role);
-      if (filters.isActive !== undefined) params.append('isActive', filters.isActive);
-      const query = params.toString();
-      return this.request(`/users${query ? '?' + query : ''}`, { method: 'GET' });
+      const params = new URLSearchParams(filters).toString();
+      return this.request(`/users${params ? "?" + params : ""}`);
     },
-
-    getById: (id) =>
-      this.request(`/users/${id}`, { method: 'GET' }),
-
+    getById: (id) => this.request(`/users/${id}`),
     create: (data) =>
-      this.request('/users', {
-        method: 'POST',
-        body: JSON.stringify(data),
-      }),
-
+      this.request("/users", { method: "POST", body: JSON.stringify(data) }),
     update: (id, data) =>
       this.request(`/users/${id}`, {
-        method: 'PUT',
+        method: "PUT",
+        body: JSON.stringify(data),
+      }),
+    assignLocation: (id, officeId) =>
+      this.request(`/users/${id}/assign-location`, {
+        method: "PATCH",
+        body: JSON.stringify({ officeId }),
+      }),
+    updateWFHPermission: (id, data) =>
+      this.request(`/users/${id}/wfh-permission`, {
+        method: "PATCH",
         body: JSON.stringify(data),
       }),
   };
 
-  /**
-   * Attendance Endpoints
-   */
+  // --- Attendance Endpoints ---
   attendance = {
     checkIn: (data) =>
-      this.request('/attendance/check-in', {
-        method: 'POST',
+      this.request("/attendance/check-in", {
+        method: "POST",
         body: JSON.stringify(data),
       }),
-
     checkOut: (data) =>
-      this.request('/attendance/check-out', {
-        method: 'POST',
+      this.request("/attendance/check-out", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    getMyAttendance: () => this.request("/attendance/my"),
+    getTeamAttendance: (filters = {}) => {
+      const params = new URLSearchParams(filters).toString();
+      return this.request(`/attendance/team${params ? "?" + params : ""}`);
+    },
+    getReport: () => this.request("/attendance/export/excel"),
+    updateRecord: (id, data) =>
+      this.request(`/attendance/${id}`, {
+        method: "PUT",
         body: JSON.stringify(data),
       }),
 
-    getMyAttendance: () =>
-      this.request('/attendance/my', { method: 'GET' }),
+    downloadExcelReport: async (filters = {}) => {
+      const params = new URLSearchParams(filters).toString();
+      const token = localStorage.getItem("token");
 
-    getTeamAttendance: () =>
-      this.request('/attendance/team', { method: 'GET' }),
+      const response = await fetch(
+        `${API_BASE_URL}/attendance/export/excel${params ? "?" + params : ""}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
 
-    getReport: () =>
-      this.request('/attendance/report', { method: 'GET' }),
+      if (!response.ok) throw new Error("Excel download failed");
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Attendance_Report_${new Date().toISOString().split("T")[0]}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+    },
+  };
+
+  // --- Leave Endpoints ---
+  leave = {
+    apply: (data) =>
+      this.request("/leaves/apply", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    getMyLeaves: () => this.request("/leaves/my"),
+    getPendingLeaves: () => this.request("/leaves/pending"),
+    getAllLeavesAdmin: () => this.request("/leaves/admin/all"),
+    approve: (leaveId, data) =>
+      this.request(`/leaves/${leaveId}/approve`, {
+        method: "PATCH",
+        body: JSON.stringify(data),
+      }),
+    reject: (leaveId, data) =>
+      this.request(`/leaves/${leaveId}/reject`, {
+        method: "PATCH",
+        body: JSON.stringify(data),
+      }),
+    cancel: (leaveId) =>
+      this.request(`/leaves/${leaveId}`, { method: "DELETE" }),
+  };
+
+  // --- Office Endpoints ---
+  office = {
+    getAll: () => this.request("/offices"),
+    create: (data) =>
+      this.request("/offices", { method: "POST", body: JSON.stringify(data) }),
+    update: (id, data) =>
+      this.request(`/offices/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+      }),
+    delete: (id) => this.request(`/offices/${id}`, { method: "DELETE" }),
+  };
+
+  // --- Dashboard Endpoints ---
+  dashboard = {
+    getAdminStats: () => this.request("/dashboard/admin"),
+  };
+
+  // --- Report Endpoints ---
+  report = {
+    getAdminData: (params = {}) => {
+      const qs = new URLSearchParams(params).toString();
+      return this.request(`/reports/admin${qs ? "?" + qs : ""}`);
+    },
+  };
+
+  // --- Notification Endpoints ---
+  notification = {
+    getAll: () => this.request("/notifications"),
+    markAsRead: (id) =>
+      this.request(`/notifications/${id}/read`, { method: "PATCH" }),
+    markAllAsRead: () =>
+      this.request("/notifications/read-all", { method: "PATCH" }),
+    clearAll: () =>
+      this.request("/notifications/clear-all", { method: "DELETE" }),
   };
 
   /**
-   * Leave Endpoints
+   * Check if backend is reachable.
    */
-  leave = {
-    apply: (data) =>
-      this.request('/leaves/apply', {
-        method: 'POST',
-        body: JSON.stringify(data),
-      }),
-
-    getMyLeaves: () =>
-      this.request('/leaves/my', { method: 'GET' }),
-
-    getPendingLeaves: () =>
-      this.request('/leaves/pending', { method: 'GET' }),
-
-    approve: (leaveId, data) =>
-      this.request(`/leaves/${leaveId}/approve`, {
-        method: 'PUT',
-        body: JSON.stringify(data),
-      }),
-
-    reject: (leaveId, data) =>
-      this.request(`/leaves/${leaveId}/reject`, {
-        method: 'PUT',
-        body: JSON.stringify(data),
-      }),
-
-    cancel: (leaveId) =>
-      this.request(`/leaves/${leaveId}`, { method: 'DELETE' }),
-  };
+  async healthCheck() {
+    try {
+      const response = await fetch(`${API_BASE_URL}/health`);
+      return response.ok;
+    } catch {
+      return false;
+    }
+  }
 }
 
-export const apiService = new ApiService();
+const apiService = new ApiService();
+
+export { apiService };
 export default apiService;
