@@ -2,6 +2,7 @@ import Attendance from "#models/attendance";
 import User from "#models/user";
 import Leave from "#models/leave";
 import { sendSuccess, sendError } from "#utils/api_response_fix";
+import ExcelJS from "exceljs";
 
 const getAdminReportData = async (req, res) => {
   try {
@@ -140,4 +141,81 @@ const getAdminReportData = async (req, res) => {
   }
 };
 
-export { getAdminReportData };
+const exportToExcel = async (req, res) => {
+  try {
+    const { fromDate, toDate } = req.query;
+
+    const start = fromDate
+      ? new Date(fromDate)
+      : new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+    const end = toDate ? new Date(toDate) : new Date();
+    end.setHours(23, 59, 59, 999);
+
+    // Get attendance records
+    const attendanceRecords = await Attendance.find({
+      date: { $gte: start, $lte: end },
+    })
+      .populate("userId", "name email department")
+      .sort({ date: -1, checkInTime: -1 });
+
+    // Create workbook
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("Attendance Report");
+
+    // Define columns
+    worksheet.columns = [
+      { header: "Date", key: "date", width: 12 },
+      { header: "Employee Name", key: "name", width: 20 },
+      { header: "Email", key: "email", width: 25 },
+      { header: "Department", key: "department", width: 15 },
+      { header: "Check-in", key: "checkInTime", width: 12 },
+      { header: "Check-out", key: "checkOutTime", width: 12 },
+      { header: "Working Hours", key: "workingHours", width: 14 },
+      { header: "Status", key: "status", width: 12 },
+    ];
+
+    // Style header row
+    worksheet.getRow(1).font = { bold: true, color: { argb: "FFFFFFFF" } };
+    worksheet.getRow(1).fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: "FF3B82F6" },
+    };
+
+    // Add data rows
+    attendanceRecords.forEach((record) => {
+      worksheet.addRow({
+        date: record.date ? new Date(record.date).toLocaleDateString() : "-",
+        name: record.userId?.name || "-",
+        email: record.userId?.email || "-",
+        department: record.userId?.department || "-",
+        checkInTime: record.checkInTime
+          ? new Date(record.checkInTime).toLocaleTimeString()
+          : "-",
+        checkOutTime: record.checkOutTime
+          ? new Date(record.checkOutTime).toLocaleTimeString()
+          : "-",
+        workingHours: record.workingHours || "-",
+        status: record.status || "-",
+      });
+    });
+
+    // Set response headers for file download
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="Attendance_Report_${new Date().toISOString().split("T")[0]}.xlsx"`
+    );
+
+    // Write to response
+    await workbook.xlsx.write(res);
+  } catch (error) {
+    console.error("Export to Excel error:", error);
+    return sendError(res, "Failed to export report", error.message);
+  }
+};
+
+export { getAdminReportData, exportToExcel };

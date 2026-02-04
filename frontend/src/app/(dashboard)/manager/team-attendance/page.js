@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Input } from "@/components/ui/Input";
 import { Search, Info } from "lucide-react";
 import { useState, useEffect } from "react";
-import { apiService } from "@/lib/api";
+import apiService from "@/lib/api";
 import { EditEmployeeModal } from "@/components/modals/EditEmployeeModal";
 
 export default function TeamAttendancePage() {
@@ -149,7 +149,7 @@ export default function TeamAttendancePage() {
           <CardContent className="p-0">
             <div className="overflow-x-auto">
               <table className="w-full text-sm text-left">
-                <thead className="text-[10px] font-black text-gray-400 uppercase tracking-widest bg-gray-50/50">
+                <thead className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest bg-gray-50/50">
                   <tr>
                     <th className="py-4 px-6">Employee</th>
                     <th className="py-4 px-6 text-center">Days Tracked</th>
@@ -170,7 +170,7 @@ export default function TeamAttendancePage() {
                           <div className="w-8 h-8 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-xs">
                             {emp.name.charAt(0)}
                           </div>
-                          <span className="font-bold text-gray-900">
+                          <span className="font-semibold text-gray-900">
                             {emp.name}
                           </span>
                         </div>
@@ -179,12 +179,12 @@ export default function TeamAttendancePage() {
                         {emp.days}
                       </td>
                       <td className="py-4 px-6 text-center">
-                        <Badge variant="success" className="font-black h-5">
+                        <Badge variant="success" className="font-semibold h-5">
                           {emp.present}
                         </Badge>
                       </td>
                       <td className="py-4 px-6 text-center">
-                        <Badge variant="danger" className="font-black h-5">
+                        <Badge variant="danger" className="font-semibold h-5">
                           {emp.absent}
                         </Badge>
                       </td>
@@ -196,7 +196,7 @@ export default function TeamAttendancePage() {
                               style={{ width: `${emp.percentage}%` }}
                             ></div>
                           </div>
-                          <span className="text-xs font-black text-gray-900">
+                          <span className="text-xs font-semibold text-gray-900">
                             {emp.percentage}%
                           </span>
                         </div>
@@ -269,10 +269,10 @@ function StatsCard({ label, value, color }) {
 
   return (
     <div className={`p-4 rounded-2xl border ${colorMap[color]} shadow-sm`}>
-      <p className="text-[10px] font-black uppercase tracking-wider opacity-70 leading-none">
+      <p className="text-[10px] font-semibold uppercase tracking-wider opacity-70 leading-none">
         {label}
       </p>
-      <p className="text-xl md:text-2xl font-black mt-2 leading-none">
+      <p className="text-xl md:text-2xl font-bold mt-2 leading-none">
         {value}
       </p>
     </div>

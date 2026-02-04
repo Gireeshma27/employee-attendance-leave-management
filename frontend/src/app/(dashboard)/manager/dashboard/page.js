@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Clock, AlertCircle, Users, TrendingUp } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
-import { apiService } from "@/lib/api";
+import apiService from "@/lib/api";
 
 /**
  * @description Modernized Manager Dashboard with standardized state management and API calls.
@@ -92,7 +92,7 @@ const ManagerDashboard = () => {
     <DashboardLayout role="manager">
       <div className="space-y-6 md:space-y-8 animate-in fade-in duration-500">
         <div>
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 tracking-tight">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-slate-900 tracking-tight">
             Manager Overview
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
@@ -145,7 +145,7 @@ const ManagerDashboard = () => {
               <div className="overflow-x-auto">
                 <table className="w-full text-xs md:text-sm text-left">
                   <thead>
-                    <tr className="text-slate-400 bg-slate-50/50 uppercase text-[10px] font-black tracking-widest border-b border-slate-100">
+                    <tr className="text-slate-400 bg-slate-50/50 uppercase text-[10px] font-semibold tracking-widest border-b border-slate-100">
                       <th className="py-4 px-6">Employee</th>
                       <th className="py-4 px-6 hidden sm:table-cell">
                         Check-in
@@ -162,7 +162,7 @@ const ManagerDashboard = () => {
                         key={idx}
                         className="hover:bg-slate-50/50 transition-colors"
                       >
-                        <td className="py-4 px-6 text-slate-900 font-bold">
+                        <td className="py-4 px-6 text-slate-900 font-semibold">
                           {member.name}
                         </td>
                         <td className="py-4 px-6 text-slate-500">-</td>
@@ -196,10 +196,10 @@ const ManagerDashboard = () => {
               {teamData.map((emp, idx) => (
                 <div key={idx} className="group cursor-default">
                   <div className="flex items-center justify-between mb-2">
-                    <h4 className="font-bold text-slate-700 group-hover:text-blue-600 transition-colors">
+                    <h4 className="font-semibold text-slate-700 group-hover:text-blue-600 transition-colors">
                       {emp.name}
                     </h4>
-                    <span className="text-xs font-black text-slate-900">
+                    <span className="text-xs font-semibold text-slate-900">
                       85%
                     </span>
                   </div>
@@ -209,7 +209,7 @@ const ManagerDashboard = () => {
                       style={{ width: "85%" }}
                     />
                   </div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-2">
+                  <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mt-2">
                     Avg. 8.2h/day
                   </p>
                 </div>
@@ -235,10 +235,10 @@ const StatCard = ({ label, value, icon: Icon, color }) => {
       <CardContent className="p-6">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">
+            <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-1.5">
               {label}
             </p>
-            <p className="text-3xl font-black text-slate-900 tracking-tighter">
+            <p className="text-3xl font-bold text-slate-900 tracking-tighter">
               {value}
             </p>
           </div>

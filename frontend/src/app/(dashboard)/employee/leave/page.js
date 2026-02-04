@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { AlertCircle, Plus } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { apiService } from '@/lib/api';
+import apiService from '@/lib/api';
 
 export default function LeavePage() {
   const [loading, setLoading] = useState(true);

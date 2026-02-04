@@ -28,6 +28,7 @@ export default function AdminReports() {
   const [error, setError] = useState(null);
   const [mounted, setMounted] = useState(false);
   const [timeRange, setTimeRange] = useState("Monthly");
+  const [isExporting, setIsExporting] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -51,6 +52,20 @@ export default function AdminReports() {
       setError(err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleExportToExcel = async () => {
+    setIsExporting(true);
+    try {
+      await apiService.report.exportToExcel({
+        period: timeRange.toLowerCase(),
+      });
+    } catch (err) {
+      console.error("Error exporting to Excel:", err);
+      alert("Failed to export report to Excel");
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -97,9 +112,13 @@ export default function AdminReports() {
                 Jan 01, 2026 - Jan 31, 2026
               </span>
             </div>
-            <button className="flex items-center gap-3 px-6 py-3 bg-blue-600 text-white rounded-2xl font-semibold uppercase tracking-widest text-[11px] shadow-xl shadow-blue-600/20 hover:scale-105 active:scale-95 transition-all">
+            <button 
+              onClick={handleExportToExcel}
+              disabled={isExporting}
+              className="flex items-center gap-3 px-6 py-3 bg-blue-600 text-white rounded-2xl font-semibold uppercase tracking-widest text-[11px] shadow-xl shadow-blue-600/20 hover:scale-105 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
               <FileSpreadsheet size={18} />
-              Export to Excel
+              {isExporting ? "Exporting..." : "Export to Excel"}
             </button>
           </div>
         </div>

@@ -365,7 +365,7 @@ export function EditEmployeeModal({ isOpen, onClose, employee, onSuccess }) {
             className="flex-1"
             disabled={isLoading}
           >
-            {isLoading ? "Updating..." : "Edit"}
+            {isLoading ? "Updating..." : "Update"}
           </Button>
         </div>
       </form>

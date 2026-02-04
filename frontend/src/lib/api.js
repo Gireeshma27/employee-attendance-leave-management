@@ -366,6 +366,38 @@ class ApiService {
         method: "GET",
       });
     },
+
+    exportToExcel: async (filters = {}) => {
+      const params = new URLSearchParams();
+      if (filters.period) params.append("period", filters.period);
+
+      const query = params.toString();
+      const url = `${API_BASE_URL}/reports/export/excel${query ? "?" + query : ""}`;
+
+      try {
+        const response = await fetch(url, {
+          headers: {
+            Authorization: `Bearer ${typeof window !== "undefined" ? localStorage.getItem("token") : ""}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`Excel export failed with status ${response.status}`);
+        }
+
+        const blob = await response.blob();
+        const downloadUrl = window.URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = downloadUrl;
+        link.download = `Report_${new Date().toISOString().split("T")[0]}.xlsx`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(downloadUrl);
+      } catch (error) {
+        throw new Error(error.message || "Failed to export to Excel");
+      }
+    },
   };
 }
 
