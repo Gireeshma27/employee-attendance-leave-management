@@ -1,59 +1,149 @@
 import Notification from "#models/notification";
-import { sendSuccess, sendError } from "#utils/api_response_fix";
+
+const _sendPushNotification = async (recipientId, title, message) => {
+  try {
+    console.log(
+      `[PUSH NOTIFICATION] To: ${recipientId} | Title: ${title} | Message: ${message}`,
+    );
+    return true;
+  } catch (error) {
+    console.error("Push notification failed:", error);
+    return false;
+  }
+};
 
 const getNotifications = async (req, res) => {
   try {
-    const notifications = await Notification.find({ recipient: req.user.id })
-      .sort({ createdAt: -1 })
-      .limit(50);
+    const userId = req.user.id;
+    let limit = parseInt(req.query.limit) || 10;
+    if (limit > 50) limit = 50;
 
-    return sendSuccess(
-      res,
-      "Notifications fetched successfully",
-      notifications,
-    );
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: { message: "Unauthorized access" },
+        data: null,
+      });
+    }
+
+    const totalCount = await Notification.countDocuments({ recipient: userId });
+    if (totalCount > 50) {
+      const oldestToKeep = await Notification.find({ recipient: userId })
+        .sort({ createdAt: -1 })
+        .skip(49)
+        .limit(1);
+
+      if (oldestToKeep.length > 0) {
+        await Notification.deleteMany({
+          recipient: userId,
+          createdAt: { $lt: oldestToKeep[0].createdAt },
+        });
+      }
+    }
+
+    const notifications = await Notification.find({ recipient: userId })
+      .sort({ createdAt: -1 })
+      .limit(limit);
+
+    return res.status(200).json({
+      success: true,
+      error: null,
+      data: notifications,
+    });
   } catch (error) {
-    return sendError(res, "Failed to fetch notifications", error.message);
+    console.error("Error in getNotifications:", error);
+    return res.status(500).json({
+      success: false,
+      error: { message: "Internal server error while fetching notifications" },
+      data: null,
+    });
   }
 };
 
 const markAsRead = async (req, res) => {
   try {
+    const userId = req.user.id;
+    const notificationId = req.params.id;
+
+    if (!notificationId) {
+      return res.status(400).json({
+        success: false,
+        error: { message: "Notification ID is required" },
+        data: null,
+      });
+    }
+
     const notification = await Notification.findOneAndUpdate(
-      { _id: req.params.id, recipient: req.user.id },
+      { _id: notificationId, recipient: userId },
       { isRead: true },
       { new: true },
     );
 
     if (!notification) {
-      return sendError(res, "Notification not found", "Not Found", 404);
+      return res.status(404).json({
+        success: false,
+        error: { message: "Notification not found" },
+        data: null,
+      });
     }
 
-    return sendSuccess(res, "Notification marked as read", notification);
+    return res.status(200).json({
+      success: true,
+      error: null,
+      data: notification,
+    });
   } catch (error) {
-    return sendError(res, "Failed to update notification", error.message);
+    console.error("Error in markAsRead:", error);
+    return res.status(500).json({
+      success: false,
+      error: { message: "Internal server error while updating notification" },
+      data: null,
+    });
   }
 };
 
 const markAllAsRead = async (req, res) => {
   try {
+    const userId = req.user.id;
+
     await Notification.updateMany(
-      { recipient: req.user.id, isRead: false },
+      { recipient: userId, isRead: false },
       { isRead: true },
     );
 
-    return sendSuccess(res, "All notifications marked as read");
+    return res.status(200).json({
+      success: true,
+      error: null,
+      data: { message: "All notifications marked as read" },
+    });
   } catch (error) {
-    return sendError(res, "Failed to update notifications", error.message);
+    console.error("Error in markAllAsRead:", error);
+    return res.status(500).json({
+      success: false,
+      error: { message: "Internal server error while updating notifications" },
+      data: null,
+    });
   }
 };
 
 const clearAll = async (req, res) => {
   try {
-    await Notification.deleteMany({ recipient: req.user.id });
-    return sendSuccess(res, "All notifications cleared");
+    const userId = req.user.id;
+
+    await Notification.deleteMany({ recipient: userId });
+
+    return res.status(200).json({
+      success: true,
+      error: null,
+      data: { message: "All notifications cleared successfully" },
+    });
   } catch (error) {
-    return sendError(res, "Failed to clear notifications", error.message);
+    console.error("Error in clearAll:", error);
+    return res.status(500).json({
+      success: false,
+      error: { message: "Internal server error while clearing notifications" },
+      data: null,
+    });
   }
 };
 

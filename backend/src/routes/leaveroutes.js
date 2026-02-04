@@ -28,18 +28,23 @@ router.use(protect);
 
 // Employee routes
 router.post("/apply", validate(applyLeaveSchema), applyLeave);
-router.get("/my-leaves", validate(getLeavesSchema), getMyLeaves);
-router.delete("/cancel/:leaveId", cancelLeave);
+router.get("/my", validate(getLeavesSchema), getMyLeaves);
+router.delete("/:leaveId", cancelLeave);
 
 // Admin/Manager routes
 router.get("/pending", isAdmin, validate(getLeavesSchema), getPendingLeaves);
-router.patch("/approve/:leaveId", isAdmin, approveLeave);
+router.get(
+  "/admin/all",
+  isAdmin,
+  validate(getLeavesSchema),
+  getAllLeavesForAdmin,
+);
+router.patch("/:leaveId/approve", isAdmin, approveLeave);
 router.patch(
-  "/reject/:leaveId",
+  "/:leaveId/reject",
   isAdmin,
   validate(rejectLeaveSchema),
   rejectLeave,
 );
-router.get("/all", isAdmin, validate(getLeavesSchema), getAllLeavesForAdmin);
 
 export default router;

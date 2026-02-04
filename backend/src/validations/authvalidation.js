@@ -1,10 +1,5 @@
 import { z } from "zod";
 
-/**
- * @description Authentication validation schemas.
- * @module validations/authvalidation
- */
-
 const signupSchema = z.object({
   body: z
     .object({

@@ -34,11 +34,24 @@ export default function AttendancePage() {
   // Geofence Simulation State (can be wired to actual GPS later)
   const [isOutOfRange, setIsOutOfRange] = useState(false);
 
+  const [isWFH, setIsWFH] = useState(false);
+  const [userProfile, setUserProfile] = useState(null);
+
   useEffect(() => {
     fetchAttendanceData();
+    fetchUserProfile();
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
+
+  const fetchUserProfile = async () => {
+    try {
+      const res = await apiService.user.getProfile();
+      setUserProfile(res.data);
+    } catch (err) {
+      console.error("Error fetching user profile:", err);
+    }
+  };
 
   const fetchAttendanceData = async () => {
     try {
@@ -52,6 +65,7 @@ export default function AttendancePage() {
       });
 
       setTodayAttendance(todayRecord || null);
+      if (todayRecord?.status === "WFH") setIsWFH(true);
       setAttendanceHistory(historyData.data || []);
     } catch (err) {
       console.error("Error fetching attendance:", err);
@@ -62,12 +76,15 @@ export default function AttendancePage() {
   };
 
   const handleCheckIn = async () => {
-    if (isOutOfRange) return;
+    // Only block if NOT WFH and Out of Range
+    if (isOutOfRange && !isWFH) return;
+
     try {
       setIsSubmitting(true);
       const checkInTime = new Date();
       const response = await apiService.attendance.checkIn({
         checkInTime,
+        isWFH,
       });
 
       if (response.success) {
@@ -76,12 +93,15 @@ export default function AttendancePage() {
         apiService.attendance.getMyAttendance().then((historyData) => {
           setAttendanceHistory(historyData.data || []);
         });
+        // Refresh profile to update WFH quota
+        fetchUserProfile();
       }
 
       setSuccessConfig({
-        title: "Check-in Successful!",
-        message:
-          "Your attendance has been recorded for today. Have a productive day ahead!",
+        title: isWFH ? "WFH Check-in Successful!" : "Check-in Successful!",
+        message: isWFH
+          ? "Your remote attendance has been recorded. Have a great day!"
+          : "Your attendance has been recorded for today. Have a productive day ahead!",
         time: formatTime(checkInTime),
       });
       setShowSuccess(true);
@@ -186,13 +206,30 @@ export default function AttendancePage() {
         )}
 
         {/* Page Title */}
-        <div className="pt-1 md:pt-2">
-          <h1 className="text-lg sm:text-2xl md:text-3xl font-bold text-gray-900">
-            Attendance
-          </h1>
-          <p className="text-xs sm:text-sm md:text-sm text-gray-500 mt-1">
-            Track your daily check-in, check-out and location data.
-          </p>
+        <div className="pt-1 md:pt-2 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+          <div>
+            <h1 className="text-lg sm:text-2xl md:text-3xl font-bold text-gray-900">
+              Attendance
+            </h1>
+            <p className="text-xs sm:text-sm md:text-sm text-gray-500 mt-1">
+              Track your daily check-in, check-out and location data.
+            </p>
+          </div>
+          {userProfile?.wfhAllowed && (
+            <div className="bg-blue-50 border border-blue-100 rounded-xl px-4 py-2 flex items-center gap-3">
+              <div className="h-6 w-6 flex items-center justify-center rounded-full bg-blue-600 text-white text-[10px] font-black">
+                {userProfile.wfhDaysRemaining}
+              </div>
+              <div className="text-xs">
+                <p className="font-bold text-blue-900 leading-none">
+                  WFH Days Available
+                </p>
+                <p className="text-blue-700 opacity-80 mt-1 leading-none">
+                  Remaining this month
+                </p>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Summary Cards */}
@@ -283,16 +320,32 @@ export default function AttendancePage() {
               <h2 className="text-base md:text-lg font-bold text-gray-900">
                 Action Center
               </h2>
-              <div
-                onClick={() => setIsOutOfRange(!isOutOfRange)}
-                className="cursor-pointer"
-              >
-                <Badge
-                  variant="secondary"
-                  className="text-[9px] md:text-[10px] py-0 px-1.5 opacity-50 hover:opacity-100 transition-opacity whitespace-nowrap"
+              <div className="flex items-center gap-4">
+                {userProfile?.wfhAllowed && !todayAttendance?.checkInTime && (
+                  <label className="flex items-center gap-2 cursor-pointer bg-gray-50 px-3 py-1.5 rounded-full border border-gray-100 hover:bg-white transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={isWFH}
+                      onChange={(e) => setIsWFH(e.target.checked)}
+                      disabled={userProfile.wfhDaysRemaining <= 0}
+                      className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-gray-300"
+                    />
+                    <span className="text-xs font-bold text-gray-700 uppercase tracking-tighter">
+                      Work From Home
+                    </span>
+                  </label>
+                )}
+                <div
+                  onClick={() => setIsOutOfRange(!isOutOfRange)}
+                  className="cursor-pointer"
                 >
-                  Toggle Dev: {isOutOfRange ? "Out of Range" : "In Range"}
-                </Badge>
+                  <Badge
+                    variant="secondary"
+                    className="text-[9px] md:text-[10px] py-0 px-1.5 opacity-50 hover:opacity-100 transition-opacity whitespace-nowrap"
+                  >
+                    Toggle Dev: {isOutOfRange ? "Out of Range" : "In Range"}
+                  </Badge>
+                </div>
               </div>
             </div>
 
@@ -300,12 +353,14 @@ export default function AttendancePage() {
               <button
                 onClick={handleCheckIn}
                 disabled={
-                  !!todayAttendance?.checkInTime || isOutOfRange || isSubmitting
+                  !!todayAttendance?.checkInTime ||
+                  (isOutOfRange && !isWFH) ||
+                  isSubmitting
                 }
                 className={`flex-1 flex items-center justify-center gap-2 md:gap-3 py-3 md:py-4 px-4 md:px-6 rounded-2xl font-bold transition-all text-sm md:text-base ${
                   todayAttendance?.checkInTime
                     ? "bg-blue-50 text-blue-400 cursor-not-allowed"
-                    : isOutOfRange
+                    : isOutOfRange && !isWFH
                       ? "bg-gray-100 text-gray-400 cursor-not-allowed"
                       : "bg-[#10b981] text-white hover:bg-[#059669] shadow-lg shadow-green-100 active:scale-95"
                 }`}
@@ -323,8 +378,12 @@ export default function AttendancePage() {
                 {isSubmitting
                   ? "Processing..."
                   : todayAttendance?.checkInTime
-                    ? "CHECKED IN"
-                    : "CHECK IN"}
+                    ? todayAttendance.status === "WFH"
+                      ? "WFH STARTED"
+                      : "CHECKED IN"
+                    : isWFH
+                      ? "START WFH"
+                      : "CHECK IN"}
               </button>
 
               <button
@@ -348,31 +407,47 @@ export default function AttendancePage() {
                   ? "Processing..."
                   : todayAttendance?.checkOutTime
                     ? "CHECKED OUT"
-                    : "CHECK OUT"}
+                    : todayAttendance?.status === "WFH"
+                      ? "FINISH WFH"
+                      : "CHECK OUT"}
               </button>
             </div>
 
             {/* Hint Box */}
             <div className="mt-6 md:mt-8 text-center bg-gray-50/50 border border-gray-100 rounded-2xl p-3 md:p-4">
-              {isOutOfRange ? (
+              {isOutOfRange && !isWFH ? (
                 <p className="text-xs md:text-sm text-red-500 font-medium flex items-center justify-center gap-2">
                   <AlertTriangle size={16} className="flex-shrink-0" /> Check-in
                   disabled: You are outside the office geofence.
                 </p>
               ) : todayAttendance?.checkInTime ? (
                 <p className="text-xs md:text-sm text-gray-500 font-medium">
-                  Last activity: Check-in at{" "}
+                  Last activity:{" "}
+                  {todayAttendance.status === "WFH"
+                    ? "Remote Check-in"
+                    : "Check-in"}{" "}
+                  at{" "}
                   <span className="text-blue-600">
                     {formatTime(todayAttendance.checkInTime)}
                   </span>{" "}
                   from{" "}
-                  <span className="text-green-600 font-bold">
-                    Verified Office Location
+                  <span
+                    className={
+                      todayAttendance.status === "WFH"
+                        ? "text-purple-600 font-bold"
+                        : "text-green-600 font-bold"
+                    }
+                  >
+                    {todayAttendance.status === "WFH"
+                      ? "Home/Remote Location"
+                      : "Verified Office Location"}
                   </span>
                 </p>
               ) : (
                 <p className="text-xs md:text-sm text-gray-500 font-medium">
-                  Verify your location to enable check-in/out actions.
+                  {isWFH
+                    ? "Ready for remote work session."
+                    : "Verify your location to enable check-in/out actions."}
                 </p>
               )}
             </div>

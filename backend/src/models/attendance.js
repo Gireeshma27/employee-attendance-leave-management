@@ -1,10 +1,5 @@
 import mongoose from "mongoose";
 
-/**
- * @description Pure Attendance Schema definition.
- * @module models/attendancemodel
- */
-
 const attendanceSchema = new mongoose.Schema(
   {
     userId: {

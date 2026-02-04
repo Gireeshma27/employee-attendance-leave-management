@@ -120,6 +120,16 @@ class ApiService {
         method: "PUT",
         body: JSON.stringify(data),
       }),
+    assignLocation: (id, officeId) =>
+      this.request(`/users/${id}/assign-location`, {
+        method: "PATCH",
+        body: JSON.stringify({ officeId }),
+      }),
+    updateWFHPermission: (id, data) =>
+      this.request(`/users/${id}/wfh-permission`, {
+        method: "PATCH",
+        body: JSON.stringify(data),
+      }),
   };
 
   // --- Attendance Endpoints ---
@@ -139,7 +149,7 @@ class ApiService {
       const params = new URLSearchParams(filters).toString();
       return this.request(`/attendance/team${params ? "?" + params : ""}`);
     },
-    getReport: () => this.request("/attendance/report"),
+    getReport: () => this.request("/attendance/export/excel"),
     updateRecord: (id, data) =>
       this.request(`/attendance/${id}`, {
         method: "PUT",
@@ -182,12 +192,12 @@ class ApiService {
     getAllLeavesAdmin: () => this.request("/leaves/admin/all"),
     approve: (leaveId, data) =>
       this.request(`/leaves/${leaveId}/approve`, {
-        method: "PUT",
+        method: "PATCH",
         body: JSON.stringify(data),
       }),
     reject: (leaveId, data) =>
       this.request(`/leaves/${leaveId}/reject`, {
-        method: "PUT",
+        method: "PATCH",
         body: JSON.stringify(data),
       }),
     cancel: (leaveId) =>

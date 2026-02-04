@@ -4,9 +4,10 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Input } from "@/components/ui/Input";
-import { Search } from "lucide-react";
+import { Search, Info } from "lucide-react";
 import { useState, useEffect } from "react";
 import { apiService } from "@/lib/api";
+import { EditEmployeeModal } from "@/components/modals/EditEmployeeModal";
 
 export default function TeamAttendancePage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -14,6 +15,10 @@ export default function TeamAttendancePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [attendanceData, setAttendanceData] = useState([]);
+
+  // Modal state
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
 
   useEffect(() => {
     fetchAttendanceData();
@@ -29,28 +34,24 @@ export default function TeamAttendancePage() {
       const teamMap = new Map();
 
       attendance.forEach((record) => {
-        const userId = record.userId._id || record.userId.id;
-        if (!teamMap.has(userId)) {
+        const userId = record.userId?._id || record.userId?.id;
+        if (userId && !teamMap.has(userId)) {
           teamMap.set(userId, {
             id: userId,
             name: record.userId.name,
+            rawUser: record.userId, // Keep for editing
             attendance: [],
           });
         }
-        teamMap.get(userId).attendance.push(record);
+        if (userId) teamMap.get(userId).attendance.push(record);
       });
 
       // Calculate statistics for each team member
       const stats = Array.from(teamMap.values()).map((emp) => {
         const empAttendance = emp.attendance;
-        const present = empAttendance.filter((a) => a.checkIn).length;
+        const present = empAttendance.filter((a) => a.checkInTime).length;
         const absent = empAttendance.filter(
-          (a) => !a.checkIn && a.status === "absent",
-        ).length;
-        const halfDay = empAttendance.filter(
-          (a) =>
-            a.checkOut &&
-            new Date(a.checkOut) - new Date(a.checkIn) < 5 * 60 * 60 * 1000,
+          (a) => !a.checkInTime && a.status === "Absent",
         ).length;
         const total = Math.max(empAttendance.length, 1);
         const percentage = Math.round((present / total) * 100) || 0;
@@ -58,10 +59,10 @@ export default function TeamAttendancePage() {
         return {
           id: emp.id,
           name: emp.name,
+          rawUser: emp.rawUser,
           days: total,
           present,
           absent,
-          halfDay,
           percentage,
         };
       });
@@ -75,13 +76,22 @@ export default function TeamAttendancePage() {
     }
   };
 
+  const handleEditClick = (emp) => {
+    setSelectedEmployee(emp.rawUser);
+    setIsEditModalOpen(true);
+  };
+
+  const handleEditSuccess = () => {
+    fetchAttendanceData();
+  };
+
   if (loading) {
     return (
       <DashboardLayout role="manager">
         <div className="flex items-center justify-center h-96">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading attendance data...</p>
+            <p className="text-gray-600 font-medium">Loading team data...</p>
           </div>
         </div>
       </DashboardLayout>
@@ -97,17 +107,23 @@ export default function TeamAttendancePage() {
       <div className="space-y-6 md:space-y-8">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Team Attendance</h1>
-          <p className="text-gray-600 mt-1">
-            Monitor your team's attendance records
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 tracking-tight">
+            Team Attendance
+          </h1>
+          <p className="text-sm text-gray-500 mt-1">
+            Monitor and manage your team's office assignments and WFH quotas.
           </p>
         </div>
 
         {/* Filters */}
-        <div className="flex flex-col sm:flex-row gap-3 md:gap-4 sm:items-end">
-          <div className="flex-1">
+        <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex flex-col sm:flex-row gap-4">
+          <div className="relative flex-1">
+            <Search
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+              size={18}
+            />
             <Input
-              placeholder="Search employee..."
+              placeholder="Search team members..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -116,135 +132,149 @@ export default function TeamAttendancePage() {
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            className="w-full sm:w-auto px-3 md:px-4 py-2 md:py-2.5 text-xs md:text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="px-4 py-2 text-sm border border-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50/50 font-medium"
           >
-            <option value="all">All</option>
-            <option value="present">Present</option>
-            <option value="absent">Absent</option>
+            <option value="all">Recent Activity</option>
+            <option value="present">Active Now</option>
           </select>
         </div>
 
         {/* Attendance Table */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base md:text-lg">
-              Attendance Records (January 2026)
+        <Card className="border-gray-100 overflow-hidden shadow-sm">
+          <CardHeader className="bg-gray-50/30 border-b border-gray-50">
+            <CardTitle className="text-base font-bold">
+              Team Performance
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="rounded-md border border-gray-100 overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs md:text-sm text-left">
-                  <thead className="border-b border-gray-200 bg-gray-50">
-                    <tr className="text-gray-600">
-                      <th className="text-left py-2 md:py-3 px-4 md:px-4">
-                        Employee Name
-                      </th>
-                      <th className="text-center py-2 md:py-3 px-4 md:px-4 hidden sm:table-cell">
-                        Working Days
-                      </th>
-                      <th className="text-center py-2 md:py-3 px-4 md:px-4">
-                        Present
-                      </th>
-                      <th className="text-center py-2 md:py-3 px-4 md:px-4 hidden md:table-cell">
-                        Absent
-                      </th>
-                      <th className="text-center py-2 md:py-3 px-4 md:px-4 hidden lg:table-cell">
-                        Half-day
-                      </th>
-                      <th className="text-center py-2 md:py-3 px-4 md:px-4">%</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredData.map((emp) => (
-                      <tr
-                        key={emp.id}
-                        className="border-b border-gray-100 hover:bg-gray-50"
-                      >
-                        <td className="py-4 px-4 text-gray-900 font-medium">
-                          {emp.name}
-                        </td>
-                        <td className="py-4 px-4 text-center text-gray-600">
-                          {emp.days}
-                        </td>
-                        <td className="py-4 px-4 text-center">
-                          <Badge variant="success">{emp.present}</Badge>
-                        </td>
-                        <td className="py-2 md:py-4 px-4 text-center hidden md:table-cell">
-                          <Badge variant="danger" className="text-xs">
-                            {emp.absent}
-                          </Badge>
-                        </td>
-                        <td className="py-2 md:py-4 px-4 text-center hidden lg:table-cell">
-                          <Badge variant="warning" className="text-xs">
-                            {emp.halfDay}
-                          </Badge>
-                        </td>
-                        <td className="py-2 md:py-4 px-4">
-                          <div className="flex items-center justify-center gap-1 md:gap-2">
-                            <div className="w-8 md:w-16 bg-gray-200 rounded-full h-2">
-                              <div
-                                className={`h-2 rounded-full ${emp.percentage >= 90
-                                  ? "bg-green-600"
-                                  : emp.percentage >= 80
-                                    ? "bg-yellow-600"
-                                    : "bg-red-600"
-                                  }`}
-                                style={{ width: `${emp.percentage}%` }}
-                              ></div>
-                            </div>
-                            <span className="text-xs md:text-sm font-semibold text-gray-900 w-8 md:w-10 text-right">
-                              {emp.percentage}%
-                            </span>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm text-left">
+                <thead className="text-[10px] font-black text-gray-400 uppercase tracking-widest bg-gray-50/50">
+                  <tr>
+                    <th className="py-4 px-6">Employee</th>
+                    <th className="py-4 px-6 text-center">Days Tracked</th>
+                    <th className="py-4 px-6 text-center">Present</th>
+                    <th className="py-4 px-6 text-center">Absent</th>
+                    <th className="py-4 px-6 text-center">Rate (%)</th>
+                    <th className="py-4 px-6 text-center">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {filteredData.map((emp) => (
+                    <tr
+                      key={emp.id}
+                      className="hover:bg-gray-50/50 transition-colors"
+                    >
+                      <td className="py-4 px-6">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-xs">
+                            {emp.name.charAt(0)}
                           </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                          <span className="font-bold text-gray-900">
+                            {emp.name}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="py-4 px-6 text-center text-gray-500 font-medium">
+                        {emp.days}
+                      </td>
+                      <td className="py-4 px-6 text-center">
+                        <Badge variant="success" className="font-black h-5">
+                          {emp.present}
+                        </Badge>
+                      </td>
+                      <td className="py-4 px-6 text-center">
+                        <Badge variant="danger" className="font-black h-5">
+                          {emp.absent}
+                        </Badge>
+                      </td>
+                      <td className="py-4 px-6">
+                        <div className="flex items-center justify-center gap-2">
+                          <div className="w-12 bg-gray-100 rounded-full h-1.5 hidden sm:block">
+                            <div
+                              className="h-1.5 rounded-full bg-blue-600"
+                              style={{ width: `${emp.percentage}%` }}
+                            ></div>
+                          </div>
+                          <span className="text-xs font-black text-gray-900">
+                            {emp.percentage}%
+                          </span>
+                        </div>
+                      </td>
+                      <td className="py-4 px-6 text-center">
+                        <button
+                          onClick={() => handleEditClick(emp)}
+                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors inline-flex items-center gap-2"
+                          title="Manage Location / WFH"
+                        >
+                          <Info size={18} />
+                          <span className="text-xs font-bold md:hidden lg:inline text-blue-700">
+                            Settings
+                          </span>
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </CardContent>
         </Card>
 
-        {/* Summary Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-          <Card>
-            <CardContent className="pt-4 md:pt-6 text-center">
-              <p className="text-xs md:text-sm text-gray-600">Team Size</p>
-              <p className="text-xl md:text-3xl font-bold text-gray-900 mt-1 md:mt-2">
-                5
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-4 md:pt-6 text-center">
-              <p className="text-xs md:text-sm text-gray-600">
-                Avg. Attendance
-              </p>
-              <p className="text-xl md:text-3xl font-bold text-green-600 mt-1 md:mt-2">
-                87%
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-4 md:pt-6 text-center">
-              <p className="text-xs md:text-sm text-gray-600">Total Present</p>
-              <p className="text-xl md:text-3xl font-bold text-blue-600 mt-1 md:mt-2">
-                87
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-4 md:pt-6 text-center">
-              <p className="text-xs md:text-sm text-gray-600">Total Absent</p>
-              <p className="text-xl md:text-3xl font-bold text-red-600 mt-1 md:mt-2">
-                8
-              </p>
-            </CardContent>
-          </Card>
+        {/* Global Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <StatsCard
+            label="Team Size"
+            value={attendanceData.length}
+            color="indigo"
+          />
+          <StatsCard
+            label="Avg. Rate"
+            value={`${Math.round(attendanceData.reduce((acc, curr) => acc + curr.percentage, 0) / (attendanceData.length || 1))}%`}
+            color="blue"
+          />
+          <StatsCard
+            label="Field Employees"
+            value={attendanceData.filter((e) => !e.rawUser.officeId).length}
+            color="amber"
+          />
+          <StatsCard
+            label="WFH Allowed"
+            value={attendanceData.filter((e) => e.rawUser.wfhAllowed).length}
+            color="purple"
+          />
         </div>
       </div>
+
+      <EditEmployeeModal
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setSelectedEmployee(null);
+        }}
+        employee={selectedEmployee}
+        onSuccess={handleEditSuccess}
+      />
     </DashboardLayout>
+  );
+}
+
+function StatsCard({ label, value, color }) {
+  const colorMap = {
+    indigo: "bg-indigo-50 text-indigo-700 border-indigo-100",
+    blue: "bg-blue-50 text-blue-700 border-blue-100",
+    amber: "bg-amber-50 text-amber-700 border-amber-100",
+    purple: "bg-purple-50 text-purple-700 border-purple-100",
+  };
+
+  return (
+    <div className={`p-4 rounded-2xl border ${colorMap[color]} shadow-sm`}>
+      <p className="text-[10px] font-black uppercase tracking-wider opacity-70 leading-none">
+        {label}
+      </p>
+      <p className="text-xl md:text-2xl font-black mt-2 leading-none">
+        {value}
+      </p>
+    </div>
   );
 }
