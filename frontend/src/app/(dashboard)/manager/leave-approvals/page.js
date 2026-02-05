@@ -35,7 +35,7 @@ export default function LeaveApprovalsPage() {
   const handleApprove = async (leaveId) => {
     try {
       setActionLoading(leaveId);
-      await apiService.leave.approve(leaveId, { status: 'approved' });
+      await apiService.leave.approve(leaveId, {});
       // Remove from pending list after approval
       setLeaveRequests(leaveRequests.filter((req) => req._id !== leaveId));
     } catch (err) {
@@ -47,9 +47,12 @@ export default function LeaveApprovalsPage() {
   };
 
   const handleReject = async (leaveId) => {
+    const rejectionReason = prompt('Please provide a reason for rejection:');
+    if (!rejectionReason) return; // User cancelled or didn't provide a reason
+    
     try {
       setActionLoading(leaveId);
-      await apiService.leave.reject(leaveId, { status: 'rejected' });
+      await apiService.leave.reject(leaveId, { rejectionReason });
       // Remove from pending list after rejection
       setLeaveRequests(leaveRequests.filter((req) => req._id !== leaveId));
     } catch (err) {
@@ -126,8 +129,8 @@ export default function LeaveApprovalsPage() {
                         </h3>
                         <p className="text-xs md:text-sm text-gray-600 mt-1">{request.leaveType}</p>
                         <p className="text-xs text-gray-500 mt-1">
-                          {new Date(request.startDate).toLocaleDateString()} to{' '}
-                          {new Date(request.endDate).toLocaleDateString()} ({request.days} days)
+                          {new Date(request.fromDate).toLocaleDateString()} to{' '}
+                          {new Date(request.toDate).toLocaleDateString()} ({request.numberOfDays} days)
                         </p>
                       </div>
                       <Badge variant="warning" className="flex-shrink-0 self-start sm:self-auto">Pending</Badge>
