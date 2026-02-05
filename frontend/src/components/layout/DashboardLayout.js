@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { apiService } from "@/lib/api";
+import apiService from "@/lib/api";
 
 /**
  * @description Master layout for all dashboard pages, including Sidebar and Topbar.

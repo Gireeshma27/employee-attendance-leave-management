@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Clock, Calendar, AlertCircle, TrendingUp } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
-import { apiService } from "@/lib/api";
+import apiService from "@/lib/api";
 
 const EmployeeDashboard = () => {
   const [loading, setLoading] = useState(true);
@@ -140,7 +140,7 @@ const EmployeeDashboard = () => {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-gray-500 bg-slate-50/30 uppercase text-[10px] font-black tracking-widest">
+                  <tr className="text-gray-500 bg-slate-50/30 uppercase text-[10px] font-semibold tracking-widest">
                     <th className="text-left px-6 py-4">Date</th>
                     <th className="text-left px-6 py-4">Check-in</th>
                     <th className="text-left px-6 py-4">Check-out</th>
@@ -186,7 +186,7 @@ const EmployeeDashboard = () => {
                               )
                             : "-"}
                         </td>
-                        <td className="px-6 py-4 text-gray-900 font-bold">
+                        <td className="px-6 py-4 text-gray-900 font-semibold">
                           {record.workingHours?.toFixed(1) || "0"}
                         </td>
                         <td className="px-6 py-4">
@@ -251,11 +251,11 @@ const StatCard = ({ label, value, icon: Icon, badgeVariant, color }) => {
       <CardContent className="p-6">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-gray-500 text-xs font-black uppercase tracking-widest">
+            <p className="text-xs sm:text-sm md:text-base text-gray-500 uppercase tracking-widest">
               {label}
             </p>
             <div className="mt-2 flex items-center gap-2">
-              <span className="text-2xl font-black text-gray-900">{value}</span>
+              <span className="text-2xl font-bold text-gray-900">{value}</span>
               {badgeVariant && (
                 <Badge variant={badgeVariant} className="scale-75 origin-left">
                   {value}
