@@ -41,21 +41,41 @@ const applyLeave = async (req, res) => {
 
     const populatedLeave = await Leave.findById(leave._id).populate(
       "userId",
-      "name email employeeId",
+      "name email employeeId managerId",
     );
+
+    // Get the employee's manager
+    const employee = await User.findById(userId).populate("managerId");
+    
+    // Notify Manager (if exists)
+    const notificationPromises = [];
+    if (employee?.managerId) {
+      notificationPromises.push(
+        Notification.create({
+          recipient: employee.managerId._id,
+          sender: userId,
+          type: "LEAVE_REQUEST",
+          title: "New Leave Request",
+          message: `${populatedLeave.userId.name} has requested ${numberOfDays} days of leave from ${new Date(from).toLocaleDateString()} to ${new Date(to).toLocaleDateString()}.`,
+          relatedId: leave._id,
+        }),
+      );
+    }
 
     // Notify Admins
     const admins = await User.find({ role: "ADMIN" });
-    const notificationPromises = admins.map((admin) =>
-      Notification.create({
-        recipient: admin._id,
-        sender: userId,
-        type: "LEAVE_REQUEST",
-        title: "New Leave Request",
-        message: `${populatedLeave.userId.name} has requested ${numberOfDays} days of leave.`,
-        relatedId: leave._id,
-      }),
-    );
+    admins.forEach((admin) => {
+      notificationPromises.push(
+        Notification.create({
+          recipient: admin._id,
+          sender: userId,
+          type: "LEAVE_REQUEST",
+          title: "New Leave Request",
+          message: `${populatedLeave.userId.name} has requested ${numberOfDays} days of leave from ${new Date(from).toLocaleDateString()} to ${new Date(to).toLocaleDateString()}.`,
+          relatedId: leave._id,
+        }),
+      );
+    });
     await Promise.all(notificationPromises);
 
     return sendSuccess(
@@ -144,14 +164,32 @@ const approveLeave = async (req, res) => {
       .populate("approvedBy", "name email");
 
     // Notify Employee
-    await Notification.create({
-      recipient: leave.userId,
-      sender: approverId,
-      type: "LEAVE_RESPONSE",
-      title: "Leave Request Approved",
-      message: `Your leave request from ${new Date(leave.fromDate).toLocaleDateString()} to ${new Date(leave.toDate).toLocaleDateString()} has been approved.`,
-      relatedId: leave._id,
+    const notificationPromises = [
+      Notification.create({
+        recipient: leave.userId,
+        sender: approverId,
+        type: "LEAVE_RESPONSE",
+        title: "Leave Request Approved",
+        message: `Your leave request from ${new Date(leave.fromDate).toLocaleDateString()} to ${new Date(leave.toDate).toLocaleDateString()} has been approved.`,
+        relatedId: leave._id,
+      }),
+    ];
+
+    // Notify Admins about the approval
+    const admins = await User.find({ role: "ADMIN", _id: { $ne: approverId } });
+    admins.forEach((admin) => {
+      notificationPromises.push(
+        Notification.create({
+          recipient: admin._id,
+          sender: approverId,
+          type: "LEAVE_RESPONSE",
+          title: "Leave Request Approved",
+          message: `${populatedLeave.userId.name}'s leave request from ${new Date(leave.fromDate).toLocaleDateString()} to ${new Date(leave.toDate).toLocaleDateString()} has been approved.`,
+          relatedId: leave._id,
+        }),
+      );
     });
+    await Promise.all(notificationPromises);
 
     return sendSuccess(
       res,
@@ -192,14 +230,32 @@ const rejectLeave = async (req, res) => {
       .populate("approvedBy", "name email");
 
     // Notify Employee
-    await Notification.create({
-      recipient: leave.userId,
-      sender: approverId,
-      type: "LEAVE_RESPONSE",
-      title: "Leave Request Rejected",
-      message: `Your leave request from ${new Date(leave.fromDate).toLocaleDateString()} to ${new Date(leave.toDate).toLocaleDateString()} has been rejected. Reason: ${rejectionReason}`,
-      relatedId: leave._id,
+    const notificationPromises = [
+      Notification.create({
+        recipient: leave.userId,
+        sender: approverId,
+        type: "LEAVE_RESPONSE",
+        title: "Leave Request Rejected",
+        message: `Your leave request from ${new Date(leave.fromDate).toLocaleDateString()} to ${new Date(leave.toDate).toLocaleDateString()} has been rejected. Reason: ${rejectionReason}`,
+        relatedId: leave._id,
+      }),
+    ];
+
+    // Notify Admins about the rejection
+    const admins = await User.find({ role: "ADMIN", _id: { $ne: approverId } });
+    admins.forEach((admin) => {
+      notificationPromises.push(
+        Notification.create({
+          recipient: admin._id,
+          sender: approverId,
+          type: "LEAVE_RESPONSE",
+          title: "Leave Request Rejected",
+          message: `${populatedLeave.userId.name}'s leave request from ${new Date(leave.fromDate).toLocaleDateString()} to ${new Date(leave.toDate).toLocaleDateString()} has been rejected.`,
+          relatedId: leave._id,
+        }),
+      );
     });
+    await Promise.all(notificationPromises);
 
     return sendSuccess(
       res,

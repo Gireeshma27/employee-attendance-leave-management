@@ -300,13 +300,13 @@ class ApiService {
 
     approve: (leaveId, data) =>
       this.request(`/leaves/${leaveId}/approve`, {
-        method: "PUT",
+        method: "PATCH",
         body: JSON.stringify(data),
       }),
 
     reject: (leaveId, data) =>
       this.request(`/leaves/${leaveId}/reject`, {
-        method: "PUT",
+        method: "PATCH",
         body: JSON.stringify(data),
       }),
 
@@ -323,7 +323,17 @@ class ApiService {
 
     markAsRead: (id) =>
       this.request(`/notifications/${id}/read`, {
-        method: "PUT",
+        method: "PATCH",
+      }),
+
+    markAllAsRead: () =>
+      this.request("/notifications/read-all", {
+        method: "PATCH",
+      }),
+
+    clearAll: () =>
+      this.request("/notifications/clear-all", {
+        method: "DELETE",
       }),
   };
 

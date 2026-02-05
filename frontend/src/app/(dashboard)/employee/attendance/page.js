@@ -208,20 +208,20 @@ export default function AttendancePage() {
         {/* Page Title */}
         <div className="pt-1 md:pt-2 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
           <div>
-            <h1 className="text-lg sm:text-2xl md:text-3xl font-bold text-gray-900">
+            <h1 className="text-lg sm:text-2xl font-semibold text-gray-900">
               Attendance
             </h1>
-            <p className="text-xs sm:text-sm md:text-sm text-gray-500 mt-1">
+            <p className="text-xs sm:text-sm text-gray-500 mt-1">
               Track your daily check-in, check-out and location data.
             </p>
           </div>
           {userProfile?.wfhAllowed && (
             <div className="bg-blue-50 border border-blue-100 rounded-xl px-4 py-2 flex items-center gap-3">
-              <div className="h-6 w-6 flex items-center justify-center rounded-full bg-blue-600 text-white text-[10px] font-black">
+              <div className="h-6 w-6 flex items-center justify-center rounded-full bg-blue-600 text-white text-[10px] font-semibold">
                 {userProfile.wfhDaysRemaining}
               </div>
               <div className="text-xs">
-                <p className="font-bold text-blue-900 leading-none">
+                <p className="font-medium text-blue-900 leading-none">
                   WFH Days Available
                 </p>
                 <p className="text-blue-700 opacity-80 mt-1 leading-none">
