@@ -1,12 +1,12 @@
 import mongoose from 'mongoose';
-import { config } from '../src/config/env.js';
-import User from '../src/models/user.model.js';
+import env from '../src/config/env.js';
+import User from '../src/models/user.js';
 import { hashPassword } from '../src/utils/password.js';
 
 const createTestUsers = async () => {
   try {
     // Connect to MongoDB
-    await mongoose.connect(config.MONGODB_URI, {
+    await mongoose.connect(env.MONGODB_URI, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });

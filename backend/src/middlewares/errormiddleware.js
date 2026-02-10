@@ -24,12 +24,9 @@ const globalErrorHandler = (err, req, res, next) => {
     (err instanceof Error && err.name === "ZodError")
   ) {
     statusCode = 400;
-    message = "Validation Error";
     const errors = Array.isArray(err.errors) ? err.errors : [];
-    const formattedErrors = errors.map((e) => ({
-      path: e.path.join("."),
-      message: e.message,
-    }));
+    const formattedErrors = errors.map((e) => `${e.path.join(".")}: ${e.message}`).join(", ");
+    message = `Validation Error: ${formattedErrors}`;
     return sendError(res, message, formattedErrors, statusCode);
   }
 

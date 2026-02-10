@@ -183,25 +183,30 @@ class ApiService {
   // --- Leave Endpoints ---
   leave = {
     apply: (data) =>
-      this.request("/leaves/apply", {
+      this.request("/leaves", {
         method: "POST",
         body: JSON.stringify(data),
       }),
     getMyLeaves: () => this.request("/leaves/my"),
-    getPendingLeaves: () => this.request("/leaves/pending"),
-    getAllLeavesAdmin: () => this.request("/leaves/admin/all"),
-    approve: (leaveId, data) =>
+    getAllLeaves: (params) => {
+      const queryString = params ? `?${new URLSearchParams(params)}` : '';
+      return this.request(`/leaves${queryString}`);
+    },
+    approve: (leaveId) =>
       this.request(`/leaves/${leaveId}/approve`, {
-        method: "PATCH",
-        body: JSON.stringify(data),
+        method: "PUT",
       }),
     reject: (leaveId, data) =>
       this.request(`/leaves/${leaveId}/reject`, {
-        method: "PATCH",
+        method: "PUT",
         body: JSON.stringify(data),
       }),
+    delete: (leaveId) =>
+      this.request(`/leaves/${leaveId}`, {
+        method: "DELETE",
+      }),
     cancel: (leaveId) =>
-      this.request(`/leaves/${leaveId}`, { method: "DELETE" }),
+      this.request(`/leaves/${leaveId}/cancel`, { method: "DELETE" }),
   };
 
   // --- Office Endpoints ---

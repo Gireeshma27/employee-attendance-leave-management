@@ -2,26 +2,22 @@ import mongoose from "mongoose";
 
 const leaveSchema = new mongoose.Schema(
   {
-    userId: {
+    employee: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
     leaveType: {
       type: String,
-      enum: ["CL", "SL", "PL", "UL"],
+      enum: ["Casual", "Sick", "Paid", "Unpaid"],
       required: true,
     },
-    fromDate: {
+    startDate: {
       type: Date,
       required: true,
     },
-    toDate: {
+    endDate: {
       type: Date,
-      required: true,
-    },
-    numberOfDays: {
-      type: Number,
       required: true,
     },
     reason: {
@@ -33,16 +29,20 @@ const leaveSchema = new mongoose.Schema(
       enum: ["Pending", "Approved", "Rejected"],
       default: "Pending",
     },
+    managerApproved: {
+      type: Boolean,
+      default: false,
+    },
+    appliedAt: {
+      type: Date,
+      default: Date.now,
+    },
     approvedBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
     },
     rejectionReason: {
       type: String,
-    },
-    attachments: {
-      type: [String],
-      default: [],
     },
   },
   {
@@ -52,9 +52,9 @@ const leaveSchema = new mongoose.Schema(
 );
 
 // Indexes
-leaveSchema.index({ userId: 1, status: 1 });
+leaveSchema.index({ employee: 1, status: 1 });
 leaveSchema.index({ status: 1 });
-leaveSchema.index({ userId: 1, createdAt: -1 });
+leaveSchema.index({ employee: 1, createdAt: -1 });
 
 const Leave = mongoose.model("Leave", leaveSchema);
 

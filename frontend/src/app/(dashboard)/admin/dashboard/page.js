@@ -323,7 +323,7 @@ const AdminDashboard = () => {
                   )}
                   {summary?.presentToday > (activeSessions?.length || 0) && (
                     <div className="w-11 h-11 rounded-full border-4 border-white bg-slate-100 text-slate-500 flex items-center justify-center text-[10px] font-black shadow-sm z-10">
-                      +{summary.presentToday - activeSessions.length}
+                      +{summary.presentToday - (activeSessions?.length || 0)}
                     </div>
                   )}
                 </div>

@@ -58,7 +58,7 @@ const getAdminDashboardStats = async (req, res) => {
     const recentLeaves = await Leave.find()
       .sort({ updatedAt: -1 })
       .limit(10)
-      .populate("userId", "name email department");
+      .populate("employee", "name email department");
 
     const activities = [
       ...recentAttendance.map((a) => ({
@@ -87,7 +87,7 @@ const getAdminDashboardStats = async (req, res) => {
       ...recentLeaves
         .filter((l) => l.status === "Pending")
         .map((l) => ({
-          user: l.userId?.name || "Unknown",
+          user: l.employee?.name || "Unknown",
           action: "requested",
           location: l.leaveType + " Leave",
           time: l.createdAt,

@@ -38,9 +38,9 @@ export default function LeavePage() {
       // Calculate balance from applications
       const approved = leaveData.data?.filter(l => l.status === 'approved') || [];
       setLeaveBalance({
-        casual: 12 - (approved.filter(l => l.leaveType === 'casual').length || 0),
-        sick: 8 - (approved.filter(l => l.leaveType === 'sick').length || 0),
-        paid: 18 - (approved.filter(l => l.leaveType === 'paid').length || 0),
+        casual: 12 - (approved.filter(l => l.leaveType === 'Casual').length || 0),
+        sick: 8 - (approved.filter(l => l.leaveType === 'Sick').length || 0),
+        paid: 18 - (approved.filter(l => l.leaveType === 'Paid').length || 0),
       });
     } catch (err) {
       console.error('Error fetching leave data:', err);
@@ -49,6 +49,17 @@ export default function LeavePage() {
       setLeaveBalance({ casual: 12, sick: 8, paid: 18 });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const cancelLeave = async (leaveId) => {
+    if (!confirm('Are you sure you want to cancel this leave request?')) return;
+
+    try {
+      await apiService.leave.cancel(leaveId);
+      await fetchLeaveData();
+    } catch (err) {
+      setError(err.message || 'Failed to cancel leave request');
     }
   };
 
@@ -176,9 +187,9 @@ export default function LeavePage() {
                     required
                   >
                     <option value="">Select leave type</option>
-                    <option value="casual">Casual Leave</option>
-                    <option value="sick">Sick Leave</option>
-                    <option value="paid">Paid Leave</option>
+                    <option value="Casual">Casual Leave</option>
+                    <option value="Sick">Sick Leave</option>
+                    <option value="Paid">Paid Leave</option>
                   </select>
                 </div>
 
@@ -279,10 +290,25 @@ export default function LeavePage() {
                             month: 'short',
                             day: 'numeric',
                             year: 'numeric',
-                          })}{' '}
-                          ({leave.numberOfDays} days)
+                          })}
                         </p>
+                        {leave.reason && (
+                          <p className="text-xs text-gray-500 mt-1">Reason: {leave.reason}</p>
+                        )}
+                        {leave.status === 'rejected' && leave.rejectionReason && (
+                          <p className="text-xs text-red-600 mt-1">Rejection: {leave.rejectionReason}</p>
+                        )}
                       </div>
+                      {leave.status === 'pending' && (
+                        <Button
+                          variant="danger"
+                          size="sm"
+                          onClick={() => cancelLeave(leave._id)}
+                          className="mt-2 sm:mt-0 text-xs"
+                        >
+                          Cancel
+                        </Button>
+                      )}
                     </div>
                   </div>
                 ))
