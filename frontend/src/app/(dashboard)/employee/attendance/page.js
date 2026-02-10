@@ -11,7 +11,6 @@ import {
   Locate,
   AlertTriangle,
   ChevronRight,
-  ExternalLink,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import apiService from "@/lib/api";
@@ -539,13 +538,9 @@ export default function AttendancePage() {
         <div className="bg-white border border-gray-100 rounded-3xl overflow-hidden shadow-sm">
           <div className="p-6 border-b border-gray-50 flex items-center justify-between">
             <h3 className="font-semibold text-gray-900">Attendance History</h3>
-            <button className="text-blue-600 text-xs font-semibold hover:underline flex items-center gap-1 group">
-              View Full Report{" "}
-              <ExternalLink
-                size={12}
-                className="transition-transform group-hover:-translate-y-0.5"
-              />
-            </button>
+            <span className="text-gray-400 text-xs">
+              Showing all {attendanceHistory.length} records
+            </span>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-xs md:text-sm">

@@ -210,20 +210,7 @@ export default function ProfilePage() {
           </Card>
         )}
 
-        {/* Security Section */}
-        {!loading && (
-          <Card className="border-slate-200">
-            <CardHeader>
-              <CardTitle className="text-base font-semibold">Security</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <p className="text-gray-500 text-sm">Manage your account security settings</p>
-                <Button variant="secondary">Change Password</Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+
 
         {/* Edit Profile Modal */}
         <Modal isOpen={showEditModal} onClose={closeEditModal} title="Edit Profile">

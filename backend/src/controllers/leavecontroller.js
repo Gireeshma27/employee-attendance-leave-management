@@ -46,7 +46,7 @@ const applyLeave = async (req, res) => {
 
     // Get the employee's manager
     const employee = await User.findById(userId).populate("managerId");
-    
+
     // Notify Manager (if exists)
     const notificationPromises = [];
     if (employee?.managerId) {
@@ -321,11 +321,34 @@ const getAllLeavesForAdmin = async (req, res) => {
       .populate("userId", "name email employeeId department role")
       .populate("approvedBy", "name email");
 
-    return sendSuccess(
-      res,
-      "All leave requests retrieved successfully",
-      leaves,
-    );
+    // Transform leaves to include employeeName, employeeId, department for frontend
+    const transformedLeaves = leaves.map((leave) => ({
+      _id: leave._id,
+      leaveType: leave.leaveType,
+      fromDate: leave.fromDate,
+      toDate: leave.toDate,
+      numberOfDays: leave.numberOfDays,
+      reason: leave.reason,
+      status: leave.status,
+      appliedDate: leave.createdAt,
+      employeeName: leave.userId?.name || "Unknown",
+      employeeId: leave.userId?.employeeId || "-",
+      department: leave.userId?.department || "-",
+      approvedBy: leave.approvedBy,
+      rejectionReason: leave.rejectionReason,
+    }));
+
+    // Calculate stats
+    const totalPending = leaves.filter((l) => l.status === "Pending").length;
+    const totalApproved = leaves.filter((l) => l.status === "Approved").length;
+    const totalRejected = leaves.filter((l) => l.status === "Rejected").length;
+
+    return sendSuccess(res, "All leave requests retrieved successfully", {
+      leaves: transformedLeaves,
+      totalPending,
+      totalApproved,
+      totalRejected,
+    });
   } catch (error) {
     return sendError(res, "Failed to retrieve leave requests", error.message);
   }

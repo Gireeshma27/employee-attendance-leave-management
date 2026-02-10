@@ -25,7 +25,9 @@ export default function AdminLeavesPage() {
       setLoading(true);
       setError(null);
       const res = await apiService.leave.getAllLeavesAdmin();
-      setLeaves(res.data?.leaves || []);
+      // Admin should only see approved leaves
+      const approvedLeaves = (res.data?.leaves || []).filter(l => l.status === 'Approved');
+      setLeaves(approvedLeaves);
       setStats({
         totalPending: res.data?.totalPending || 0,
         totalApproved: res.data?.totalApproved || 0,
@@ -145,11 +147,13 @@ export default function AdminLeavesPage() {
                 <table className="w-full text-xs sm:text-sm">
                   <thead className="border-b border-gray-200 bg-gray-50">
                     <tr className="text-gray-600">
-                      <th className="text-left py-2 px-2 sm:py-3 sm:px-4 md:px-4">Applied Date</th>
-                      <th className="text-left py-2 px-2 sm:py-3 sm:px-4 md:px-4 hidden sm:table-cell">Employee ID</th>
                       <th className="text-left py-2 px-2 sm:py-3 sm:px-4 md:px-4">Employee Name</th>
-                      <th className="text-left py-2 px-2 sm:py-3 sm:px-4 md:px-4 hidden sm:table-cell">Department</th>
-                      <th className="text-left py-2 px-2 sm:py-3 sm:px-4 md:px-4 hidden md:table-cell">Leave Duration</th>
+                      <th className="text-left py-2 px-2 sm:py-3 sm:px-4 md:px-4 hidden sm:table-cell">Employee ID</th>
+                      <th className="text-left py-2 px-2 sm:py-3 sm:px-4 md:px-4">Leave Type</th>
+                      <th className="text-left py-2 px-2 sm:py-3 sm:px-4 md:px-4 hidden md:table-cell">From</th>
+                      <th className="text-left py-2 px-2 sm:py-3 sm:px-4 md:px-4 hidden md:table-cell">To</th>
+                      <th className="text-left py-2 px-2 sm:py-3 sm:px-4 md:px-4 hidden lg:table-cell">Reason</th>
+                      <th className="text-left py-2 px-2 sm:py-3 sm:px-4 md:px-4">Days</th>
                       <th className="text-left py-2 px-2 sm:py-3 sm:px-4 md:px-4">Status</th>
                     </tr>
                   </thead>
@@ -160,20 +164,26 @@ export default function AdminLeavesPage() {
                           key={leave._id}
                           className="border-b border-gray-100 hover:bg-gray-50"
                         >
-                          <td className="py-2 px-2 sm:py-4 sm:px-4 text-gray-600 text-xs sm:text-sm">
-                            {formatDateTime(leave.appliedDate)}
-                          </td>
-                          <td className="py-2 px-2 sm:py-4 sm:px-4 text-gray-600 hidden sm:table-cell text-xs sm:text-sm">
-                            {leave.employeeId}
-                          </td>
                           <td className="py-2 px-2 sm:py-4 sm:px-4 font-medium text-gray-900 text-xs sm:text-sm">
                             {leave.employeeName}
                           </td>
                           <td className="py-2 px-2 sm:py-4 sm:px-4 text-gray-600 hidden sm:table-cell text-xs sm:text-sm">
-                            {leave.department}
+                            {leave.employeeId}
+                          </td>
+                          <td className="py-2 px-2 sm:py-4 sm:px-4 text-gray-600 text-xs sm:text-sm">
+                            {leave.leaveType}
                           </td>
                           <td className="py-2 px-2 sm:py-4 sm:px-4 text-gray-600 hidden md:table-cell text-xs sm:text-sm">
-                            {formatDate(leave.fromDate)} – {formatDate(leave.toDate)}
+                            {formatDate(leave.fromDate)}
+                          </td>
+                          <td className="py-2 px-2 sm:py-4 sm:px-4 text-gray-600 hidden md:table-cell text-xs sm:text-sm">
+                            {formatDate(leave.toDate)}
+                          </td>
+                          <td className="py-2 px-2 sm:py-4 sm:px-4 text-gray-600 hidden lg:table-cell text-xs sm:text-sm max-w-[150px] truncate" title={leave.reason}>
+                            {leave.reason || '-'}
+                          </td>
+                          <td className="py-2 px-2 sm:py-4 sm:px-4 text-gray-600 text-xs sm:text-sm">
+                            {leave.numberOfDays || '-'}
                           </td>
                           <td className="py-2 px-2 sm:py-4 sm:px-4">
                             <Badge
@@ -187,7 +197,7 @@ export default function AdminLeavesPage() {
                       ))
                     ) : (
                       <tr>
-                        <td colSpan="6" className="py-6 px-2 sm:py-8 sm:px-4 text-center">
+                        <td colSpan="8" className="py-6 px-2 sm:py-8 sm:px-4 text-center">
                           <p className="text-xs sm:text-sm text-gray-600">No leave requests found</p>
                         </td>
                       </tr>
