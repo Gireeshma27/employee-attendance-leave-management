@@ -3,6 +3,43 @@ import User from "#models/user";
 import Notification from "#models/notification";
 import { sendSuccess, sendError } from "#utils/api_response_fix";
 
+/**
+ * Helper: Calculate working duration from checkIn and checkOut times
+ * Returns { workingHours (fractional), workingMinutes (total) } or null if cannot calculate
+ * workingHours is fractional (e.g., 6.08 for 6h 5m) for frontend compatibility
+ * workingMinutes is the total minutes (e.g., 365 for 6h 5m)
+ */
+const calculateWorkingDuration = (checkInTime, checkOutTime) => {
+  if (!checkInTime || !checkOutTime) return null;
+  
+  const checkIn = new Date(checkInTime);
+  const checkOut = new Date(checkOutTime);
+  const workingMilliseconds = checkOut - checkIn;
+  
+  if (workingMilliseconds < 0) return null;
+  
+  const totalMinutes = Math.floor(workingMilliseconds / (1000 * 60));
+  const fractionalHours = Number((totalMinutes / 60).toFixed(2));
+  
+  return { workingHours: fractionalHours, workingMinutes: totalMinutes };
+};
+
+/**
+ * Helper: Enrich attendance record with recalculated duration if missing
+ * Fixes legacy records where workingHours/workingMinutes were not saved
+ */
+const enrichAttendanceRecord = (record) => {
+  // If checkOutTime exists but workingHours is 0 or missing, recalculate
+  if (record.checkOutTime && (!record.workingHours || record.workingHours === 0)) {
+    const duration = calculateWorkingDuration(record.checkInTime, record.checkOutTime);
+    if (duration) {
+      record.workingHours = duration.workingHours;
+      record.workingMinutes = duration.workingMinutes;
+    }
+  }
+  return record;
+};
+
 const checkIn = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -148,12 +185,16 @@ const getMyAttendance = async (req, res) => {
 
     const records = await Attendance.find(filter)
       .sort({ date: -1 })
-      .populate("userId", "name email employeeId");
+      .populate("userId", "name email employeeId")
+      .lean();
+
+    // Enrich records with recalculated duration for legacy data
+    const enrichedRecords = records.map(enrichAttendanceRecord);
 
     return sendSuccess(
       res,
       "Attendance records retrieved successfully",
-      records,
+      enrichedRecords,
     );
   } catch (error) {
     return sendError(
@@ -221,7 +262,9 @@ const getTeamAttendance = async (req, res) => {
         (r) => r.userId.toString() === user._id.toString(),
       );
       if (record) {
-        return { ...record, userId: user };
+        // Enrich with recalculated duration for legacy data
+        const enrichedRecord = enrichAttendanceRecord({ ...record });
+        return { ...enrichedRecord, userId: user };
       }
       return {
         _id: `virtual_${user._id}`,
@@ -231,6 +274,7 @@ const getTeamAttendance = async (req, res) => {
         checkInTime: null,
         checkOutTime: null,
         workingHours: 0,
+        workingMinutes: 0,
       };
     });
 
@@ -304,23 +348,27 @@ const downloadExcelReport = async (req, res) => {
 
     const records = await Attendance.find(filter)
       .sort({ date: -1 })
-      .populate("userId", "name email employeeId department role");
+      .populate("userId", "name email employeeId department role")
+      .lean();
+
+    // Enrich records with recalculated duration for legacy data
+    const enrichedRecords = records.map(enrichAttendanceRecord);
 
     const stats = {
-      totalDays: records.length,
-      presentDays: records.filter((r) => r.status === "Present").length,
-      absentDays: records.filter((r) => r.status === "Absent").length,
-      halfDays: records.filter((r) => r.status === "Half-day").length,
-      wfhDays: records.filter((r) => r.status === "WFH").length,
-      leaveDays: records.filter((r) => r.status === "Leave").length,
-      totalWorkingHours: records.reduce(
+      totalDays: enrichedRecords.length,
+      presentDays: enrichedRecords.filter((r) => r.status === "Present").length,
+      absentDays: enrichedRecords.filter((r) => r.status === "Absent").length,
+      halfDays: enrichedRecords.filter((r) => r.status === "Half-day").length,
+      wfhDays: enrichedRecords.filter((r) => r.status === "WFH").length,
+      leaveDays: enrichedRecords.filter((r) => r.status === "Leave").length,
+      totalWorkingHours: enrichedRecords.reduce(
         (sum, r) => sum + (r.workingHours || 0),
         0,
       ),
     };
 
     return sendSuccess(res, "Attendance report generated successfully", {
-      records,
+      records: enrichedRecords,
       statistics: stats,
     });
   } catch (error) {

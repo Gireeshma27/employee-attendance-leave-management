@@ -117,7 +117,9 @@ const EmployeeDashboard = () => {
 
           <StatCard
             label="Working Hours"
-            value={`${todayStatus?.workingHours?.toFixed(1) || "0"} hrs`}
+            value={todayStatus?.workingHours
+              ? `${Math.floor(todayStatus.workingHours)}h ${Math.round((todayStatus.workingHours % 1) * 60)}m`
+              : "0h 0m"}
             icon={TrendingUp}
             color="emerald"
           />
@@ -172,29 +174,31 @@ const EmployeeDashboard = () => {
                         <td className="px-4 md:px-6 py-4 text-gray-600">
                           {record.checkInTime
                             ? new Date(record.checkInTime).toLocaleTimeString(
-                                "en-US",
-                                {
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                  hour12: true,
-                                },
-                              )
+                              "en-US",
+                              {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                                hour12: true,
+                              },
+                            )
                             : "-"}
                         </td>
                         <td className="px-4 md:px-6 py-4 text-gray-600 hidden sm:table-cell">
                           {record.checkOutTime
                             ? new Date(record.checkOutTime).toLocaleTimeString(
-                                "en-US",
-                                {
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                  hour12: true,
-                                },
-                              )
+                              "en-US",
+                              {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                                hour12: true,
+                              },
+                            )
                             : "-"}
                         </td>
                         <td className="px-4 md:px-6 py-4 text-gray-700 font-medium">
-                          {record.workingHours?.toFixed(1) || "0"}
+                          {record.workingHours
+                            ? `${Math.floor(record.workingHours)}h ${Math.round((record.workingHours % 1) * 60)}m`
+                            : "0h 0m"}
                         </td>
                         <td className="px-4 md:px-6 py-4">
                           <Badge

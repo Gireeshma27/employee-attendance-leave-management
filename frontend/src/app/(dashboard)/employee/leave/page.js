@@ -25,6 +25,7 @@ export default function LeavePage() {
   const [user, setUser] = useState(null);
   const [error, setError] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showAllLeaves, setShowAllLeaves] = useState(false);
   const [formData, setFormData] = useState({
     leaveType: '',
     fromDate: '',
@@ -193,11 +194,14 @@ export default function LeavePage() {
 
         {/* Leave History Table */}
         <Card className="overflow-hidden shadow-sm border-slate-200">
-          <CardHeader className="bg-slate-50/50 border-b border-slate-100">
+          <CardHeader className="bg-slate-50/50 border-b border-slate-100 flex flex-row items-center justify-between">
             <CardTitle className="text-base font-semibold text-gray-800 flex items-center gap-2">
               <Calendar size={18} className="text-gray-500" />
               Leave History
             </CardTitle>
+            <span className="text-xs text-gray-400">
+              {showAllLeaves ? `Showing all ${leaveApplications.length} records` : `Showing recent ${Math.min(5, leaveApplications.length)} of ${leaveApplications.length}`}
+            </span>
           </CardHeader>
           <CardContent className="p-0">
             <div className="overflow-x-auto">
@@ -215,7 +219,7 @@ export default function LeavePage() {
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {leaveApplications.length > 0 ? (
-                    leaveApplications.map((leave) => (
+                    (showAllLeaves ? leaveApplications : leaveApplications.slice(0, 5)).map((leave) => (
                       <tr key={leave._id} className="hover:bg-slate-50/50 transition-colors">
                         <td className="px-4 md:px-6 py-4 text-gray-900 font-medium">
                           {leave.userId?.name || user?.name || '-'}
@@ -262,6 +266,19 @@ export default function LeavePage() {
             </div>
           </CardContent>
         </Card>
+
+        {/* View Full Leave History Button */}
+        {leaveApplications.length > 5 && (
+          <div className="flex justify-center pt-2">
+            <Button
+              variant="secondary"
+              onClick={() => setShowAllLeaves(!showAllLeaves)}
+              className="flex items-center gap-2"
+            >
+              {showAllLeaves ? 'Show Recent Leaves' : 'View Full Leave History'}
+            </Button>
+          </div>
+        )}
 
         {/* Apply Leave Modal */}
         <Modal isOpen={showModal} onClose={closeModal} title="Apply for Leave">
