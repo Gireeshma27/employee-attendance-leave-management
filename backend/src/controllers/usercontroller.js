@@ -76,7 +76,7 @@ const updateProfile = async (req, res) => {
 
 const createUser = async (req, res) => {
   try {
-    const { name, email, password, role, employeeId } = req.body;
+    const { name, email, password, role, employeeId, department, wfhAllowed, totalWFHDays, usedWFHDays } = req.body;
 
     const existingUser = await User.findOne({ email: email.toLowerCase() });
     if (existingUser)
@@ -93,6 +93,11 @@ const createUser = async (req, res) => {
         return sendError(res, "Employee ID already exists", "Conflict", 409);
     }
 
+    // Calculate WFH days remaining
+    const total = totalWFHDays !== undefined ? totalWFHDays : 5;
+    const used = usedWFHDays !== undefined ? usedWFHDays : 0;
+    const remaining = Math.max(0, total - used);
+
     const hashedPassword = await hashPassword(password);
     const user = await User.create({
       name,
@@ -100,7 +105,12 @@ const createUser = async (req, res) => {
       password: hashedPassword,
       role: role ? role.toUpperCase() : "EMPLOYEE",
       employeeId,
+      department,
       isActive: true,
+      wfhAllowed: wfhAllowed || false,
+      totalWFHDays: total,
+      usedWFHDays: used,
+      wfhDaysRemaining: remaining,
     });
 
     const userObj = user.toObject();
@@ -190,7 +200,7 @@ const assignLocation = async (req, res) => {
 const updateWFHPermission = async (req, res) => {
   try {
     const { id } = req.params;
-    const { wfhAllowed, wfhDaysRemaining } = req.body;
+    const { wfhAllowed, totalWFHDays, usedWFHDays } = req.body;
     const requestor = req.user;
 
     const targetUser = await User.findById(id);
@@ -212,8 +222,13 @@ const updateWFHPermission = async (req, res) => {
     }
 
     if (wfhAllowed !== undefined) targetUser.wfhAllowed = wfhAllowed;
-    if (wfhDaysRemaining !== undefined)
-      targetUser.wfhDaysRemaining = wfhDaysRemaining;
+    if (totalWFHDays !== undefined) targetUser.totalWFHDays = totalWFHDays;
+    if (usedWFHDays !== undefined) targetUser.usedWFHDays = usedWFHDays;
+
+    // Calculate remaining days
+    const total = targetUser.totalWFHDays || 5;
+    const used = targetUser.usedWFHDays || 0;
+    targetUser.wfhDaysRemaining = Math.max(0, total - used);
 
     await targetUser.save();
 

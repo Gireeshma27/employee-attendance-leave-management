@@ -30,8 +30,10 @@ export default function AttendancePage() {
     time: "",
   });
 
+  // GEOFENCING TEMPORARILY DISABLED
   // Geofence Simulation State (can be wired to actual GPS later)
-  const [isOutOfRange, setIsOutOfRange] = useState(false);
+  // const [isOutOfRange, setIsOutOfRange] = useState(false);
+  const isOutOfRange = false; // Always in-range when geofencing is disabled
 
   const [isWFH, setIsWFH] = useState(false);
   const [userProfile, setUserProfile] = useState(null);
@@ -75,8 +77,8 @@ export default function AttendancePage() {
   };
 
   const handleCheckIn = async () => {
-    // Only block if NOT WFH and Out of Range
-    if (isOutOfRange && !isWFH) return;
+    // GEOFENCING TEMPORARILY DISABLED - removed geofence check
+    // Original: if (isOutOfRange && !isWFH) return;
 
     try {
       setIsSubmitting(true);
@@ -186,8 +188,8 @@ export default function AttendancePage() {
   return (
     <DashboardLayout role="employee">
       <div className="max-w-6xl mx-auto space-y-6">
-        {/* Geofence Alert */}
-        {isOutOfRange && (
+        {/* GEOFENCING TEMPORARILY DISABLED - Geofence Alert commented out */}
+        {/* {isOutOfRange && (
           <div className="bg-red-50 border border-red-100 rounded-xl md:rounded-2xl p-3 md:p-4 flex flex-col sm:flex-row sm:items-start gap-3 md:gap-4 animate-in slide-in-from-top-4 duration-300">
             <div className="w-9 md:w-10 h-9 md:h-10 bg-red-100 rounded-lg md:rounded-xl flex items-center justify-center flex-shrink-0">
               <AlertTriangle className="text-red-600" size={18} />
@@ -202,7 +204,7 @@ export default function AttendancePage() {
               </p>
             </div>
           </div>
-        )}
+        )} */}
 
         {/* Page Title */}
         <div className="pt-1 md:pt-2 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
@@ -334,7 +336,8 @@ export default function AttendancePage() {
                     </span>
                   </label>
                 )}
-                <div
+                {/* GEOFENCING TEMPORARILY DISABLED - Dev Toggle hidden */}
+                {/* <div
                   onClick={() => setIsOutOfRange(!isOutOfRange)}
                   className="cursor-pointer"
                 >
@@ -344,7 +347,7 @@ export default function AttendancePage() {
                   >
                     Toggle Dev: {isOutOfRange ? "Out of Range" : "In Range"}
                   </Badge>
-                </div>
+                </div> */}
               </div>
             </div>
 

@@ -125,7 +125,8 @@ const DashboardLayout = ({ children, role = "employee" }) => {
       { href: `/admin/employees`, label: "Employees", icon: Users },
       { href: `/admin/attendance`, label: "Attendance", icon: Clock },
       { href: `/admin/leaves`, label: "Leaves", icon: Calendar },
-      { href: `/admin/geofencing`, label: "Geofencing", icon: MapPin },
+      // GEOFENCING TEMPORARILY DISABLED
+      // { href: `/admin/geofencing`, label: "Geofencing", icon: MapPin },
       { href: `/admin/reports`, label: "Reports", icon: BarChart3 },
     ];
 
