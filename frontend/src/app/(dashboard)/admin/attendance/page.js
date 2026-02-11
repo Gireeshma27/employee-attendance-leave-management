@@ -64,8 +64,7 @@ export default function AttendancePage() {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState(null);
   const [editForm, setEditForm] = useState({
-    checkInTime: "",
-    checkOutTime: "",
+    totalHours: "",
     status: "",
     reason: "",
   });
@@ -157,14 +156,18 @@ export default function AttendancePage() {
 
   const handleEditClick = (record) => {
     setEditingEmployee(record.userId);
+    // Calculate current total hours
+    let totalHrs = "0";
+    if (record.checkInTime && record.checkOutTime) {
+      const start = new Date(record.checkInTime);
+      const end = new Date(record.checkOutTime);
+      const diffMs = end - start;
+      const diffHours = (diffMs / (1000 * 60 * 60)).toFixed(1);
+      totalHrs = diffHours;
+    }
     setEditForm({
       recordId: record._id,
-      checkInTime: record.checkInTime
-        ? new Date(record.checkInTime).toISOString().slice(0, 16)
-        : "",
-      checkOutTime: record.checkOutTime
-        ? new Date(record.checkOutTime).toISOString().slice(0, 16)
-        : "",
+      totalHours: totalHrs,
       status: record.status,
       reason: "",
     });
@@ -376,10 +379,7 @@ export default function AttendancePage() {
                     Employee ID
                   </th>
                   <th className="px-6 py-4 font-semibold text-gray-500 uppercase tracking-wider text-[11px]">
-                    Check-in
-                  </th>
-                  <th className="px-6 py-4 font-semibold text-gray-500 uppercase tracking-wider text-[11px]">
-                    Check-out
+                    Department
                   </th>
                   <th className="px-6 py-4 font-semibold text-gray-500 uppercase tracking-wider text-[11px]">
                     Total Hours
@@ -396,7 +396,7 @@ export default function AttendancePage() {
                 {loading ? (
                   <tr>
                     <td
-                      colSpan="7"
+                      colSpan="6"
                       className="px-6 py-12 text-center text-gray-500 bg-white"
                     >
                       <p className="animate-pulse">
@@ -407,7 +407,7 @@ export default function AttendancePage() {
                 ) : attendanceData.length === 0 ? (
                   <tr>
                     <td
-                      colSpan="7"
+                      colSpan="6"
                       className="px-6 py-12 text-center text-gray-500 bg-white"
                     >
                       No records found matching your filters.
@@ -449,28 +449,7 @@ export default function AttendancePage() {
                           {employee.employeeId || "-"}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-gray-600">
-                          {record.checkInTime
-                            ? new Date(record.checkInTime).toLocaleTimeString(
-                              "en-US",
-                              {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                                hour12: true,
-                              },
-                            )
-                            : "—"}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-gray-600">
-                          {record.checkOutTime
-                            ? new Date(record.checkOutTime).toLocaleTimeString(
-                              "en-US",
-                              {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                                hour12: true,
-                              },
-                            )
-                            : "—"}
+                          {employee.department || "N/A"}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span
@@ -734,33 +713,23 @@ export default function AttendancePage() {
             </div>
 
             <form onSubmit={handleUpdateRecord} className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-gray-500 uppercase">
-                    Check-in Time
-                  </label>
-                  <input
-                    type="datetime-local"
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm transition-all"
-                    value={editForm.checkInTime}
-                    onChange={(e) =>
-                      setEditForm({ ...editForm, checkInTime: e.target.value })
-                    }
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-gray-500 uppercase">
-                    Check-out Time
-                  </label>
-                  <input
-                    type="datetime-local"
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm transition-all"
-                    value={editForm.checkOutTime}
-                    onChange={(e) =>
-                      setEditForm({ ...editForm, checkOutTime: e.target.value })
-                    }
-                  />
-                </div>
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-gray-500 uppercase">
+                  Total Working Hours
+                </label>
+                <input
+                  type="number"
+                  step="0.5"
+                  min="0"
+                  max="24"
+                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm transition-all"
+                  value={editForm.totalHours}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, totalHours: e.target.value })
+                  }
+                  placeholder="Enter total hours (e.g., 8.5)"
+                />
+                <p className="text-[11px] text-gray-400">Enter hours in decimal format (e.g., 8.5 for 8h 30m)</p>
               </div>
 
               <div className="space-y-2">

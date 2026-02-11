@@ -171,6 +171,8 @@ class ApiService {
       if (filters.role) params.append("role", filters.role);
       if (filters.isActive !== undefined)
         params.append("isActive", filters.isActive);
+      if (filters.page) params.append("page", filters.page);
+      if (filters.limit) params.append("limit", filters.limit);
       const query = params.toString();
       return this.request(`/users${query ? "?" + query : ""}`, {
         method: "GET",
@@ -188,6 +190,18 @@ class ApiService {
     update: (id, data) =>
       this.request(`/users/${id}`, {
         method: "PUT",
+        body: JSON.stringify(data),
+      }),
+
+    assignLocation: (id, officeId) =>
+      this.request(`/users/${id}/assign-location`, {
+        method: "PATCH",
+        body: JSON.stringify({ officeId }),
+      }),
+
+    updateWFHPermission: (id, data) =>
+      this.request(`/users/${id}/wfh-permission`, {
+        method: "PATCH",
         body: JSON.stringify(data),
       }),
   };
@@ -338,9 +352,21 @@ class ApiService {
   };
 
   /**
-   * Office/Geofencing Endpoints
+   * Office/Geofencing Endpoints - TEMPORARILY DISABLED
+   * 
+   * Geofencing feature is temporarily disabled. These endpoints return
+   * empty/disabled responses to prevent errors while the backend routes
+   * are commented out. To re-enable, restore the original API calls below.
    */
   office = {
+    // GEOFENCING DISABLED - Return empty data instead of making API calls
+    getAll: () => Promise.resolve({ success: true, data: [] }),
+    getById: (id) => Promise.resolve({ success: false, message: "Geofencing temporarily disabled" }),
+    create: (data) => Promise.resolve({ success: false, message: "Geofencing temporarily disabled" }),
+    update: (id, data) => Promise.resolve({ success: false, message: "Geofencing temporarily disabled" }),
+    delete: (id) => Promise.resolve({ success: false, message: "Geofencing temporarily disabled" }),
+    
+    /* ORIGINAL OFFICE ENDPOINTS - Uncomment to re-enable geofencing
     getAll: () =>
       this.request("/offices", { method: "GET" }),
 
@@ -361,6 +387,7 @@ class ApiService {
 
     delete: (id) =>
       this.request(`/offices/${id}`, { method: "DELETE" }),
+    */
   };
 
   /**
