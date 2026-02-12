@@ -79,6 +79,15 @@ const userSchema = new mongoose.Schema(
   },
 );
 
+// Pre-save hook to recalculate wfhDaysRemaining based on totalWFHDays - usedWFHDays
+userSchema.pre("save", function(next) {
+  // Calculate remaining WFH days
+  if (this.totalWFHDays !== undefined && this.usedWFHDays !== undefined) {
+    this.wfhDaysRemaining = Math.max(0, this.totalWFHDays - this.usedWFHDays);
+  }
+  next();
+});
+
 // Indexes
 userSchema.index({ email: 1 });
 userSchema.index({ employeeId: 1 });
