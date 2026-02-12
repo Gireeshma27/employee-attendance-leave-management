@@ -6,12 +6,37 @@ import ExcelJS from "exceljs";
 
 const getAdminReportData = async (req, res) => {
   try {
-    const { fromDate, toDate } = req.query;
+    const { fromDate, toDate, period = "monthly" } = req.query;
 
-    const start = fromDate
-      ? new Date(fromDate)
-      : new Date(new Date().getFullYear(), new Date().getMonth(), 1);
-    const end = toDate ? new Date(toDate) : new Date();
+    let start, end;
+    
+    // Support both explicit date range and period-based filtering
+    if (fromDate && toDate) {
+      start = new Date(fromDate);
+      end = new Date(toDate);
+    } else {
+      // Calculate date range based on period (Weekly/Monthly/Yearly)
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = now.getMonth();
+      const date = now.getDate();
+      
+      if (period.toLowerCase() === "weekly") {
+        const day = now.getDay();
+        start = new Date(now);
+        start.setDate(date - day); // Start of week (Sunday)
+        end = new Date(now);
+      } else if (period.toLowerCase() === "yearly") {
+        start = new Date(year, 0, 1);
+        end = new Date(year, 11, 31);
+      } else {
+        // Default to monthly
+        start = new Date(year, month, 1);
+        end = new Date(year, month + 1, 0);
+      }
+    }
+    
+    start.setHours(0, 0, 0, 0);
     end.setHours(23, 59, 59, 999);
 
     const totalEmployees = await User.countDocuments({ role: "EMPLOYEE" });
@@ -93,7 +118,8 @@ const getAdminReportData = async (req, res) => {
         ? Math.round((todayAttendanceCount / totalEmployees) * 100)
         : 0;
 
-    const users = await User.find({ role: "EMPLOYEE" }).limit(10);
+    // Fetch ALL employees (not limited to 10)
+    const users = await User.find({ role: "EMPLOYEE" });
     const employeeReports = await Promise.all(
       users.map(async (u) => {
         const userAttendance = await Attendance.find({
@@ -101,22 +127,35 @@ const getAdminReportData = async (req, res) => {
           date: { $gte: start, $lte: end },
         });
 
+        // Check for approved leaves during this period
+        const userLeaves = await Leave.find({
+          userId: u._id,
+          fromDate: { $lte: end },
+          toDate: { $gte: start },
+          status: "Approved",
+        });
+        
+        const hasApprovedLeave = userLeaves.length > 0;
         const presentDays = userAttendance.filter(
           (a) => a.status === "Present" || a.status === "WFH",
         ).length;
-        const efficiency = Math.round((presentDays / daysDiff) * 100);
+        const efficiency = daysDiff > 0 ? Math.round((presentDays / daysDiff) * 100) : 0;
+        
+        // Determine status: if approved leave exists, show "On Leave"
+        let status = "Absent";
+        if (hasApprovedLeave) {
+          status = "On Leave";
+        } else if (userAttendance.length > 0) {
+          const latestRecord = userAttendance[0];
+          status = latestRecord.status === "WFH" ? "Remote" : "On-site";
+        }
 
         return {
           id: u._id,
           employeeId: u.employeeId || "N/A",
           name: u.name,
           department: u.department || "Engineering",
-          status:
-            presentDays > 0
-              ? userAttendance[0].status === "WFH"
-                ? "Remote"
-                : "On-site"
-              : "On Leave",
+          status,
           daysPresent: `${presentDays} / ${daysDiff}`,
           efficiency,
         };
@@ -143,20 +182,65 @@ const getAdminReportData = async (req, res) => {
 
 const exportToExcel = async (req, res) => {
   try {
-    const { fromDate, toDate } = req.query;
+    const { fromDate, toDate, period = "monthly" } = req.query;
 
-    const start = fromDate
-      ? new Date(fromDate)
-      : new Date(new Date().getFullYear(), new Date().getMonth(), 1);
-    const end = toDate ? new Date(toDate) : new Date();
+    let start, end;
+    
+    // Support both explicit date range and period-based filtering
+    if (fromDate && toDate) {
+      start = new Date(fromDate);
+      end = new Date(toDate);
+    } else {
+      // Calculate date range based on period
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = now.getMonth();
+      const date = now.getDate();
+      
+      if (period.toLowerCase() === "weekly") {
+        const day = now.getDay();
+        start = new Date(now);
+        start.setDate(date - day);
+        end = new Date(now);
+      } else if (period.toLowerCase() === "yearly") {
+        start = new Date(year, 0, 1);
+        end = new Date(year, 11, 31);
+      } else {
+        // Default to monthly
+        start = new Date(year, month, 1);
+        end = new Date(year, month + 1, 0);
+      }
+    }
+    
+    start.setHours(0, 0, 0, 0);
     end.setHours(23, 59, 59, 999);
 
-    // Get attendance records
+    // FETCH ALL EMPLOYEES to ensure complete coverage
+    const allEmployees = await User.find({ role: "EMPLOYEE" }).select("_id name email department");
+    const employeeMap = new Map(allEmployees.map(e => [e._id.toString(), e]));
+    
+    // Get all attendance records in date range
     const attendanceRecords = await Attendance.find({
       date: { $gte: start, $lte: end },
     })
       .populate("userId", "name email department")
       .sort({ date: -1, checkInTime: -1 });
+    
+    // Get all approved leaves in date range
+    const approvedLeaves = await Leave.find({
+      fromDate: { $lte: end },
+      toDate: { $gte: start },
+      status: "Approved",
+    }).select("userId fromDate toDate leaveType");
+    
+    // Create map of employees with leave for quick lookup
+    const employeeLeaveMap = new Map();
+    approvedLeaves.forEach(leave => {
+      if (!employeeLeaveMap.has(leave.userId.toString())) {
+        employeeLeaveMap.set(leave.userId.toString(), []);
+      }
+      employeeLeaveMap.get(leave.userId.toString()).push(leave);
+    });
 
     // Create workbook
     const workbook = new ExcelJS.Workbook();
@@ -182,7 +266,10 @@ const exportToExcel = async (req, res) => {
       fgColor: { argb: "FF3B82F6" },
     };
 
-    // Add data rows
+    // Create a set to track which employees have records in the date range
+    const employeesWithRecords = new Set(attendanceRecords.map(r => r.userId?._id?.toString()));
+    
+    // Add data rows from attendance records
     attendanceRecords.forEach((record) => {
       worksheet.addRow({
         date: record.date ? new Date(record.date).toLocaleDateString() : "-",
@@ -198,6 +285,40 @@ const exportToExcel = async (req, res) => {
         workingHours: record.workingHours || "-",
         status: record.status || "-",
       });
+    });
+    
+    // Add rows for employees on approved leave but without attendance records
+    const leavingEmployees = new Set();
+    approvedLeaves.forEach(leave => {
+      leavingEmployees.add(leave.userId.toString());
+    });
+    
+    // For each employee on leave, add a row showing their leave status
+    leavingEmployees.forEach(employeeId => {
+      const employee = employeeMap.get(employeeId);
+      const leaves = employeeLeaveMap.get(employeeId) || [];
+      if (employee && !employeesWithRecords.has(employeeId)) {
+        // Generate one row per day in the leave period
+        leaves.forEach(leave => {
+          let currentDate = new Date(leave.fromDate);
+          const endLeaveDate = new Date(leave.toDate);
+          while (currentDate <= endLeaveDate) {
+            if (currentDate >= start && currentDate <= end) {
+              worksheet.addRow({
+                date: currentDate.toLocaleDateString(),
+                name: employee.name || "-",
+                email: employee.email || "-",
+                department: employee.department || "-",
+                checkInTime: "-",
+                checkOutTime: "-",
+                workingHours: "-",
+                status: "Leave (" + leave.leaveType + ")",
+              });
+            }
+            currentDate.setDate(currentDate.getDate() + 1);
+          }
+        });
+      }
     });
 
     // Set response headers for file download

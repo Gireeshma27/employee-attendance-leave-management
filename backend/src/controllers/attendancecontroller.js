@@ -80,12 +80,14 @@ const checkIn = async (req, res) => {
             403,
           );
         }
-        if (user.wfhDaysRemaining <= 0) {
+        // Check if remaining days based on total - used is positive
+        const remainingDays = (user.totalWFHDays || 5) - (user.usedWFHDays || 0);
+        if (remainingDays <= 0) {
           return sendError(res, "No WFH days remaining", "Bad Request", 400);
         }
 
-        // Decrement WFH days
-        user.wfhDaysRemaining -= 1;
+        // Increment usedWFHDays (pre-save hook will recalculate wfhDaysRemaining)
+        user.usedWFHDays = (user.usedWFHDays || 0) + 1;
         await user.save();
       }
 
@@ -380,10 +382,86 @@ const downloadExcelReport = async (req, res) => {
   }
 };
 
+const updateAttendance = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { totalHours, status, reason } = req.body;
+
+    if (!id) {
+      return sendError(
+        res,
+        "Attendance ID is required",
+        "Bad Request",
+        400,
+      );
+    }
+
+    const attendance = await Attendance.findById(id);
+    if (!attendance) {
+      return sendError(
+        res,
+        "Attendance record not found",
+        "Not Found",
+        404,
+      );
+    }
+
+    // Update allowed fields
+    if (totalHours !== undefined) {
+      const parsedHours = parseFloat(totalHours);
+      if (isNaN(parsedHours) || parsedHours < 0) {
+        return sendError(
+          res,
+          "Invalid total hours value",
+          "Bad Request",
+          400,
+        );
+      }
+      attendance.workingHours = parsedHours;
+      // Also calculate workingMinutes from hours for consistency
+      attendance.workingMinutes = Math.round(parsedHours * 60);
+    }
+
+    if (status !== undefined) {
+      if (!["Present", "Absent", "Half-day", "WFH", "Leave"].includes(status)) {
+        return sendError(
+          res,
+          "Invalid status value",
+          "Bad Request",
+          400,
+        );
+      }
+      attendance.status = status;
+    }
+
+    if (reason !== undefined) {
+      attendance.remarks = reason;
+    }
+
+    const updatedAttendance = await attendance.save();
+
+    // Enrich with recalculated duration for consistency
+    const enrichedRecord = enrichAttendanceRecord({ ...updatedAttendance.toObject() });
+
+    return sendSuccess(
+      res,
+      "Attendance record updated successfully",
+      enrichedRecord,
+    );
+  } catch (error) {
+    return sendError(
+      res,
+      "Failed to update attendance record",
+      error.message,
+    );
+  }
+};
+
 export {
   checkIn,
   checkOut,
   getMyAttendance,
   getTeamAttendance,
   downloadExcelReport,
+  updateAttendance,
 };

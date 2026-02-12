@@ -5,6 +5,7 @@ import {
   getMyAttendance,
   getTeamAttendance,
   downloadExcelReport,
+  updateAttendance,
 } from "../controllers/attendancecontroller.js";
 import protect from "../middlewares/protectmiddleware.js";
 import isAdmin from "../middlewares/isadminmiddleware.js";
@@ -29,5 +30,8 @@ router.get(
   validate(getAttendanceSchema),
   downloadExcelReport,
 );
+
+// Admin route to update attendance record (must be after specific routes)
+router.put("/:id", isAdmin, updateAttendance);
 
 export default router;
