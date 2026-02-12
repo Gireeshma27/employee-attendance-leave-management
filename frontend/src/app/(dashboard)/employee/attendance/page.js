@@ -11,10 +11,9 @@ import {
   Locate,
   AlertTriangle,
   ChevronRight,
-  ExternalLink,
 } from "lucide-react";
 import { useState, useEffect } from "react";
-import { apiService } from "@/lib/api";
+import apiService from "@/lib/api";
 import { SuccessModal } from "@/components/ui/SuccessModal";
 
 export default function AttendancePage() {
@@ -31,8 +30,10 @@ export default function AttendancePage() {
     time: "",
   });
 
+  // GEOFENCING TEMPORARILY DISABLED
   // Geofence Simulation State (can be wired to actual GPS later)
-  const [isOutOfRange, setIsOutOfRange] = useState(false);
+  // const [isOutOfRange, setIsOutOfRange] = useState(false);
+  const isOutOfRange = false; // Always in-range when geofencing is disabled
 
   const [isWFH, setIsWFH] = useState(false);
   const [userProfile, setUserProfile] = useState(null);
@@ -40,9 +41,23 @@ export default function AttendancePage() {
   useEffect(() => {
     fetchAttendanceData();
     fetchUserProfile();
+
+    // Sync WFH state with localStorage (sidebar master switch)
+    if (typeof window !== "undefined") {
+      const storedWfh = localStorage.getItem("wfhMode") === "true";
+      setIsWFH(storedWfh);
+    }
+
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
+
+  // Sync isWFH back to localStorage if changed on page
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("wfhMode", isWFH);
+    }
+  }, [isWFH]);
 
   const fetchUserProfile = async () => {
     try {
@@ -76,8 +91,15 @@ export default function AttendancePage() {
   };
 
   const handleCheckIn = async () => {
-    // Only block if NOT WFH and Out of Range
-    if (isOutOfRange && !isWFH) return;
+    // GEOFENCING TEMPORARILY DISABLED - removed geofence check
+    // Original: if (isOutOfRange && !isWFH) return;
+
+    if (isWFH && !userProfile?.wfhAllowed) {
+      setError(
+        "WFH permission not granted by admin. Please contact your manager.",
+      );
+      return;
+    }
 
     try {
       setIsSubmitting(true);
@@ -100,8 +122,8 @@ export default function AttendancePage() {
       setSuccessConfig({
         title: isWFH ? "WFH Check-in Successful!" : "Check-in Successful!",
         message: isWFH
-          ? "Your remote attendance has been recorded. Have a great day!"
-          : "Your attendance has been recorded for today. Have a productive day ahead!",
+          ? "Your remote attendance from Verified Home Location has been recorded. Have a great day!"
+          : "Your attendance from Verified Office Location has been recorded for today. Have a productive day ahead!",
         time: formatTime(checkInTime),
       });
       setShowSuccess(true);
@@ -187,14 +209,14 @@ export default function AttendancePage() {
   return (
     <DashboardLayout role="employee">
       <div className="max-w-6xl mx-auto space-y-6">
-        {/* Geofence Alert */}
-        {isOutOfRange && (
+        {/* GEOFENCING TEMPORARILY DISABLED - Geofence Alert commented out */}
+        {/* {isOutOfRange && (
           <div className="bg-red-50 border border-red-100 rounded-xl md:rounded-2xl p-3 md:p-4 flex flex-col sm:flex-row sm:items-start gap-3 md:gap-4 animate-in slide-in-from-top-4 duration-300">
             <div className="w-9 md:w-10 h-9 md:h-10 bg-red-100 rounded-lg md:rounded-xl flex items-center justify-center flex-shrink-0">
               <AlertTriangle className="text-red-600" size={18} />
             </div>
             <div className="min-w-0">
-              <h4 className="text-xs md:text-sm font-bold text-red-900">
+              <h4 className="text-xs md:text-sm font-semibold text-red-900">
                 Out of Geofence Range
               </h4>
               <p className="text-[12px] md:text-xs text-red-700 mt-1 leading-relaxed">
@@ -203,25 +225,25 @@ export default function AttendancePage() {
               </p>
             </div>
           </div>
-        )}
+        )} */}
 
         {/* Page Title */}
         <div className="pt-1 md:pt-2 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
           <div>
-            <h1 className="text-lg sm:text-2xl md:text-3xl font-bold text-gray-900">
+            <h1 className="text-lg sm:text-2xl font-semibold text-gray-900">
               Attendance
             </h1>
-            <p className="text-xs sm:text-sm md:text-sm text-gray-500 mt-1">
+            <p className="text-xs sm:text-sm text-gray-500 mt-1">
               Track your daily check-in, check-out and location data.
             </p>
           </div>
           {userProfile?.wfhAllowed && (
             <div className="bg-blue-50 border border-blue-100 rounded-xl px-4 py-2 flex items-center gap-3">
-              <div className="h-6 w-6 flex items-center justify-center rounded-full bg-blue-600 text-white text-[10px] font-black">
+              <div className="h-6 w-6 flex items-center justify-center rounded-full bg-blue-600 text-white text-[10px] font-semibold">
                 {userProfile.wfhDaysRemaining}
               </div>
               <div className="text-xs">
-                <p className="font-bold text-blue-900 leading-none">
+                <p className="font-medium text-blue-900 leading-none">
                   WFH Days Available
                 </p>
                 <p className="text-blue-700 opacity-80 mt-1 leading-none">
@@ -240,10 +262,10 @@ export default function AttendancePage() {
                 <LogIn size={20} />
               </div>
               <div>
-                <p className="text-[9px] md:text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                <p className="text-[9px] md:text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
                   Check-in Time
                 </p>
-                <p className="text-lg sm:text-xl md:text-2xl font-black text-gray-900 mt-1">
+                <p className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 mt-1">
                   {formatTime(todayAttendance?.checkInTime)}
                 </p>
               </div>
@@ -269,14 +291,14 @@ export default function AttendancePage() {
               </div>
               <div>
                 <p
-                  className={`text-[9px] md:text-[10px] font-bold uppercase tracking-wider ${
+                  className={`text-[9px] md:text-[10px] font-semibold uppercase tracking-wider ${
                     isOutOfRange ? "text-red-400" : "text-green-500"
                   }`}
                 >
                   Current Time
                 </p>
                 <p
-                  className={`text-xl md:text-2xl font-black mt-1 ${
+                  className={`text-xl md:text-2xl font-bold mt-1 ${
                     isOutOfRange ? "text-red-900" : "text-green-900"
                   }`}
                 >
@@ -296,11 +318,11 @@ export default function AttendancePage() {
                 <Locate size={20} />
               </div>
               <div>
-                <p className="text-[9px] md:text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                <p className="text-[9px] md:text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
                   Total Hours
                 </p>
                 <div className="flex items-baseline gap-1 mt-1 justify-center">
-                  <p className="text-xl md:text-2xl font-black text-gray-900">
+                  <p className="text-xl md:text-2xl font-bold text-gray-900">
                     {activeDuration.h}h
                   </p>
                   <p className="text-base md:text-lg font-bold text-gray-400">
@@ -317,7 +339,7 @@ export default function AttendancePage() {
           {/* Action Center */}
           <div className="lg:col-span-2 bg-white border border-gray-100 rounded-3xl p-6 md:p-8 shadow-sm">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6 md:mb-8">
-              <h2 className="text-base md:text-lg font-bold text-gray-900">
+              <h2 className="text-base md:text-lg font-semibold text-gray-900">
                 Action Center
               </h2>
               <div className="flex items-center gap-4">
@@ -330,12 +352,13 @@ export default function AttendancePage() {
                       disabled={userProfile.wfhDaysRemaining <= 0}
                       className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-gray-300"
                     />
-                    <span className="text-xs font-bold text-gray-700 uppercase tracking-tighter">
+                    <span className="text-xs font-semibold text-gray-700 uppercase tracking-tighter">
                       Work From Home
                     </span>
                   </label>
                 )}
-                <div
+                {/* GEOFENCING TEMPORARILY DISABLED - Dev Toggle hidden */}
+                {/* <div
                   onClick={() => setIsOutOfRange(!isOutOfRange)}
                   className="cursor-pointer"
                 >
@@ -345,7 +368,7 @@ export default function AttendancePage() {
                   >
                     Toggle Dev: {isOutOfRange ? "Out of Range" : "In Range"}
                   </Badge>
-                </div>
+                </div> */}
               </div>
             </div>
 
@@ -357,7 +380,7 @@ export default function AttendancePage() {
                   (isOutOfRange && !isWFH) ||
                   isSubmitting
                 }
-                className={`flex-1 flex items-center justify-center gap-2 md:gap-3 py-3 md:py-4 px-4 md:px-6 rounded-2xl font-bold transition-all text-sm md:text-base ${
+                className={`flex-1 flex items-center justify-center gap-2 md:gap-3 py-3 md:py-4 px-4 md:px-6 rounded-2xl font-semibold transition-all text-sm md:text-base ${
                   todayAttendance?.checkInTime
                     ? "bg-blue-50 text-blue-400 cursor-not-allowed"
                     : isOutOfRange && !isWFH
@@ -393,7 +416,7 @@ export default function AttendancePage() {
                   !!todayAttendance?.checkOutTime ||
                   isSubmitting
                 }
-                className={`flex-1 flex items-center justify-center gap-2 md:gap-3 py-3 md:py-4 px-4 md:px-6 rounded-2xl font-bold transition-all text-sm md:text-base ${
+                className={`flex-1 flex items-center justify-center gap-2 md:gap-3 py-3 md:py-4 px-4 md:px-6 rounded-2xl font-semibold transition-all text-sm md:text-base ${
                   todayAttendance?.checkOutTime
                     ? "bg-red-50 text-red-400 cursor-not-allowed"
                     : !todayAttendance?.checkInTime
@@ -434,12 +457,12 @@ export default function AttendancePage() {
                   <span
                     className={
                       todayAttendance.status === "WFH"
-                        ? "text-purple-600 font-bold"
-                        : "text-green-600 font-bold"
+                        ? "text-purple-600 font-semibold"
+                        : "text-green-600 font-semibold"
                     }
                   >
                     {todayAttendance.status === "WFH"
-                      ? "Home/Remote Location"
+                      ? "Verified Home Location"
                       : "Verified Office Location"}
                   </span>
                 </p>
@@ -453,24 +476,23 @@ export default function AttendancePage() {
             </div>
           </div>
 
-          {/* Live Location Card */}
+          {/* Live Location Card - TEMPORARILY DISABLED 
           <div className="bg-white border border-gray-100 rounded-3xl overflow-hidden shadow-sm flex flex-col">
             <div className="p-4 md:p-5 border-b border-gray-50 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <MapPin size={18} className="text-red-500 flex-shrink-0" />
-                <span className="text-xs md:text-sm font-bold text-gray-900">
+                <span className="text-xs md:text-sm font-semibold text-gray-900">
                   Live Location
                 </span>
               </div>
               <Badge
                 variant={isOutOfRange ? "danger" : "success"}
-                className="text-[9px] md:text-[10px] font-black tracking-tight"
+                className="text-[9px] md:text-[10px] font-semibold tracking-tight"
               >
                 {isOutOfRange ? "● OUT OF RANGE" : "● VERIFIED"}
               </Badge>
             </div>
 
-            {/* Mock Map UI */}
             <div className="relative flex-1 bg-gray-100 min-h-[200px] md:min-h-[220px] flex items-center justify-center">
               <div
                 className="absolute inset-0 opacity-20 pointer-events-none"
@@ -481,7 +503,6 @@ export default function AttendancePage() {
                 }}
               ></div>
 
-              {/* Geofence Circle */}
               <div
                 className={`relative w-24 md:w-32 h-24 md:h-32 rounded-full flex items-center justify-center border-2 border-dashed ${
                   isOutOfRange
@@ -489,7 +510,6 @@ export default function AttendancePage() {
                     : "bg-green-50 border-green-200"
                 }`}
               >
-                {/* User Pin */}
                 <div
                   className={`absolute transition-all duration-700 ${
                     isOutOfRange
@@ -508,19 +528,18 @@ export default function AttendancePage() {
                         isOutOfRange ? "bg-red-500" : "bg-blue-600"
                       }`}
                     ></div>
-                    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-white text-[8px] md:text-[9px] font-black py-0.5 px-2 rounded-full border border-gray-100 shadow-sm whitespace-nowrap">
+                    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-white text-[8px] md:text-[9px] font-semibold py-0.5 px-2 rounded-full border border-gray-100 shadow-sm whitespace-nowrap">
                       You
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Location Label */}
               <div className="absolute bottom-3 left-3 right-3 md:bottom-4 md:left-4 md:right-4 bg-white/95 backdrop-blur-sm p-2 md:p-3 rounded-xl border border-gray-100 shadow-xl">
-                <p className="text-[8px] md:text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none">
+                <p className="text-[8px] md:text-[10px] font-semibold text-gray-400 uppercase tracking-widest leading-none">
                   Detected Location
                 </p>
-                <p className="text-[9px] md:text-[11px] font-bold text-gray-800 mt-1.5 leading-tight">
+                <p className="text-[9px] md:text-[11px] font-semibold text-gray-800 mt-1.5 leading-tight">
                   {isOutOfRange
                     ? "Sector 22, Residential Block"
                     : "Office Building 4, Zone A"}
@@ -533,23 +552,20 @@ export default function AttendancePage() {
               </div>
             </div>
           </div>
+          */}
         </div>
 
         {/* Attendance History */}
         <div className="bg-white border border-gray-100 rounded-3xl overflow-hidden shadow-sm">
           <div className="p-6 border-b border-gray-50 flex items-center justify-between">
-            <h3 className="font-bold text-gray-900">Attendance History</h3>
-            <button className="text-blue-600 text-xs font-bold hover:underline flex items-center gap-1 group">
-              View Full Report{" "}
-              <ExternalLink
-                size={12}
-                className="transition-transform group-hover:-translate-y-0.5"
-              />
-            </button>
+            <h3 className="font-semibold text-gray-900">Attendance History</h3>
+            <span className="text-gray-400 text-xs">
+              Showing all {attendanceHistory.length} records
+            </span>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-xs md:text-sm">
-              <thead className="bg-gray-50/50 text-[9px] md:text-[10px] font-black text-gray-400 uppercase tracking-widest">
+              <thead className="bg-gray-50/50 text-[9px] md:text-[10px] font-semibold text-gray-400 uppercase tracking-widest">
                 <tr>
                   <th className="px-4 md:px-6 py-3 md:py-4 text-left">Date</th>
                   <th className="px-4 md:px-6 py-3 md:py-4 text-left hidden sm:table-cell">
@@ -576,7 +592,7 @@ export default function AttendancePage() {
                     className="hover:bg-gray-50/80 transition-colors"
                   >
                     <td className="px-4 md:px-6 py-3 md:py-4 whitespace-nowrap">
-                      <p className="text-xs md:text-sm font-bold text-gray-800">
+                      <p className="text-xs md:text-sm font-semibold text-gray-800">
                         {new Date(record.date).toLocaleDateString("en-US", {
                           month: "short",
                           day: "numeric",
@@ -591,7 +607,7 @@ export default function AttendancePage() {
                       {formatTime(record.checkOutTime)}
                     </td>
                     <td className="px-4 md:px-6 py-3 md:py-4">
-                      <p className="text-xs md:text-sm font-bold text-gray-800">
+                      <p className="text-xs md:text-sm font-semibold text-gray-800">
                         {record.workingHours
                           ? `${Math.floor(record.workingHours)}h ${Math.round((record.workingHours % 1) * 60)}m`
                           : "-"}
@@ -606,7 +622,7 @@ export default function AttendancePage() {
                               ? "danger"
                               : "secondary"
                         }
-                        className="text-[9px] md:text-[10px] font-black py-0.5 px-2"
+                        className="text-[9px] md:text-[10px] font-semibold py-0.5 px-2"
                       >
                         {record.status?.toUpperCase() || "PENDING"}
                       </Badge>

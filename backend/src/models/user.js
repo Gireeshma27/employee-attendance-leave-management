@@ -42,6 +42,7 @@ const userSchema = new mongoose.Schema(
     },
     department: {
       type: String,
+      enum: ["Administration", "HR", "Engineering", "Design", "Marketing"],
       trim: true,
     },
     phone: {
@@ -59,9 +60,17 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    wfhDaysRemaining: {
+    totalWFHDays: {
+      type: Number,
+      default: 5,
+    },
+    usedWFHDays: {
       type: Number,
       default: 0,
+    },
+    wfhDaysRemaining: {
+      type: Number,
+      default: 5,
     },
   },
   {

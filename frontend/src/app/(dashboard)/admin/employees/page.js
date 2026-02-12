@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { Plus, Info } from 'lucide-react';
+import { Plus, ClipboardList } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import apiService from '@/lib/api';
 import { AddEmployeeModal } from '@/components/modals/AddEmployeeModal';
@@ -39,6 +39,10 @@ export default function EmployeesPage() {
     try {
       setLoading(true);
       setError(null);
+      // Update currentPage state to keep it in sync
+      if (pageNum !== currentPage) {
+        setCurrentPage(pageNum);
+      }
       const filters = {
         page: pageNum,
         limit: rowsPerPage,
@@ -255,8 +259,11 @@ export default function EmployeesPage() {
                           <th className="py-4 px-6 whitespace-nowrap">Name</th>
                           <th className="py-4 px-6 hidden sm:table-cell whitespace-nowrap">Email</th>
                           <th className="py-4 px-6 hidden md:table-cell whitespace-nowrap">Employee ID</th>
+                          <th className="py-4 px-6 hidden lg:table-cell whitespace-nowrap">Department</th>
                           <th className="py-4 px-6 whitespace-nowrap">Role</th>
                           <th className="py-4 px-6 whitespace-nowrap">Status</th>
+                          <th className="py-4 px-6 hidden lg:table-cell whitespace-nowrap">WFH Used</th>
+                          <th className="py-4 px-6 hidden lg:table-cell whitespace-nowrap">WFH Remaining</th>
                           <th className="py-4 px-6 text-center whitespace-nowrap">Action</th>
                         </tr>
                       </thead>
@@ -280,6 +287,9 @@ export default function EmployeesPage() {
                             <td className="py-4 px-6 text-gray-500 font-mono text-xs hidden md:table-cell whitespace-nowrap">
                               {emp.employeeId || 'N/A'}
                             </td>
+                            <td className="py-4 px-6 text-gray-600 hidden lg:table-cell whitespace-nowrap">
+                              {emp.department || 'N/A'}
+                            </td>
                             <td className="py-4 px-6 text-gray-600 capitalize whitespace-nowrap">
                               <Badge variant="outline" className="bg-gray-50 text-gray-600 border-gray-200">
                                 {emp.role.toLowerCase()}
@@ -292,6 +302,16 @@ export default function EmployeesPage() {
                                 {emp.isActive ? 'Active' : 'Inactive'}
                               </Badge>
                             </td>
+                            <td className="py-4 px-6 text-gray-600 hidden lg:table-cell whitespace-nowrap">
+                              <span className={emp.wfhAllowed ? 'text-blue-600 font-medium' : 'text-gray-400'}>
+                                {emp.usedWFHDays || 0} days
+                              </span>
+                            </td>
+                            <td className="py-4 px-6 text-gray-600 hidden lg:table-cell whitespace-nowrap">
+                              <span className={emp.wfhAllowed && emp.wfhDaysRemaining > 0 ? 'text-green-600 font-medium' : 'text-gray-400'}>
+                                {emp.wfhDaysRemaining || 0} days
+                              </span>
+                            </td>
                             <td className="py-4 px-6 text-center whitespace-nowrap">
                               <div className="flex items-center justify-center">
                                 <button
@@ -299,7 +319,7 @@ export default function EmployeesPage() {
                                   className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                                   title="Edit employee"
                                 >
-                                  <Info size={18} />
+                                  <ClipboardList size={18} />
                                 </button>
                               </div>
                             </td>

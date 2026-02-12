@@ -14,9 +14,7 @@ export function Modal({
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    if (isOpen) {
-      setIsVisible(true);
-    }
+    setIsVisible(isOpen);
   }, [isOpen]);
 
   if (!isOpen && !isVisible) return null;

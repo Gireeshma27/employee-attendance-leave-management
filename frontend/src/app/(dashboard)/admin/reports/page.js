@@ -1,8 +1,9 @@
 "use client";
 
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
-import { Card, CardHeader, CardTitle } from "@/components/ui/Card";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
+import { SideDrawer } from "@/components/ui/SideDrawer";
 import {
   Users,
   Clock,
@@ -18,6 +19,7 @@ import {
   ArrowUpRight,
   Monitor,
   CheckCircle2,
+  X,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import apiService from "@/lib/api";
@@ -27,7 +29,17 @@ export default function AdminReports() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [mounted, setMounted] = useState(false);
-  const [timeRange, setTimeRange] = useState("Monthly");
+  const [timeRange, setTimeRange] = useState("Weekly");
+  const [isExporting, setIsExporting] = useState(false);
+  
+  // Employee details drawer state
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [selectedEmployee, setSelectedEmployee] = useState(null);
+  
+  // Employee table filters
+  const [statusFilter, setStatusFilter] = useState("");
+  const [deptFilter, setDeptFilter] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     setMounted(true);
@@ -54,12 +66,47 @@ export default function AdminReports() {
     }
   };
 
+  const handleExportToExcel = async () => {
+    setIsExporting(true);
+    try {
+      await apiService.report.exportToExcel({
+        period: timeRange.toLowerCase(),
+      });
+    } catch (err) {
+      console.error("Error exporting to Excel:", err);
+      alert("Failed to export report to Excel");
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleViewEmployee = (employee) => {
+    setSelectedEmployee(employee);
+    setIsDetailOpen(true);
+  };
+
+  // Destructure data first so we can use employees in filters
+  const { stats, deptPerformance, availability, employees } = data || {};
+
+  // Filter employees based on selected filters
+  const filteredEmployees = (employees || []).filter(emp => {
+    const matchesStatus = !statusFilter || emp.status === statusFilter;
+    const matchesDept = !deptFilter || emp.department === deptFilter;
+    const matchesSearch = !searchQuery || 
+      emp.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      emp.employeeId?.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesStatus && matchesDept && matchesSearch;
+  });
+
+  // Get unique departments from employees for filter dropdown
+  const departments = [...new Set((employees || []).map(emp => emp.department).filter(Boolean))];
+
   if (loading && !data) {
     return (
       <DashboardLayout role="admin">
         <div className="h-[60vh] flex flex-col items-center justify-center space-y-4">
           <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-slate-500 font-bold animate-pulse">
+          <p className="text-slate-500 font-medium animate-pulse">
             Generating Reports...
           </p>
         </div>
@@ -67,351 +114,519 @@ export default function AdminReports() {
     );
   }
 
-  const { stats, deptPerformance, availability, employees } = data || {};
-
   return (
     <DashboardLayout role="admin">
-      <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
-        {/* Header with Filters */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="flex bg-white p-1 rounded-2xl border border-slate-100 shadow-sm w-fit">
-            {["Weekly", "Monthly", "Yearly"].map((range) => (
-              <button
-                key={range}
-                onClick={() => setTimeRange(range)}
-                className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
-                  timeRange === range
-                    ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20"
-                    : "text-slate-400 hover:text-slate-600 hover:bg-slate-50"
-                }`}
-              >
-                {range}
-              </button>
-            ))}
+      <div className="space-y-6 md:space-y-8">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-lg sm:text-2xl md:text-3xl font-bold text-gray-900">Reports</h1>
+            <p className="text-xs sm:text-sm text-gray-600 mt-1">System-wide performance and attendance reports</p>
           </div>
-
-          <div className="flex items-center gap-4">
-            <div className="bg-white px-5 py-3 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-3">
-              <Calendar size={18} className="text-slate-400" />
-              <span className="text-xs font-bold text-slate-700 tracking-tight">
-                Jan 01, 2026 - Jan 31, 2026
-              </span>
-            </div>
-            <button className="flex items-center gap-3 px-6 py-3 bg-blue-600 text-white rounded-2xl font-black uppercase tracking-widest text-[11px] shadow-xl shadow-blue-600/20 hover:scale-105 active:scale-95 transition-all">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+            <button 
+              onClick={handleExportToExcel}
+              disabled={isExporting}
+              className="flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg font-semibold text-sm shadow-sm hover:bg-blue-700 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
               <FileSpreadsheet size={18} />
-              Export to Excel
+              {isExporting ? "Exporting..." : "Export to Excel"}
             </button>
           </div>
         </div>
 
-        {/* Stat Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <ReportStatCard
-            label="Active WFH Users"
-            value={stats?.activeWFH?.value || "0"}
-            trend={stats?.activeWFH?.trend}
-            icon={Monitor}
-            color="blue"
-          />
-          <ReportStatCard
-            label="Avg. Attendance Rate"
-            value={stats?.attendanceRate?.value || "0%"}
-            trend={stats?.attendanceRate?.trend}
-            icon={CheckCircle2}
-            color="indigo"
-          />
-          <ReportStatCard
-            label="Avg. Clock-in Time"
-            value={stats?.avgClockIn?.value || "00:00"}
-            trend={stats?.avgClockIn?.trend}
-            icon={Clock}
-            color="amber"
-          />
-          <ReportStatCard
-            label="Pending Leaves"
-            value={stats?.pendingLeaves?.value || "0"}
-            trend={stats?.pendingLeaves?.trend}
-            icon={Calendar}
-            color="emerald"
-          />
+        {/* Time Range Toggle */}
+        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex items-center gap-2">
+              <Calendar size={18} className="text-gray-400" />
+              <span className="text-sm font-medium text-gray-700">Report Period</span>
+            </div>
+            <div className="flex bg-gray-100 p-1 rounded-lg w-fit">
+              {["Weekly", "Monthly", "Yearly"].map((range) => (
+                <button
+                  key={range}
+                  onClick={() => setTimeRange(range)}
+                  className={`px-4 py-2 rounded-md text-sm font-semibold transition-all ${
+                    timeRange === range
+                      ? "bg-white text-blue-600 shadow-sm"
+                      : "text-gray-500 hover:text-gray-700"
+                  }`}
+                >
+                  {range}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
 
-        {/* Charts Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-          <Card className="lg:col-span-3 shadow-xl shadow-slate-100/50">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>Departmental Performance Comparison</CardTitle>
-              <button className="text-slate-400 hover:text-slate-600">
-                <AlertCircle size={20} />
-              </button>
+        {/* Stat Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+          <Card className="border-none shadow-sm bg-white overflow-hidden">
+            <CardContent className="p-4 md:p-6">
+              <div className="flex items-center gap-4">
+                <div className="p-2.5 bg-blue-50 text-blue-600 rounded-lg">
+                  <Monitor size={20} />
+                </div>
+                <div>
+                  <p className="text-xs sm:text-sm text-gray-500 font-medium">Active WFH Users</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-xl sm:text-2xl font-bold text-gray-900">
+                      {stats?.activeWFH?.value || "0"}
+                    </p>
+                    {stats?.activeWFH?.trend && (
+                      <span className={`text-xs font-semibold px-1.5 py-0.5 rounded ${
+                        stats.activeWFH.trend.startsWith("+") 
+                          ? "bg-green-50 text-green-600" 
+                          : "bg-red-50 text-red-600"
+                      }`}>
+                        {stats.activeWFH.trend}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-none shadow-sm bg-white overflow-hidden">
+            <CardContent className="p-4 md:p-6">
+              <div className="flex items-center gap-4">
+                <div className="p-2.5 bg-green-50 text-green-600 rounded-lg">
+                  <CheckCircle2 size={20} />
+                </div>
+                <div>
+                  <p className="text-xs sm:text-sm text-gray-500 font-medium">Avg. Attendance Rate</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-xl sm:text-2xl font-bold text-gray-900">
+                      {stats?.attendanceRate?.value || "0%"}
+                    </p>
+                    {stats?.attendanceRate?.trend && (
+                      <span className={`text-xs font-semibold px-1.5 py-0.5 rounded ${
+                        stats.attendanceRate.trend.startsWith("+") 
+                          ? "bg-green-50 text-green-600" 
+                          : "bg-red-50 text-red-600"
+                      }`}>
+                        {stats.attendanceRate.trend}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-none shadow-sm bg-white overflow-hidden">
+            <CardContent className="p-4 md:p-6">
+              <div className="flex items-center gap-4">
+                <div className="p-2.5 bg-amber-50 text-amber-600 rounded-lg">
+                  <Clock size={20} />
+                </div>
+                <div>
+                  <p className="text-xs sm:text-sm text-gray-500 font-medium">Avg. Clock-in Time</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-xl sm:text-2xl font-bold text-gray-900">
+                      {stats?.avgClockIn?.value || "00:00"}
+                    </p>
+                    {stats?.avgClockIn?.trend && (
+                      <span className={`text-xs font-semibold px-1.5 py-0.5 rounded ${
+                        stats.avgClockIn.trend.startsWith("+") 
+                          ? "bg-green-50 text-green-600" 
+                          : "bg-red-50 text-red-600"
+                      }`}>
+                        {stats.avgClockIn.trend}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-none shadow-sm bg-white overflow-hidden">
+            <CardContent className="p-4 md:p-6">
+              <div className="flex items-center gap-4">
+                <div className="p-2.5 bg-purple-50 text-purple-600 rounded-lg">
+                  <Calendar size={20} />
+                </div>
+                <div>
+                  <p className="text-xs sm:text-sm text-gray-500 font-medium">Pending Leaves</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-xl sm:text-2xl font-bold text-gray-900">
+                      {stats?.pendingLeaves?.value || "0"}
+                    </p>
+                    {stats?.pendingLeaves?.trend && (
+                      <span className={`text-xs font-semibold px-1.5 py-0.5 rounded ${
+                        stats.pendingLeaves.trend.startsWith("+") 
+                          ? "bg-green-50 text-green-600" 
+                          : "bg-red-50 text-red-600"
+                      }`}>
+                        {stats.pendingLeaves.trend}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Charts Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
+          {/* Departmental Performance */}
+          <Card className="lg:col-span-2 border border-gray-100 shadow-sm">
+            <CardHeader className="border-b border-gray-100 bg-gray-50/50">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-base font-semibold text-gray-900">Departmental Performance</CardTitle>
+                <Badge variant="outline" className="text-xs">{timeRange}</Badge>
+              </div>
             </CardHeader>
-            <div className="h-[300px] w-full pt-6 flex items-end justify-between px-6">
-              {deptPerformance?.map((dept, i) => (
-                <div
-                  key={dept.name}
-                  className="flex flex-col items-center gap-4 w-full px-2"
-                >
-                  <div className="w-full relative group">
-                    <div className="absolute bottom-0 w-full bg-slate-100 rounded-t-2xl opacity-40 h-[250px]" />
-                    <div
-                      className="absolute bottom-0 w-full bg-blue-500 rounded-t-2xl shadow-lg shadow-blue-500/20 transition-all duration-1000 ease-out cursor-pointer hover:bg-blue-600"
-                      style={{ height: `${dept.value * 2.5}px` }}
-                    >
-                      <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-[#0F172A] text-white text-[10px] font-bold px-2 py-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                        {dept.value}% Score
+            <CardContent className="p-6">
+              <div className="space-y-4">
+                {deptPerformance?.map((dept, i) => (
+                  <div key={dept.name} className="flex items-center gap-4">
+                    <div className="w-20 text-xs font-medium text-gray-600 truncate">{dept.name}</div>
+                    <div className="flex-1">
+                      <div className="h-8 bg-gray-100 rounded-lg overflow-hidden relative">
+                        <div 
+                          className="absolute inset-y-0 left-0 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg transition-all duration-700 ease-out"
+                          style={{ width: `${dept.value}%` }}
+                        />
+                        <div className="absolute inset-0 flex items-center justify-end pr-3">
+                          <span className="text-xs font-bold text-gray-700">{dept.value}%</span>
+                        </div>
                       </div>
                     </div>
                   </div>
-                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                    {dept.name}
-                  </span>
-                </div>
-              ))}
-            </div>
+                ))}
+                {(!deptPerformance || deptPerformance.length === 0) && (
+                  <div className="text-center py-8 text-gray-400 text-sm">
+                    No department performance data available
+                  </div>
+                )}
+              </div>
+            </CardContent>
           </Card>
 
-          <Card className="lg:col-span-2 shadow-xl shadow-slate-100/50 flex flex-col items-center justify-center relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-40 h-40 bg-slate-50 rounded-full translate-x-20 -translate-y-20 opacity-40" />
-            <CardHeader className="w-full">
-              <CardTitle>Staff Availability</CardTitle>
-              <div className="flex gap-4 mt-2">
-                <div className="flex items-center gap-1.5">
-                  <div className="w-2 h-2 rounded-full bg-blue-600"></div>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">
-                    On-site
-                  </span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">
-                    Remote
-                  </span>
-                </div>
-              </div>
+          {/* Staff Availability */}
+          <Card className="border border-gray-100 shadow-sm">
+            <CardHeader className="border-b border-gray-100 bg-gray-50/50">
+              <CardTitle className="text-base font-semibold text-gray-900">Staff Availability</CardTitle>
             </CardHeader>
-            <div className="relative w-64 h-64 flex items-center justify-center my-6">
-              <svg
-                className="w-full h-full -rotate-90 transform"
-                viewBox="0 0 100 100"
-              >
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="40"
-                  stroke="#f1f5f9"
-                  strokeWidth="10"
-                  fill="transparent"
-                />
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="40"
-                  stroke="#3b82f6"
-                  strokeWidth="10"
-                  strokeDasharray="251.2"
-                  strokeDashoffset={
-                    251.2 - (251.2 * (availability?.rate || 0)) / 100
-                  }
-                  strokeLinecap="round"
-                  fill="transparent"
-                  className="transition-all duration-1000 ease-out"
-                />
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="40"
-                  stroke="#10b981"
-                  strokeWidth="10"
-                  strokeDasharray="251.2"
-                  strokeDashoffset={
-                    251.2 - (251.2 * (availability?.remote || 0)) / 100
-                  }
-                  strokeLinecap="round"
-                  fill="transparent"
-                  className="transition-all duration-1000 ease-out opacity-20"
-                />
-              </svg>
-              <div className="absolute flex flex-col items-center">
-                <span className="text-4xl font-black text-slate-900 tracking-tighter">
-                  {availability?.rate || 0}%
-                </span>
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1">
-                  Available
-                </span>
+            <CardContent className="p-6">
+              <div className="flex flex-col items-center">
+                <div className="relative w-36 h-36 mb-4">
+                  <svg className="w-full h-full -rotate-90 transform" viewBox="0 0 100 100">
+                    <circle
+                      cx="50"
+                      cy="50"
+                      r="40"
+                      stroke="#f1f5f9"
+                      strokeWidth="12"
+                      fill="transparent"
+                    />
+                    <circle
+                      cx="50"
+                      cy="50"
+                      r="40"
+                      stroke="#3b82f6"
+                      strokeWidth="12"
+                      strokeDasharray="251.2"
+                      strokeDashoffset={251.2 - (251.2 * (availability?.rate || 0)) / 100}
+                      strokeLinecap="round"
+                      fill="transparent"
+                      className="transition-all duration-1000 ease-out"
+                    />
+                  </svg>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    <span className="text-3xl font-bold text-gray-900">{availability?.rate || 0}%</span>
+                    <span className="text-xs text-gray-500">Available</span>
+                  </div>
+                </div>
+                <div className="flex gap-6 mt-2">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+                    <span className="text-xs text-gray-600">On-site</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                    <span className="text-xs text-gray-600">Remote</span>
+                  </div>
+                </div>
               </div>
-            </div>
+            </CardContent>
           </Card>
         </div>
 
         {/* Employee Report Table */}
-        <Card className="shadow-xl shadow-slate-100/50 overflow-hidden">
-          <CardHeader className="flex flex-row items-center justify-between border-b border-slate-50 pb-6">
-            <CardTitle>Comprehensive Employee Report</CardTitle>
-            <div className="flex gap-4">
-              <select className="bg-slate-50 border border-slate-200 text-[10px] font-black text-slate-500 uppercase tracking-widest px-4 py-2 rounded-xl focus:ring-0">
-                <option>Status: All</option>
-                <option>On-site</option>
-                <option>Remote</option>
-              </select>
-              <select className="bg-slate-50 border border-slate-200 text-[10px] font-black text-slate-500 uppercase tracking-widest px-4 py-2 rounded-xl focus:ring-0">
-                <option>Dept: All</option>
-                <option>IT</option>
-                <option>HR</option>
-              </select>
+        <Card className="border border-gray-100 shadow-sm overflow-hidden">
+          <CardHeader className="border-b border-gray-100 bg-gray-50/50">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <CardTitle className="text-base font-semibold text-gray-900">
+                Employee Report
+                <span className="ml-2 text-sm font-normal text-gray-500">
+                  ({filteredEmployees.length} {filteredEmployees.length === 1 ? 'employee' : 'employees'})
+                </span>
+              </CardTitle>
+              <div className="flex flex-wrap gap-2 sm:gap-3">
+                <input
+                  type="text"
+                  placeholder="Search..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="bg-white border border-gray-200 text-xs font-medium text-gray-600 px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none w-full sm:w-32"
+                />
+                <select 
+                  className="bg-white border border-gray-200 text-xs font-medium text-gray-600 px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                >
+                  <option value="">Status: All</option>
+                  <option value="On-site">On-site</option>
+                  <option value="Remote">Remote</option>
+                  <option value="Leave">Leave</option>
+                </select>
+                <select 
+                  className="bg-white border border-gray-200 text-xs font-medium text-gray-600 px-3 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  value={deptFilter}
+                  onChange={(e) => setDeptFilter(e.target.value)}
+                >
+                  <option value="">Dept: All</option>
+                  {departments.map(dept => (
+                    <option key={dept} value={dept}>{dept}</option>
+                  ))}
+                </select>
+                {(statusFilter || deptFilter || searchQuery) && (
+                  <button
+                    onClick={() => {
+                      setStatusFilter("");
+                      setDeptFilter("");
+                      setSearchQuery("");
+                    }}
+                    className="text-xs text-blue-600 hover:text-blue-700 font-medium px-2"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
             </div>
           </CardHeader>
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="w-full text-sm text-left">
               <thead>
-                <tr className="bg-slate-50/50">
-                  {[
-                    "Employee",
-                    "ID",
-                    "Department",
-                    "Status",
-                    "Days Present",
-                    "Late Marks",
-                    "Efficiency",
-                    "Actions",
-                  ].map((head) => (
-                    <th
-                      key={head}
-                      className="text-left px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap"
-                    >
-                      {head}
-                    </th>
-                  ))}
+                <tr className="bg-white border-b border-gray-100">
+                  <th className="px-6 py-4 font-semibold text-gray-500 uppercase tracking-wider text-xs whitespace-nowrap">
+                    Employee
+                  </th>
+                  <th className="px-6 py-4 font-semibold text-gray-500 uppercase tracking-wider text-xs whitespace-nowrap">
+                    ID
+                  </th>
+                  <th className="px-6 py-4 font-semibold text-gray-500 uppercase tracking-wider text-xs whitespace-nowrap">
+                    Department
+                  </th>
+                  <th className="px-6 py-4 font-semibold text-gray-500 uppercase tracking-wider text-xs whitespace-nowrap">
+                    Status
+                  </th>
+                  <th className="px-6 py-4 font-semibold text-gray-500 uppercase tracking-wider text-xs whitespace-nowrap">
+                    Days Present
+                  </th>
+                  <th className="px-6 py-4 font-semibold text-gray-500 uppercase tracking-wider text-xs whitespace-nowrap">
+                    Late Marks
+                  </th>
+                  <th className="px-6 py-4 font-semibold text-gray-500 uppercase tracking-wider text-xs whitespace-nowrap">
+                    Efficiency
+                  </th>
+                  <th className="px-6 py-4 font-semibold text-gray-500 uppercase tracking-wider text-xs whitespace-nowrap text-center">
+                    Actions
+                  </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-50">
-                {employees?.map((emp) => (
+              <tbody className="divide-y divide-gray-50">
+                {filteredEmployees?.map((emp) => (
                   <tr
                     key={emp.id}
-                    className="hover:bg-slate-50/50 transition-colors group"
+                    className="hover:bg-gray-50/50 transition-colors"
                   >
-                    <td className="px-8 py-6">
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 bg-[#0F172A] rounded-full flex items-center justify-center text-white text-[10px] font-black">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 bg-gray-100 text-gray-600 rounded-full flex items-center justify-center text-xs font-semibold border border-gray-200">
                           {emp.name
                             .split(" ")
                             .map((n) => n[0])
                             .join("")}
                         </div>
-                        <p className="text-sm font-bold text-slate-800">
+                        <p className="text-sm font-medium text-gray-900">
                           {emp.name}
                         </p>
                       </div>
                     </td>
-                    <td className="px-8 py-6 text-[11px] font-bold text-slate-400 font-mono tracking-tight">
+                    <td className="px-6 py-4 whitespace-nowrap text-xs font-medium text-gray-500 font-mono">
                       {emp.employeeId}
                     </td>
-                    <td className="px-8 py-6 text-sm font-medium text-slate-600">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                       {emp.department}
                     </td>
-                    <td className="px-8 py-6">
-                      <div className="flex items-center gap-2">
-                        <div
-                          className={`w-1.5 h-1.5 rounded-full ${
-                            emp.status === "On-site"
-                              ? "bg-emerald-500"
-                              : emp.status === "Remote"
-                                ? "bg-blue-500"
-                                : "bg-amber-500"
-                          }`}
-                        />
-                        <span className="text-xs font-bold text-slate-700">
-                          {emp.status}
-                        </span>
-                      </div>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <Badge
+                        variant={
+                          emp.status === "On-site"
+                            ? "success"
+                            : emp.status === "Remote"
+                              ? "primary"
+                              : "warning"
+                        }
+                        className="text-xs"
+                      >
+                        {emp.status}
+                      </Badge>
                     </td>
-                    <td className="px-8 py-6 text-sm font-bold text-slate-800">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-800">
                       {emp.daysPresent}
                     </td>
-                    <td className="px-8 py-6">
+                    <td className="px-6 py-4 whitespace-nowrap">
                       <span
-                        className={`text-sm font-bold ${emp.lateMarks > 0 ? "text-rose-500" : "text-slate-400"}`}
+                        className={`text-sm font-bold ${emp.lateMarks > 0 ? "text-red-500" : "text-gray-400"}`}
                       >
                         {emp.lateMarks}
                       </span>
                     </td>
-                    <td className="px-8 py-6 min-w-[150px]">
-                      <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-blue-600 rounded-full"
-                          style={{ width: `${emp.efficiency}%` }}
-                        />
+                    <td className="px-6 py-4 whitespace-nowrap min-w-[120px]">
+                      <div className="flex items-center gap-2">
+                        <div className="h-2 flex-1 bg-gray-100 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-blue-500 rounded-full transition-all"
+                            style={{ width: `${emp.efficiency}%` }}
+                          />
+                        </div>
+                        <span className="text-xs font-medium text-gray-600 w-10 text-right">{emp.efficiency}%</span>
                       </div>
                     </td>
-                    <td className="px-8 py-6">
-                      <button className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all">
+                    <td className="px-6 py-4 whitespace-nowrap text-center">
+                      <button 
+                        onClick={() => handleViewEmployee(emp)}
+                        className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                        title="View employee details"
+                      >
                         <Eye size={18} />
                       </button>
                     </td>
                   </tr>
                 ))}
+                {(!filteredEmployees || filteredEmployees.length === 0) && (
+                  <tr>
+                    <td colSpan="8" className="px-6 py-12 text-center text-gray-400 text-sm">
+                      {(statusFilter || deptFilter || searchQuery) 
+                        ? "No employees match your filters"
+                        : "No employee data available for this period"
+                      }
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
-          <div className="px-8 py-6 border-t border-slate-50 flex items-center justify-between">
-            <p className="text-xs font-medium text-slate-400">
-              Showing <span className="text-slate-900 font-bold">1-10</span> of{" "}
-              <span className="text-slate-900 font-bold">248</span> results
+          <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-between bg-white">
+            <p className="text-xs text-gray-500">
+              Showing <span className="font-semibold text-gray-700">1-{filteredEmployees?.length || 0}</span> of{" "}
+              <span className="font-semibold text-gray-700">{filteredEmployees?.length || 0}</span> results
+              {(statusFilter || deptFilter || searchQuery) && (
+                <span className="text-gray-400 ml-2">(filtered from {employees?.length || 0} total)</span>
+              )}
             </p>
             <div className="flex items-center gap-2">
               <button
-                className="p-2 border border-slate-100 rounded-xl hover:bg-slate-50 transition-all text-slate-400 group disabled:opacity-30"
+                className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50 transition-all text-gray-400 disabled:opacity-30"
                 disabled
               >
-                <ChevronLeft size={20} />
+                <ChevronLeft size={18} />
               </button>
-              <button className="p-2 border border-slate-100 rounded-xl hover:bg-slate-50 transition-all text-slate-600 group">
-                <ChevronRight size={20} />
+              <button className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50 transition-all text-gray-600">
+                <ChevronRight size={18} />
               </button>
             </div>
           </div>
         </Card>
       </div>
-    </DashboardLayout>
-  );
-}
 
-function ReportStatCard({ label, value, trend, icon: Icon, color }) {
-  const colors = {
-    blue: "bg-blue-50 text-blue-600 border-blue-100",
-    indigo: "bg-indigo-50 text-indigo-600 border-indigo-100",
-    amber: "bg-amber-50 text-amber-600 border-amber-100",
-    emerald: "bg-emerald-50 text-emerald-600 border-emerald-100",
-  };
-
-  const isTrendPositive = trend?.startsWith("+");
-
-  return (
-    <Card className="shadow-lg shadow-slate-100 transition-all group overflow-hidden relative border-none">
-      <div className="absolute top-0 right-0 w-24 h-24 bg-slate-50 rounded-full translate-x-12 -translate-y-12 opacity-50 transition-transform group-hover:scale-110" />
-      <div className="flex flex-col gap-6 relative z-10">
-        <div className="flex justify-between items-start">
-          <div
-            className={`w-12 h-12 rounded-2xl flex items-center justify-center border ${colors[color]}`}
-          >
-            <Icon size={20} strokeWidth={2.5} />
-          </div>
-          {trend && (
-            <div
-              className={`px-2.5 py-1 rounded-full text-[10px] font-black ${isTrendPositive ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"} flex items-center gap-0.5`}
-            >
-              {trend}
+      {/* Employee Detail Drawer */}
+      <SideDrawer
+        isOpen={isDetailOpen}
+        onClose={() => {
+          setIsDetailOpen(false);
+          setSelectedEmployee(null);
+        }}
+        title="Employee Report Details"
+      >
+        {selectedEmployee && (
+          <div className="space-y-6">
+            {/* Employee Info */}
+            <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl">
+              <div className="w-14 h-14 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-lg font-bold">
+                {selectedEmployee.name
+                  .split(" ")
+                  .map((n) => n[0])
+                  .join("")}
+              </div>
+              <div>
+                <h3 className="font-semibold text-gray-900">{selectedEmployee.name}</h3>
+                <p className="text-sm text-gray-500">{selectedEmployee.employeeId}</p>
+              </div>
             </div>
-          )}
-        </div>
-        <div>
-          <p className="text-3xl font-black text-slate-900 tracking-tighter leading-none mb-2">
-            {value}
-          </p>
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-            {label}
-          </p>
-        </div>
-      </div>
-    </Card>
+
+            {/* Stats */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-white border border-gray-100 rounded-xl p-4">
+                <p className="text-xs text-gray-500 mb-1">Department</p>
+                <p className="font-semibold text-gray-900">{selectedEmployee.department}</p>
+              </div>
+              <div className="bg-white border border-gray-100 rounded-xl p-4">
+                <p className="text-xs text-gray-500 mb-1">Status</p>
+                <Badge
+                  variant={
+                    selectedEmployee.status === "On-site"
+                      ? "success"
+                      : selectedEmployee.status === "Remote"
+                        ? "primary"
+                        : "warning"
+                  }
+                >
+                  {selectedEmployee.status}
+                </Badge>
+              </div>
+              <div className="bg-white border border-gray-100 rounded-xl p-4">
+                <p className="text-xs text-gray-500 mb-1">Days Present</p>
+                <p className="text-2xl font-bold text-gray-900">{selectedEmployee.daysPresent}</p>
+              </div>
+              <div className="bg-white border border-gray-100 rounded-xl p-4">
+                <p className="text-xs text-gray-500 mb-1">Late Marks</p>
+                <p className={`text-2xl font-bold ${selectedEmployee.lateMarks > 0 ? "text-red-500" : "text-gray-400"}`}>
+                  {selectedEmployee.lateMarks}
+                </p>
+              </div>
+            </div>
+
+            {/* Efficiency */}
+            <div className="bg-white border border-gray-100 rounded-xl p-4">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-sm font-medium text-gray-700">Overall Efficiency</p>
+                <span className="text-lg font-bold text-blue-600">{selectedEmployee.efficiency}%</span>
+              </div>
+              <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full transition-all duration-500"
+                  style={{ width: `${selectedEmployee.efficiency}%` }}
+                />
+              </div>
+            </div>
+
+            {/* Period Info */}
+            <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
+              <p className="text-xs text-blue-600 font-medium mb-1">Report Period</p>
+              <p className="text-sm font-semibold text-blue-900">{timeRange} Report</p>
+            </div>
+          </div>
+        )}
+      </SideDrawer>
+    </DashboardLayout>
   );
 }

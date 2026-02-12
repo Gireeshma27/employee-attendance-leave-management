@@ -16,7 +16,7 @@ export function EditEmployeeModal({ isOpen, onClose, employee, onSuccess }) {
     officeId: "",
     managerId: "",
     wfhAllowed: false,
-    wfhDaysRemaining: 0,
+    usedWFHDays: 0,
   });
 
   const [offices, setOffices] = useState([]);
@@ -35,7 +35,7 @@ export function EditEmployeeModal({ isOpen, onClose, employee, onSuccess }) {
         officeId: employee.officeId || "",
         managerId: employee.managerId || "",
         wfhAllowed: employee.wfhAllowed || false,
-        wfhDaysRemaining: employee.wfhDaysRemaining || 0,
+        usedWFHDays: employee.usedWFHDays || 0,
       });
       setErrors({});
       setApiError(null);
@@ -117,11 +117,11 @@ export function EditEmployeeModal({ isOpen, onClose, employee, onSuccess }) {
       // 3. WFH Permissions
       if (
         formData.wfhAllowed !== employee.wfhAllowed ||
-        formData.wfhDaysRemaining !== employee.wfhDaysRemaining
+        formData.usedWFHDays !== employee.usedWFHDays
       ) {
         await apiService.user.updateWFHPermission(employee._id, {
           wfhAllowed: formData.wfhAllowed,
-          wfhDaysRemaining: parseInt(formData.wfhDaysRemaining),
+          usedWFHDays: parseInt(formData.usedWFHDays),
         });
       }
 
@@ -335,19 +335,26 @@ export function EditEmployeeModal({ isOpen, onClose, employee, onSuccess }) {
             </div>
           </div>
 
-          <div>
-            <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
-              WFH Days Remaining
-            </label>
-            <Input
-              type="number"
-              name="wfhDaysRemaining"
-              value={formData.wfhDaysRemaining}
-              onChange={handleChange}
-              min="0"
-              placeholder="0 days"
-            />
-          </div>
+          {formData.wfhAllowed && (
+            <div>
+              <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
+                WFH Days Used (of 5)
+              </label>
+              <Input
+                type="number"
+                name="usedWFHDays"
+                value={formData.usedWFHDays}
+                onChange={(e) => {
+                  const val = Math.min(5, Math.max(0, parseInt(e.target.value) || 0));
+                  setFormData((prev) => ({ ...prev, usedWFHDays: val }));
+                }}
+                min="0"
+                max="5"
+                placeholder="0"
+              />
+              <p className="text-xs text-gray-400 mt-1">Remaining: {5 - (formData.usedWFHDays || 0)} days</p>
+            </div>
+          )}
         </div>
 
         {/* Action Buttons */}
@@ -365,7 +372,7 @@ export function EditEmployeeModal({ isOpen, onClose, employee, onSuccess }) {
             className="flex-1"
             disabled={isLoading}
           >
-            {isLoading ? "Updating..." : "Edit"}
+            {isLoading ? "Updating..." : "Update"}
           </Button>
         </div>
       </form>

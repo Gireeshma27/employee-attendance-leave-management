@@ -11,7 +11,7 @@ import {
   Filter,
   Search,
 } from "lucide-react";
-import { apiService } from "@/lib/api";
+import apiService from "@/lib/api";
 import { useRouter } from "next/navigation";
 
 const NotificationsPage = () => {

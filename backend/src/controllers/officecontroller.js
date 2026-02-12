@@ -1,3 +1,13 @@
+/**
+ * GEOFENCING/OFFICE CONTROLLER - TEMPORARILY DISABLED
+ * 
+ * These controller functions are not currently in use because
+ * geofencing has been temporarily disabled. The routes in
+ * officeroutes.js have been commented out.
+ * 
+ * To re-enable, uncomment the routes in officeroutes.js
+ */
+
 import Office from "#models/office";
 import { sendSuccess, sendError } from "#utils/api_response_fix";
 
