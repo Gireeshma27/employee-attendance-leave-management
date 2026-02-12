@@ -26,43 +26,17 @@ const ManagerDashboard = () => {
       setLoading(true);
       setError(null);
 
-      const [attendanceRes, leavesRes] = await Promise.all([
-        apiService.attendance.getTeamAttendance(),
-        apiService.leave.getPendingLeaves(),
-      ]);
+      const dashboardRes = await apiService.dashboard.getManagerStats();
 
-      const attendance = attendanceRes.data?.records || [];
-      const pending = leavesRes.data || [];
-
-      // Extract unique team members from attendance records
-      const uniqueTeamMembers = new Map();
-      attendance.forEach((record) => {
-        if (record.userId && !uniqueTeamMembers.has(record.userId._id)) {
-          uniqueTeamMembers.set(record.userId._id, record.userId);
-        }
-      });
-      const team = Array.from(uniqueTeamMembers.values());
-
-      // Calculate stats
-      const today = new Date().toISOString().split("T")[0];
-      const todayAttendance = attendance.filter((a) => {
-        const attendanceDate = new Date(a.date).toISOString().split("T")[0];
-        return attendanceDate === today;
-      });
-
-      const presentCount = todayAttendance.filter(
-        (a) => a.checkInTime || a.checkIn,
-      ).length;
-      const absentCount = Math.max(0, team.length - presentCount);
-
-      setStats({
-        teamSize: team.length,
-        presentToday: presentCount,
-        absentToday: absentCount,
-        pendingApprovals: pending.length,
-      });
-
-      setTeamData(team.slice(0, 5)); // Show first 5 team members
+      if (dashboardRes.success) {
+        const { stats, teamMembers } = dashboardRes.data;
+        setStats(stats);
+        setTeamData(teamMembers || []);
+      } else {
+        throw new Error(
+          dashboardRes.message || "Failed to fetch dashboard data",
+        );
+      }
     } catch (err) {
       console.error("[MANAGER DASHBOARD ERROR]:", err);
       setError(err.message);

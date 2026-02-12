@@ -4,7 +4,13 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
-import { Clock, Calendar, AlertCircle, TrendingUp, ChevronRight } from "lucide-react";
+import {
+  Clock,
+  Calendar,
+  AlertCircle,
+  TrendingUp,
+  ChevronRight,
+} from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import apiService from "@/lib/api";
@@ -15,6 +21,12 @@ const EmployeeDashboard = () => {
   const [todayStatus, setTodayStatus] = useState(null);
   const [attendanceHistory, setAttendanceHistory] = useState([]);
   const [pendingLeaves, setPendingLeaves] = useState(0);
+  const [leaveBalance, setLeaveBalance] = useState({
+    CL: 0,
+    SL: 0,
+    PL: 0,
+    total: 0,
+  });
   const [error, setError] = useState(null);
   const router = useRouter();
 
@@ -23,29 +35,27 @@ const EmployeeDashboard = () => {
       setLoading(true);
       setError(null);
 
-      // Fetch profile, attendance, and leaves in parallel
-      const [profileRes, attendanceRes, leavesRes] = await Promise.all([
+      // Fetch profile and unified dashboard statistics
+      const [profileRes, dashboardRes] = await Promise.all([
         apiService.user.getProfile(),
-        apiService.attendance.getMyAttendance(),
-        apiService.leave.getMyLeaves(),
+        apiService.dashboard.getEmployeeStats(),
       ]);
 
       if (profileRes.success) setUser(profileRes.data);
-      if (attendanceRes.success) {
-        const history = attendanceRes.data || [];
-        setAttendanceHistory(history);
 
-        // Identify today's record
-        const today = new Date().toISOString().split("T")[0];
-        const todayRecord = history.find((r) => {
-          const recordDate = new Date(r.date).toISOString().split("T")[0];
-          return recordDate === today;
-        });
-        setTodayStatus(todayRecord || null);
-      }
-      if (leavesRes.success) {
-        const pending = leavesRes.data?.filter(l => l.status === 'Pending')?.length || 0;
-        setPendingLeaves(pending);
+      if (dashboardRes.success) {
+        const { todayStatus, stats, recentAttendance } = dashboardRes.data;
+
+        setTodayStatus(todayStatus);
+        setAttendanceHistory(recentAttendance || []);
+        setPendingLeaves(stats.pendingRequests || 0);
+        setLeaveBalance(
+          stats.leaveBalance || { CL: 0, SL: 0, PL: 0, total: 0 },
+        );
+      } else {
+        throw new Error(
+          dashboardRes.message || "Failed to fetch dashboard data",
+        );
       }
     } catch (err) {
       console.error("Error fetching dashboard data:", err);
@@ -106,27 +116,25 @@ const EmployeeDashboard = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard
             label="Today's Status"
-            value={
-              todayStatus?.checkInTime
-                ? "Present"
-                : "Not Checked In"
-            }
+            value={todayStatus?.checkInTime ? "Present" : "Not Checked In"}
             icon={Clock}
             color="blue"
           />
 
           <StatCard
             label="Working Hours"
-            value={todayStatus?.workingHours
-              ? `${Math.floor(todayStatus.workingHours)}h ${Math.round((todayStatus.workingHours % 1) * 60)}m`
-              : "0h 0m"}
+            value={
+              todayStatus?.workingHours
+                ? `${Math.floor(todayStatus.workingHours)}h ${Math.round((todayStatus.workingHours % 1) * 60)}m`
+                : "0h 0m"
+            }
             icon={TrendingUp}
             color="emerald"
           />
 
           <StatCard
             label="Leave Balance"
-            value="38 days"
+            value={`${leaveBalance.total} days`}
             icon={Calendar}
             color="amber"
           />
@@ -142,7 +150,9 @@ const EmployeeDashboard = () => {
         {/* Recent Attendance */}
         <Card className="overflow-hidden shadow-sm border-slate-200">
           <CardHeader className="bg-slate-50/50 border-b border-slate-100 flex flex-row items-center justify-between">
-            <CardTitle className="text-base font-semibold text-gray-800">Recent Attendance</CardTitle>
+            <CardTitle className="text-base font-semibold text-gray-800">
+              Recent Attendance
+            </CardTitle>
             <span className="text-xs text-gray-400">Last 5 records</span>
           </CardHeader>
           <CardContent className="p-0">
@@ -152,7 +162,9 @@ const EmployeeDashboard = () => {
                   <tr className="text-gray-500 bg-slate-50/30 uppercase text-[10px] font-semibold tracking-widest">
                     <th className="text-left px-4 md:px-6 py-4">Date</th>
                     <th className="text-left px-4 md:px-6 py-4">Check-in</th>
-                    <th className="text-left px-4 md:px-6 py-4 hidden sm:table-cell">Check-out</th>
+                    <th className="text-left px-4 md:px-6 py-4 hidden sm:table-cell">
+                      Check-out
+                    </th>
                     <th className="text-left px-4 md:px-6 py-4">Hours</th>
                     <th className="text-left px-4 md:px-6 py-4">Status</th>
                   </tr>
@@ -174,25 +186,25 @@ const EmployeeDashboard = () => {
                         <td className="px-4 md:px-6 py-4 text-gray-600">
                           {record.checkInTime
                             ? new Date(record.checkInTime).toLocaleTimeString(
-                              "en-US",
-                              {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                                hour12: true,
-                              },
-                            )
+                                "en-US",
+                                {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                  hour12: true,
+                                },
+                              )
                             : "-"}
                         </td>
                         <td className="px-4 md:px-6 py-4 text-gray-600 hidden sm:table-cell">
                           {record.checkOutTime
                             ? new Date(record.checkOutTime).toLocaleTimeString(
-                              "en-US",
-                              {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                                hour12: true,
-                              },
-                            )
+                                "en-US",
+                                {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                  hour12: true,
+                                },
+                              )
                             : "-"}
                         </td>
                         <td className="px-4 md:px-6 py-4 text-gray-700 font-medium">
@@ -265,9 +277,7 @@ const StatCard = ({ label, value, icon: Icon, color }) => {
             </p>
             <p className="mt-2 text-2xl font-semibold text-gray-900">{value}</p>
           </div>
-          <div
-            className={`p-3 rounded-xl ${colorMap[color] || colorMap.blue}`}
-          >
+          <div className={`p-3 rounded-xl ${colorMap[color] || colorMap.blue}`}>
             <Icon size={22} />
           </div>
         </div>

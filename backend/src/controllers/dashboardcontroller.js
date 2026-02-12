@@ -169,4 +169,139 @@ const getAdminDashboardStats = async (req, res) => {
   }
 };
 
-export { getAdminDashboardStats };
+const getEmployeeDashboardStats = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    // 1. Fetch Today's Attendance
+    const todayAttendance = await Attendance.findOne({
+      userId,
+      date: { $gte: today, $lt: tomorrow },
+    });
+
+    // 2. Fetch Leave Balance & Pending Count
+    const allApprovedLeaves = await Leave.find({ userId, status: "Approved" });
+    const clUsed = allApprovedLeaves
+      .filter((l) => l.leaveType === "CL")
+      .reduce((sum, l) => sum + (l.numberOfDays || 1), 0);
+    const slUsed = allApprovedLeaves
+      .filter((l) => l.leaveType === "SL")
+      .reduce((sum, l) => sum + (l.numberOfDays || 1), 0);
+    const plUsed = allApprovedLeaves
+      .filter((l) => l.leaveType === "PL")
+      .reduce((sum, l) => sum + (l.numberOfDays || 1), 0);
+
+    const pendingLeavesCount = await Leave.countDocuments({
+      userId,
+      status: "Pending",
+    });
+
+    // 3. Get Recent Attendance (Last 5)
+    const recentAttendance = await Attendance.find({ userId })
+      .sort({ date: -1 })
+      .limit(5)
+      .lean();
+
+    // 4. Enrich recent attendance (calculate working hours if missing)
+    const enrichedAttendance = recentAttendance.map((record) => {
+      if (
+        record.checkOutTime &&
+        (!record.workingHours || record.workingHours === 0)
+      ) {
+        const checkIn = new Date(record.checkInTime);
+        const checkOut = new Date(record.checkOutTime);
+        const workingMilliseconds = checkOut - checkIn;
+        if (workingMilliseconds > 0) {
+          const totalMinutes = Math.floor(workingMilliseconds / (1000 * 60));
+          record.workingHours = Number((totalMinutes / 60).toFixed(2));
+          record.workingMinutes = totalMinutes;
+        }
+      }
+      return record;
+    });
+
+    return sendSuccess(res, "Employee dashboard stats retrieved successfully", {
+      todayStatus: todayAttendance || null,
+      stats: {
+        pendingRequests: pendingLeavesCount,
+        leaveBalance: {
+          CL: Math.max(0, 12 - clUsed),
+          SL: Math.max(0, 8 - slUsed),
+          PL: Math.max(0, 18 - plUsed),
+          total:
+            Math.max(0, 12 - clUsed) +
+            Math.max(0, 8 - slUsed) +
+            Math.max(0, 18 - plUsed),
+        },
+      },
+      recentAttendance: enrichedAttendance,
+    });
+  } catch (error) {
+    return sendError(
+      res,
+      "Failed to retrieve employee dashboard stats",
+      error.message,
+    );
+  }
+};
+
+const getManagerDashboardStats = async (req, res) => {
+  try {
+    const managerId = req.user.id;
+
+    // 1. Get Team Members
+    const teamMembers = await User.find({ managerId }).select(
+      "_id name employeeId role department",
+    );
+    const teamUserIds = teamMembers.map((user) => user._id);
+    const teamSize = teamMembers.length;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    // 2. Today's Team Attendance
+    const todayAttendance = await Attendance.find({
+      userId: { $in: teamUserIds },
+      date: { $gte: today, $lt: tomorrow },
+    });
+
+    const presentToday = todayAttendance.filter(
+      (a) => a.status === "Present" || a.status === "WFH",
+    ).length;
+
+    // 3. Pending Leave Approvals (Direct Reports)
+    const pendingLeaves = await Leave.find({
+      userId: { $in: teamUserIds },
+      status: "Pending",
+    }).populate("userId", "name employeeId department");
+
+    return sendSuccess(res, "Manager dashboard stats retrieved successfully", {
+      stats: {
+        teamSize,
+        presentToday,
+        absentToday: Math.max(0, teamSize - presentToday),
+        pendingApprovals: pendingLeaves.length,
+      },
+      pendingRequests: pendingLeaves,
+      teamMembers: teamMembers.slice(0, 5), // Recent team slice
+    });
+  } catch (error) {
+    return sendError(
+      res,
+      "Failed to retrieve manager dashboard stats",
+      error.message,
+    );
+  }
+};
+
+export {
+  getAdminDashboardStats,
+  getEmployeeDashboardStats,
+  getManagerDashboardStats,
+};
