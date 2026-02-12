@@ -41,9 +41,23 @@ export default function AttendancePage() {
   useEffect(() => {
     fetchAttendanceData();
     fetchUserProfile();
+
+    // Sync WFH state with localStorage (sidebar master switch)
+    if (typeof window !== "undefined") {
+      const storedWfh = localStorage.getItem("wfhMode") === "true";
+      setIsWFH(storedWfh);
+    }
+
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
+
+  // Sync isWFH back to localStorage if changed on page
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("wfhMode", isWFH);
+    }
+  }, [isWFH]);
 
   const fetchUserProfile = async () => {
     try {
@@ -80,6 +94,13 @@ export default function AttendancePage() {
     // GEOFENCING TEMPORARILY DISABLED - removed geofence check
     // Original: if (isOutOfRange && !isWFH) return;
 
+    if (isWFH && !userProfile?.wfhAllowed) {
+      setError(
+        "WFH permission not granted by admin. Please contact your manager.",
+      );
+      return;
+    }
+
     try {
       setIsSubmitting(true);
       const checkInTime = new Date();
@@ -101,8 +122,8 @@ export default function AttendancePage() {
       setSuccessConfig({
         title: isWFH ? "WFH Check-in Successful!" : "Check-in Successful!",
         message: isWFH
-          ? "Your remote attendance has been recorded. Have a great day!"
-          : "Your attendance has been recorded for today. Have a productive day ahead!",
+          ? "Your remote attendance from Verified Home Location has been recorded. Have a great day!"
+          : "Your attendance from Verified Office Location has been recorded for today. Have a productive day ahead!",
         time: formatTime(checkInTime),
       });
       setShowSuccess(true);
@@ -274,18 +295,14 @@ export default function AttendancePage() {
                     isOutOfRange ? "text-red-400" : "text-green-500"
                   }`}
                 >
-                  Current Time
+                  Check-out Time
                 </p>
                 <p
                   className={`text-xl md:text-2xl font-bold mt-1 ${
                     isOutOfRange ? "text-red-900" : "text-green-900"
                   }`}
                 >
-                  {currentTime.toLocaleTimeString("en-US", {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    hour12: true,
-                  })}
+                  {formatTime(todayAttendance?.checkOutTime)}
                 </p>
               </div>
             </div>
@@ -297,11 +314,11 @@ export default function AttendancePage() {
                 <Locate size={20} />
               </div>
               <div>
-              <p className="text-[9px] md:text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
-                Total Hours
-              </p>
-              <div className="flex items-baseline gap-1 mt-1 justify-center">
-                <p className="text-xl md:text-2xl font-bold text-gray-900">
+                <p className="text-[9px] md:text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
+                  Total Hours
+                </p>
+                <div className="flex items-baseline gap-1 mt-1 justify-center">
+                  <p className="text-xl md:text-2xl font-bold text-gray-900">
                     {activeDuration.h}h
                   </p>
                   <p className="text-base md:text-lg font-bold text-gray-400">
@@ -441,7 +458,7 @@ export default function AttendancePage() {
                     }
                   >
                     {todayAttendance.status === "WFH"
-                      ? "Home/Remote Location"
+                      ? "Verified Home Location"
                       : "Verified Office Location"}
                   </span>
                 </p>
@@ -455,7 +472,7 @@ export default function AttendancePage() {
             </div>
           </div>
 
-          {/* Live Location Card */}
+          {/* Live Location Card - TEMPORARILY DISABLED 
           <div className="bg-white border border-gray-100 rounded-3xl overflow-hidden shadow-sm flex flex-col">
             <div className="p-4 md:p-5 border-b border-gray-50 flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -472,7 +489,6 @@ export default function AttendancePage() {
               </Badge>
             </div>
 
-            {/* Mock Map UI */}
             <div className="relative flex-1 bg-gray-100 min-h-[200px] md:min-h-[220px] flex items-center justify-center">
               <div
                 className="absolute inset-0 opacity-20 pointer-events-none"
@@ -483,7 +499,6 @@ export default function AttendancePage() {
                 }}
               ></div>
 
-              {/* Geofence Circle */}
               <div
                 className={`relative w-24 md:w-32 h-24 md:h-32 rounded-full flex items-center justify-center border-2 border-dashed ${
                   isOutOfRange
@@ -491,7 +506,6 @@ export default function AttendancePage() {
                     : "bg-green-50 border-green-200"
                 }`}
               >
-                {/* User Pin */}
                 <div
                   className={`absolute transition-all duration-700 ${
                     isOutOfRange
@@ -517,7 +531,6 @@ export default function AttendancePage() {
                 </div>
               </div>
 
-              {/* Location Label */}
               <div className="absolute bottom-3 left-3 right-3 md:bottom-4 md:left-4 md:right-4 bg-white/95 backdrop-blur-sm p-2 md:p-3 rounded-xl border border-gray-100 shadow-xl">
                 <p className="text-[8px] md:text-[10px] font-semibold text-gray-400 uppercase tracking-widest leading-none">
                   Detected Location
@@ -535,6 +548,7 @@ export default function AttendancePage() {
               </div>
             </div>
           </div>
+          */}
         </div>
 
         {/* Attendance History */}

@@ -24,12 +24,20 @@ const globalErrorHandler = (err, req, res, next) => {
     (err instanceof Error && err.name === "ZodError")
   ) {
     statusCode = 400;
-    message = "Validation Error";
     const errors = Array.isArray(err.errors) ? err.errors : [];
+
+    // Use the first error message as the main message if available
+    if (errors.length > 0) {
+      message = errors[0].message;
+    } else {
+      message = "Validation Error";
+    }
+
     const formattedErrors = errors.map((e) => ({
       path: e.path.join("."),
       message: e.message,
     }));
+
     return sendError(res, message, formattedErrors, statusCode);
   }
 

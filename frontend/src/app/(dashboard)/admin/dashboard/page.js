@@ -84,8 +84,13 @@ const AdminDashboard = () => {
     );
   }
 
-  const { summary, trends, deptPerformance, activities, activeSessions } =
-    data || {};
+  const {
+    summary = {},
+    trends = [],
+    deptPerformance = [],
+    activities = [],
+    activeSessions = [],
+  } = data || {};
 
   return (
     <DashboardLayout role="admin">
@@ -93,12 +98,20 @@ const AdminDashboard = () => {
         {/* Welcome Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight">Admin Dashboard</h1>
-            <p className="text-sm text-slate-500 mt-1">Welcome back! Here's what's happening today.</p>
+            <h1 className="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight">
+              Admin Dashboard
+            </h1>
+            <p className="text-sm text-slate-500 mt-1">
+              Welcome back! Here's what's happening today.
+            </p>
           </div>
           <div className="flex items-center gap-3">
             <span className="text-xs text-slate-400 font-medium">
-              Last updated: {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              Last updated:{" "}
+              {new Date().toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
             </span>
             <button
               onClick={fetchDashboardData}
@@ -147,7 +160,9 @@ const AdminDashboard = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
           <Card className="lg:col-span-2 shadow-lg shadow-slate-100/50 border border-slate-100">
             <CardHeader className="pb-2">
-              <CardTitle className="text-base md:text-lg">Office vs. WFH (Attendance Trends)</CardTitle>
+              <CardTitle className="text-base md:text-lg">
+                Office vs. WFH (Attendance Trends)
+              </CardTitle>
               <div className="flex gap-4">
                 <div className="flex items-center gap-1.5">
                   <div className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-sm shadow-blue-500/20"></div>
@@ -180,7 +195,9 @@ const AdminDashboard = () => {
 
           <Card className="shadow-lg shadow-slate-100/50 border border-slate-100">
             <CardHeader className="pb-2">
-              <CardTitle className="text-base md:text-lg">Departmental Performance</CardTitle>
+              <CardTitle className="text-base md:text-lg">
+                Departmental Performance
+              </CardTitle>
               <div className="bg-slate-50 border-none text-[10px] font-semibold text-slate-500 uppercase tracking-widest px-3 py-1.5 rounded-lg">
                 LAST 7 DAYS
               </div>
@@ -213,7 +230,9 @@ const AdminDashboard = () => {
           {/* Live Activity */}
           <Card className="lg:col-span-2 shadow-lg shadow-slate-100/50 border border-slate-100">
             <CardHeader className="pb-2">
-              <CardTitle className="text-base md:text-lg">Live Activity Log</CardTitle>
+              <CardTitle className="text-base md:text-lg">
+                Live Activity Log
+              </CardTitle>
               <button
                 onClick={fetchDashboardData}
                 className="text-[10px] font-semibold text-blue-600 uppercase tracking-widest hover:underline px-3 py-1.5 md:px-4 md:py-2 bg-blue-50 rounded-lg"
@@ -292,7 +311,9 @@ const AdminDashboard = () => {
           <div className="space-y-6 md:space-y-8">
             <Card className="shadow-lg shadow-slate-100/50 border border-slate-100">
               <CardHeader className="pb-2">
-                <CardTitle className="text-base md:text-lg">System Status</CardTitle>
+                <CardTitle className="text-base md:text-lg">
+                  System Status
+                </CardTitle>
               </CardHeader>
               <div className="space-y-4 md:space-y-6">
                 <StatusItem
@@ -396,7 +417,10 @@ const StatusItem = ({ icon: Icon, label, status, variant }) => (
         {label}
       </span>
     </div>
-    <Badge variant={variant} className="border-none px-2.5 py-1 md:px-4 md:py-1.5 shadow-sm text-[10px] md:text-xs">
+    <Badge
+      variant={variant}
+      className="border-none px-2.5 py-1 md:px-4 md:py-1.5 shadow-sm text-[10px] md:text-xs"
+    >
       {status}
     </Badge>
   </div>

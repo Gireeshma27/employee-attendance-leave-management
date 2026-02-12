@@ -5,7 +5,13 @@ import { z } from "zod";
  * @module validations/uservalidation
  */
 
-const DEPARTMENTS = ["Administration", "HR", "Engineering", "Design", "Marketing"];
+const DEPARTMENTS = [
+  "Administration",
+  "HR",
+  "Engineering",
+  "Design",
+  "Marketing",
+];
 
 const createUserSchema = z.object({
   body: z.object({
@@ -14,7 +20,9 @@ const createUserSchema = z.object({
     password: z.string().min(6, "Password must be at least 6 characters"),
     role: z.enum(["ADMIN", "MANAGER", "EMPLOYEE"]).optional(),
     employeeId: z.string().optional(),
-    department: z.enum(DEPARTMENTS, { required_error: "Department is required" }),
+    department: z.enum(DEPARTMENTS, {
+      required_error: "Department is required",
+    }),
     wfhAllowed: z.boolean().optional(),
     totalWFHDays: z.number().min(0).max(30).optional(),
     usedWFHDays: z.number().min(0).max(30).optional(),
@@ -43,5 +51,29 @@ const updateProfileSchema = z.object({
   }),
 });
 
-export { createUserSchema, updateUserSchema, updateProfileSchema };
-export default { createUserSchema, updateUserSchema, updateProfileSchema };
+const changePasswordSchema = z.object({
+  body: z
+    .object({
+      oldPassword: z.string().min(1, "Old password is required"),
+      newPassword: z
+        .string()
+        .min(6, "New password must be at least 6 characters"),
+    })
+    .refine((data) => data.oldPassword !== data.newPassword, {
+      message: "New password must be different from the old password",
+      path: ["newPassword"],
+    }),
+});
+
+export {
+  createUserSchema,
+  updateUserSchema,
+  updateProfileSchema,
+  changePasswordSchema,
+};
+export default {
+  createUserSchema,
+  updateUserSchema,
+  updateProfileSchema,
+  changePasswordSchema,
+};

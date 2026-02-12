@@ -8,6 +8,7 @@ import {
   updateUser,
   assignLocation,
   updateWFHPermission,
+  changePassword,
 } from "../controllers/usercontroller.js";
 import protect from "../middlewares/protectmiddleware.js";
 import isAdmin from "../middlewares/isadminmiddleware.js";
@@ -16,6 +17,7 @@ import {
   createUserSchema,
   updateUserSchema,
   updateProfileSchema,
+  changePasswordSchema,
 } from "../validations/uservalidation.js";
 
 const router = express.Router();
@@ -25,6 +27,11 @@ router.use(protect);
 // Profile routes (All authenticated users)
 router.get("/profile", getProfile);
 router.put("/profile", validate(updateProfileSchema), updateProfile);
+router.post(
+  "/profile/change-password",
+  validate(changePasswordSchema),
+  changePassword,
+);
 
 /**
  * MANAGEMENT ROUTES

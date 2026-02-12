@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import env from "#config/env";
+import env from "../config/env.js";
 
 /**
  * @description JWT utility for token generation and verification.

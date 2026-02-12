@@ -1,5 +1,5 @@
 import User from "#models/user";
-import { hashPassword } from "../utils/password.js";
+import { hashPassword, comparePassword } from "../utils/password.js";
 import { sendSuccess, sendError } from "#utils/api_response_fix";
 
 const getAllUsers = async (req, res) => {
@@ -76,7 +76,17 @@ const updateProfile = async (req, res) => {
 
 const createUser = async (req, res) => {
   try {
-    const { name, email, password, role, employeeId, department, wfhAllowed, totalWFHDays, usedWFHDays } = req.body;
+    const {
+      name,
+      email,
+      password,
+      role,
+      employeeId,
+      department,
+      wfhAllowed,
+      totalWFHDays,
+      usedWFHDays,
+    } = req.body;
 
     const existingUser = await User.findOne({ email: email.toLowerCase() });
     if (existingUser)
@@ -238,6 +248,39 @@ const updateWFHPermission = async (req, res) => {
   }
 };
 
+const changePassword = async (req, res) => {
+  try {
+    const { oldPassword, newPassword } = req.body;
+
+    if (oldPassword === newPassword) {
+      return sendError(
+        res,
+        "New password must be different from current password",
+        "Bad Request",
+        400,
+      );
+    }
+
+    const user = await User.findById(req.user.id).select("+password");
+
+    if (!user) {
+      return sendError(res, "User not found", "Not Found", 404);
+    }
+
+    const isMatch = await comparePassword(oldPassword, user.password);
+    if (!isMatch) {
+      return sendError(res, "Incorrect current password", "Unauthorized", 401);
+    }
+
+    user.password = await hashPassword(newPassword);
+    await user.save();
+
+    return sendSuccess(res, "Password changed successfully");
+  } catch (error) {
+    return sendError(res, "Failed to change password", error.message);
+  }
+};
+
 export {
   getAllUsers,
   getUserById,
@@ -247,4 +290,5 @@ export {
   updateUser,
   assignLocation,
   updateWFHPermission,
+  changePassword,
 };

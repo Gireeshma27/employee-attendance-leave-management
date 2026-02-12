@@ -4,7 +4,7 @@
  */
 
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:5000/api/v1";
+  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000/api/v1";
 
 class ApiService {
   /**
@@ -56,7 +56,7 @@ class ApiService {
         try {
           errorData = await response.json();
           // Extract error message from standardized response format
-          errorMessage = errorData.error || errorData.message || errorMessage;
+          errorMessage = errorData.message || errorData.error || errorMessage;
         } catch {
           // If response is not JSON, use status message
           errorMessage = response.statusText || errorMessage;
@@ -204,14 +204,19 @@ class ApiService {
         method: "PATCH",
         body: JSON.stringify(data),
       }),
+
+    changePassword: (data) =>
+      this.request("/users/profile/change-password", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
   };
 
   /**
    * Dashboard Endpoints
    */
   dashboard = {
-    getAdminStats: () =>
-      this.request("/dashboard/admin", { method: "GET" }),
+    getAdminStats: () => this.request("/dashboard/admin", { method: "GET" }),
 
     getManagerStats: () =>
       this.request("/dashboard/manager", { method: "GET" }),
@@ -305,7 +310,16 @@ class ApiService {
         body: JSON.stringify(data),
       }),
 
-    getMyLeaves: () => this.request("/leaves/my", { method: "GET" }),
+    getMyLeaves: (filters = {}) => {
+      const params = new URLSearchParams();
+      if (filters.page) params.append("page", filters.page);
+      if (filters.limit) params.append("limit", filters.limit);
+      if (filters.status) params.append("status", filters.status);
+      const query = params.toString();
+      return this.request(`/leaves/my${query ? "?" + query : ""}`, {
+        method: "GET",
+      });
+    },
 
     getPendingLeaves: () => this.request("/leaves/pending", { method: "GET" }),
 
@@ -332,8 +346,7 @@ class ApiService {
    * Notification Endpoints
    */
   notification = {
-    getAll: () =>
-      this.request("/notifications", { method: "GET" }),
+    getAll: () => this.request("/notifications", { method: "GET" }),
 
     markAsRead: (id) =>
       this.request(`/notifications/${id}/read`, {
@@ -353,7 +366,7 @@ class ApiService {
 
   /**
    * Office/Geofencing Endpoints - TEMPORARILY DISABLED
-   * 
+   *
    * Geofencing feature is temporarily disabled. These endpoints return
    * empty/disabled responses to prevent errors while the backend routes
    * are commented out. To re-enable, restore the original API calls below.
@@ -361,11 +374,27 @@ class ApiService {
   office = {
     // GEOFENCING DISABLED - Return empty data instead of making API calls
     getAll: () => Promise.resolve({ success: true, data: [] }),
-    getById: (id) => Promise.resolve({ success: false, message: "Geofencing temporarily disabled" }),
-    create: (data) => Promise.resolve({ success: false, message: "Geofencing temporarily disabled" }),
-    update: (id, data) => Promise.resolve({ success: false, message: "Geofencing temporarily disabled" }),
-    delete: (id) => Promise.resolve({ success: false, message: "Geofencing temporarily disabled" }),
-    
+    getById: (id) =>
+      Promise.resolve({
+        success: false,
+        message: "Geofencing temporarily disabled",
+      }),
+    create: (data) =>
+      Promise.resolve({
+        success: false,
+        message: "Geofencing temporarily disabled",
+      }),
+    update: (id, data) =>
+      Promise.resolve({
+        success: false,
+        message: "Geofencing temporarily disabled",
+      }),
+    delete: (id) =>
+      Promise.resolve({
+        success: false,
+        message: "Geofencing temporarily disabled",
+      }),
+
     /* ORIGINAL OFFICE ENDPOINTS - Uncomment to re-enable geofencing
     getAll: () =>
       this.request("/offices", { method: "GET" }),
