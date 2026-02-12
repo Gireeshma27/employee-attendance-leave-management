@@ -28,6 +28,8 @@ const getLeavesSchema = z.object({
     leaveType: z.enum(["CL", "SL", "PL", "UL"]).optional(),
     fromDate: z.string().optional(),
     toDate: z.string().optional(),
+    page: z.string().optional(),
+    limit: z.string().optional(),
   }),
 });
 

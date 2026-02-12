@@ -310,7 +310,16 @@ class ApiService {
         body: JSON.stringify(data),
       }),
 
-    getMyLeaves: () => this.request("/leaves/my", { method: "GET" }),
+    getMyLeaves: (filters = {}) => {
+      const params = new URLSearchParams();
+      if (filters.page) params.append("page", filters.page);
+      if (filters.limit) params.append("limit", filters.limit);
+      if (filters.status) params.append("status", filters.status);
+      const query = params.toString();
+      return this.request(`/leaves/my${query ? "?" + query : ""}`, {
+        method: "GET",
+      });
+    },
 
     getPendingLeaves: () => this.request("/leaves/pending", { method: "GET" }),
 

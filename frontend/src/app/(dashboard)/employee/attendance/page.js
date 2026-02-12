@@ -295,18 +295,14 @@ export default function AttendancePage() {
                     isOutOfRange ? "text-red-400" : "text-green-500"
                   }`}
                 >
-                  Current Time
+                  Check-out Time
                 </p>
                 <p
                   className={`text-xl md:text-2xl font-bold mt-1 ${
                     isOutOfRange ? "text-red-900" : "text-green-900"
                   }`}
                 >
-                  {currentTime.toLocaleTimeString("en-US", {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    hour12: true,
-                  })}
+                  {formatTime(todayAttendance?.checkOutTime)}
                 </p>
               </div>
             </div>

@@ -92,17 +92,54 @@ const applyLeave = async (req, res) => {
 const getMyLeaves = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { status } = req.query;
+    const { status, page = 1, limit = 10 } = req.query;
+
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+    const skip = (pageNum - 1) * limitNum;
 
     const filter = { userId };
     if (status) filter.status = status;
 
+    // Fetch total count for pagination
+    const totalRecords = await Leave.countDocuments(filter);
+
     const leaves = await Leave.find(filter)
       .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limitNum)
       .populate("userId", "name email employeeId")
       .populate("approvedBy", "name email");
 
-    return sendSuccess(res, "Leave requests retrieved successfully", leaves);
+    // Fetch ALL approved leaves to calculate correct balance regardless of current page
+    const allApprovedLeaves = await Leave.find({ userId, status: "Approved" });
+
+    const clUsed = allApprovedLeaves
+      .filter((l) => l.leaveType === "CL")
+      .reduce((sum, l) => sum + (l.numberOfDays || 1), 0);
+    const slUsed = allApprovedLeaves
+      .filter((l) => l.leaveType === "SL")
+      .reduce((sum, l) => sum + (l.numberOfDays || 1), 0);
+    const plUsed = allApprovedLeaves
+      .filter((l) => l.leaveType === "PL")
+      .reduce((sum, l) => sum + (l.numberOfDays || 1), 0);
+
+    const balances = {
+      CL: Math.max(0, 12 - clUsed),
+      SL: Math.max(0, 8 - slUsed),
+      PL: Math.max(0, 18 - plUsed),
+    };
+
+    return sendSuccess(res, "Leave requests retrieved successfully", {
+      records: leaves,
+      pagination: {
+        totalRecords,
+        totalPages: Math.ceil(totalRecords / limitNum),
+        currentPage: pageNum,
+        limit: limitNum,
+      },
+      balances,
+    });
   } catch (error) {
     return sendError(res, "Failed to retrieve leave requests", error.message);
   }
