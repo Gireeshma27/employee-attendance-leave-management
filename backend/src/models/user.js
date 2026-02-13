@@ -42,7 +42,6 @@ const userSchema = new mongoose.Schema(
     },
     department: {
       type: String,
-      enum: ["Administration", "HR", "Engineering", "Design", "Marketing"],
       trim: true,
     },
     phone: {

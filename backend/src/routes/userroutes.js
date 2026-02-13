@@ -9,6 +9,7 @@ import {
   assignLocation,
   updateWFHPermission,
   changePassword,
+  getDepartments,
 } from "../controllers/usercontroller.js";
 import protect from "../middlewares/protectmiddleware.js";
 import isAdmin from "../middlewares/isadminmiddleware.js";
@@ -32,6 +33,9 @@ router.post(
   validate(changePasswordSchema),
   changePassword,
 );
+
+// Get departments (available to all authenticated users)
+router.get("/departments", getDepartments);
 
 /**
  * MANAGEMENT ROUTES

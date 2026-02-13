@@ -387,7 +387,7 @@ export default function AttendancePage() {
                   <th className="px-6 py-4 font-semibold text-gray-500 uppercase tracking-wider text-[11px]">
                     Status
                   </th>
-                  <th className="px-6 py-4 font-semibold text-gray-500 uppercase tracking-wider text-[11px] text-right">
+                  <th className="px-6 py-4 font-semibold text-gray-500 uppercase tracking-wider text-[11px] text-right sticky right-0 bg-white z-10">
                     Action
                   </th>
                 </tr>
@@ -476,7 +476,7 @@ export default function AttendancePage() {
                             {status}
                           </Badge>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right">
+                        <td className="px-6 py-4 whitespace-nowrap text-right sticky right-0 bg-white z-10">
                           <button
                             onClick={() => handleEditClick(record)}
                             className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"

@@ -14,7 +14,6 @@ import {
   MapPin,
   Search,
   Bell,
-  Settings,
 } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
@@ -411,21 +410,12 @@ const DashboardLayout = ({ children, role = "employee" }) => {
                       </p>
                     </div>
                     <div className="space-y-1">
-                      <button className="w-full flex items-center gap-3 px-4 py-3 text-sm text-slate-600 hover:bg-slate-50 rounded-xl transition-colors font-semibold leading-none">
-                        <Users size={18} className="text-slate-400" />
-                        My Profile
-                      </button>
-                      <button className="w-full flex items-center gap-3 px-4 py-3 text-sm text-slate-600 hover:bg-slate-50 rounded-xl transition-colors font-semibold leading-none">
-                        <Settings size={18} className="text-slate-400" />
-                        Settings
-                      </button>
-                      <div className="h-px bg-slate-50 my-1 mx-2" />
                       <button
                         onClick={handleLogout}
                         className="w-full flex items-center gap-3 px-4 py-3 text-sm text-rose-600 hover:bg-rose-50 rounded-xl transition-colors font-bold uppercase tracking-widest text-[11px]"
                       >
                         <LogOut size={16} />
-                        Logout Session
+                        Logout
                       </button>
                     </div>
                   </div>

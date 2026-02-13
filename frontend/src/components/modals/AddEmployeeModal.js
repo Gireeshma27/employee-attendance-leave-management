@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { AlertCircle, CheckCircle2, User, Mail, Building, Lock, Users, Briefcase } from "lucide-react";
+import { AlertCircle, CheckCircle2, User, Mail, Building, Lock, Users, Briefcase, Plus } from "lucide-react";
 import apiService from "@/lib/api";
 
 export function AddEmployeeModal({ isOpen, onClose, onSuccess }) {
@@ -22,7 +22,12 @@ export function AddEmployeeModal({ isOpen, onClose, onSuccess }) {
     usedWFHDays: 0,
   });
 
-  const DEPARTMENTS = ["Administration", "HR", "Engineering", "Design", "Marketing"];
+  // Default departments as fallback
+  const DEFAULT_DEPARTMENTS = ["Administration", "HR", "Engineering", "Design", "Marketing"];
+  
+  const [departments, setDepartments] = useState(DEFAULT_DEPARTMENTS);
+  const [showCustomDepartment, setShowCustomDepartment] = useState(false);
+  const [customDepartment, setCustomDepartment] = useState("");
 
   const [offices, setOffices] = useState([]);
   const [managers, setManagers] = useState([]);
@@ -36,17 +41,24 @@ export function AddEmployeeModal({ isOpen, onClose, onSuccess }) {
     if (isOpen) {
       fetchDependentData();
       setShowSuccess(false);
+      setShowCustomDepartment(false);
+      setCustomDepartment("");
     }
   }, [isOpen]);
 
   const fetchDependentData = async () => {
     try {
-      const [officesRes, managersRes] = await Promise.all([
+      const [officesRes, managersRes, departmentsRes] = await Promise.all([
         apiService.office.getAll(),
         apiService.user.getAll({ role: "MANAGER" }),
+        apiService.user.getDepartments(),
       ]);
       setOffices(officesRes.data || []);
       setManagers(managersRes.data?.records || []);
+      // Use fetched departments or fall back to defaults
+      if (departmentsRes.data && departmentsRes.data.length > 0) {
+        setDepartments(departmentsRes.data);
+      }
     } catch (err) {
       console.error("Error fetching dependent data:", err);
     }
@@ -54,15 +66,32 @@ export function AddEmployeeModal({ isOpen, onClose, onSuccess }) {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    
+    // Handle department selection
+    if (name === "department") {
+      if (value === "__ADD_NEW__") {
+        setShowCustomDepartment(true);
+        setFormData((prev) => ({ ...prev, department: "" }));
+      } else {
+        setShowCustomDepartment(false);
+        setCustomDepartment("");
+        setFormData((prev) => ({ ...prev, [name]: value }));
+      }
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
+    
     if (errors[name]) {
-      setErrors((prev) => ({
-        ...prev,
-        [name]: "",
-      }));
+      setErrors((prev) => ({ ...prev, [name]: "" }));
+    }
+  };
+
+  const handleCustomDepartmentChange = (e) => {
+    const value = e.target.value;
+    setCustomDepartment(value);
+    setFormData((prev) => ({ ...prev, department: value }));
+    if (errors.department) {
+      setErrors((prev) => ({ ...prev, department: "" }));
     }
   };
 
@@ -179,6 +208,8 @@ export function AddEmployeeModal({ isOpen, onClose, onSuccess }) {
     setErrors({});
     setApiError(null);
     setShowSuccess(false);
+    setShowCustomDepartment(false);
+    setCustomDepartment("");
     onClose();
   };
 
@@ -307,19 +338,48 @@ export function AddEmployeeModal({ isOpen, onClose, onSuccess }) {
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Department <span className="text-red-500">*</span>
               </label>
-              <select
-                name="department"
-                value={formData.department}
-                onChange={handleChange}
-                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm ${errors.department ? "border-red-500" : "border-gray-300"}`}
-              >
-                <option value="">Select Department</option>
-                {DEPARTMENTS.map((dept) => (
-                  <option key={dept} value={dept}>
-                    {dept}
+              {showCustomDepartment ? (
+                <div className="space-y-2">
+                  <div className="flex gap-2">
+                    <Input
+                      type="text"
+                      value={customDepartment}
+                      onChange={handleCustomDepartmentChange}
+                      placeholder="Enter new department name"
+                      className={`flex-1 ${errors.department ? "border-red-500" : ""}`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowCustomDepartment(false);
+                        setCustomDepartment("");
+                        setFormData((prev) => ({ ...prev, department: "" }));
+                      }}
+                      className="px-3 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                  <p className="text-xs text-gray-500">Enter a custom department name</p>
+                </div>
+              ) : (
+                <select
+                  name="department"
+                  value={formData.department}
+                  onChange={handleChange}
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm ${errors.department ? "border-red-500" : "border-gray-300"}`}
+                >
+                  <option value="">Select Department</option>
+                  {departments.map((dept) => (
+                    <option key={dept} value={dept}>
+                      {dept}
+                    </option>
+                  ))}
+                  <option value="__ADD_NEW__" className="font-medium text-blue-600">
+                    ＋ Add New Department
                   </option>
-                ))}
-              </select>
+                </select>
+              )}
               {errors.department && (
                 <p className="text-sm text-red-600 mt-1">{errors.department}</p>
               )}

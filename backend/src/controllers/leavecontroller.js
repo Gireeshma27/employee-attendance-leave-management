@@ -192,9 +192,12 @@ const approveLeave = async (req, res) => {
       );
     }
 
-    leave.status = "Approved";
-    leave.approvedBy = approverId;
-    await leave.save();
+    // Use findByIdAndUpdate to update only status fields without triggering full validation
+    await Leave.findByIdAndUpdate(
+      leaveId,
+      { status: "Approved", approvedBy: approverId },
+      { new: true, runValidators: false }
+    );
 
     const populatedLeave = await Leave.findById(leave._id)
       .populate("userId", "name email employeeId")
@@ -262,10 +265,12 @@ const rejectLeave = async (req, res) => {
       );
     }
 
-    leave.status = "Rejected";
-    leave.rejectionReason = rejectionReason;
-    leave.approvedBy = approverId;
-    await leave.save();
+    // Use findByIdAndUpdate to update only status fields without triggering full validation
+    await Leave.findByIdAndUpdate(
+      leaveId,
+      { status: "Rejected", rejectionReason, approvedBy: approverId },
+      { new: true, runValidators: false }
+    );
 
     const populatedLeave = await Leave.findById(leave._id)
       .populate("userId", "name email employeeId")

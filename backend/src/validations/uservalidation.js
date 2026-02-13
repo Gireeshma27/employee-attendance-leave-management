@@ -5,7 +5,8 @@ import { z } from "zod";
  * @module validations/uservalidation
  */
 
-const DEPARTMENTS = [
+// Predefined departments (legacy support)
+const DEFAULT_DEPARTMENTS = [
   "Administration",
   "HR",
   "Engineering",
@@ -20,9 +21,7 @@ const createUserSchema = z.object({
     password: z.string().min(6, "Password must be at least 6 characters"),
     role: z.enum(["ADMIN", "MANAGER", "EMPLOYEE"]).optional(),
     employeeId: z.string().optional(),
-    department: z.enum(DEPARTMENTS, {
-      required_error: "Department is required",
-    }),
+    department: z.string().min(1, "Department is required"),
     wfhAllowed: z.boolean().optional(),
     totalWFHDays: z.number().min(0).max(30).optional(),
     usedWFHDays: z.number().min(0).max(30).optional(),
@@ -35,7 +34,7 @@ const updateUserSchema = z.object({
     email: z.string().email().optional(),
     role: z.enum(["ADMIN", "MANAGER", "EMPLOYEE"]).optional(),
     isActive: z.boolean().optional(),
-    department: z.enum(DEPARTMENTS).optional(),
+    department: z.string().min(1).optional(),
     phone: z.string().optional(),
     wfhAllowed: z.boolean().optional(),
     totalWFHDays: z.number().min(0).max(30).optional(),
@@ -47,9 +46,12 @@ const updateProfileSchema = z.object({
   body: z.object({
     name: z.string().optional(),
     phone: z.string().optional(),
-    department: z.enum(DEPARTMENTS).optional(),
+    department: z.string().min(1).optional(),
   }),
 });
+
+// Export default departments for frontend reference
+export { DEFAULT_DEPARTMENTS };
 
 const changePasswordSchema = z.object({
   body: z

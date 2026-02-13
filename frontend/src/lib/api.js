@@ -89,6 +89,9 @@ class ApiService {
         console.error(`Request Headers:`, config.headers);
         console.error(`Full Error:`, error);
       }
+
+      // Re-throw the error so callers can handle it
+      throw error;
     }
   }
 
@@ -210,6 +213,9 @@ class ApiService {
         method: "POST",
         body: JSON.stringify(data),
       }),
+
+    getDepartments: () =>
+      this.request("/users/departments", { method: "GET" }),
   };
 
   /**

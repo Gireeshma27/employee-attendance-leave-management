@@ -281,6 +281,32 @@ const changePassword = async (req, res) => {
   }
 };
 
+// Get all unique departments from existing employees + predefined defaults
+const getDepartments = async (req, res) => {
+  try {
+    const predefinedDepartments = [
+      "Administration",
+      "HR",
+      "Engineering",
+      "Design",
+      "Marketing",
+    ];
+    
+    // Get unique departments from existing users
+    const existingDepartments = await User.distinct("department");
+    
+    // Combine predefined and existing, remove duplicates and empty values
+    const allDepartments = [...new Set([
+      ...predefinedDepartments,
+      ...existingDepartments.filter(d => d && d.trim())
+    ])].sort();
+    
+    return sendSuccess(res, "Departments retrieved successfully", allDepartments);
+  } catch (error) {
+    return sendError(res, "Failed to retrieve departments", error.message);
+  }
+};
+
 export {
   getAllUsers,
   getUserById,
@@ -291,4 +317,5 @@ export {
   assignLocation,
   updateWFHPermission,
   changePassword,
+  getDepartments,
 };
