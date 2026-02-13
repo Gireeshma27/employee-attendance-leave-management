@@ -15,7 +15,7 @@ import {
   FileSpreadsheet,
   ChevronLeft,
   ChevronRight,
-  Eye,
+  Pencil,
   ArrowUpRight,
   Monitor,
   CheckCircle2,
@@ -436,7 +436,7 @@ export default function AdminReports() {
                   <th className="px-6 py-4 font-semibold text-gray-500 uppercase tracking-wider text-xs whitespace-nowrap">
                     Efficiency
                   </th>
-                  <th className="px-6 py-4 font-semibold text-gray-500 uppercase tracking-wider text-xs whitespace-nowrap text-center">
+                  <th className="px-6 py-4 font-semibold text-gray-500 uppercase tracking-wider text-xs whitespace-nowrap text-center sticky right-0 bg-white z-10">
                     Actions
                   </th>
                 </tr>
@@ -501,13 +501,13 @@ export default function AdminReports() {
                         <span className="text-xs font-medium text-gray-600 w-10 text-right">{emp.efficiency}%</span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-center">
+                    <td className="px-6 py-4 whitespace-nowrap text-center sticky right-0 bg-white z-10">
                       <button 
                         onClick={() => handleViewEmployee(emp)}
                         className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
                         title="View employee details"
                       >
-                        <Eye size={18} />
+                        <Pencil size={18} />
                       </button>
                     </td>
                   </tr>

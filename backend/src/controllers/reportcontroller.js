@@ -321,6 +321,26 @@ const exportToExcel = async (req, res) => {
       }
     });
 
+    // Add rows for absent employees (no attendance and no approved leave)
+    // These are employees who don't appear in either attendance records or approved leaves
+    allEmployees.forEach(employee => {
+      const employeeId = employee._id.toString();
+      if (!employeesWithRecords.has(employeeId) && !leavingEmployees.has(employeeId)) {
+        // This employee has no attendance and no approved leave - mark as Absent
+        // Add one summary row for the period
+        worksheet.addRow({
+          date: `${start.toLocaleDateString()} - ${end.toLocaleDateString()}`,
+          name: employee.name || "-",
+          email: employee.email || "-",
+          department: employee.department || "-",
+          checkInTime: "-",
+          checkOutTime: "-",
+          workingHours: "-",
+          status: "Absent",
+        });
+      }
+    });
+
     // Set response headers for file download
     res.setHeader(
       "Content-Type",

@@ -323,7 +323,7 @@ export default function AdminLeavesPage() {
                       <th className="text-left py-2 px-2 sm:py-3 sm:px-4 md:px-4 hidden xl:table-cell whitespace-nowrap">Reason</th>
                       <th className="text-left py-2 px-2 sm:py-3 sm:px-4 md:px-4 whitespace-nowrap">Days</th>
                       <th className="text-left py-2 px-2 sm:py-3 sm:px-4 md:px-4 whitespace-nowrap">Status</th>
-                      <th className="text-center py-2 px-2 sm:py-3 sm:px-4 md:px-4 whitespace-nowrap">Action</th>
+                      <th className="text-center py-2 px-2 sm:py-3 sm:px-4 md:px-4 whitespace-nowrap sticky right-0 bg-gray-50 z-10">Action</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -365,7 +365,7 @@ export default function AdminLeavesPage() {
                               {leave.status}
                             </Badge>
                           </td>
-                          <td className="py-2 px-2 sm:py-4 sm:px-4 text-center">
+                          <td className="py-2 px-2 sm:py-4 sm:px-4 text-center sticky right-0 bg-white z-10">
                             <button
                               onClick={() => handleEditClick(leave)}
                               className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"

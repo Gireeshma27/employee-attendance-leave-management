@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { Plus, ClipboardList } from 'lucide-react';
+import { Plus, Pencil } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import apiService from '@/lib/api';
 import { AddEmployeeModal } from '@/components/modals/AddEmployeeModal';
@@ -264,7 +264,7 @@ export default function EmployeesPage() {
                           <th className="py-4 px-6 whitespace-nowrap">Status</th>
                           <th className="py-4 px-6 hidden lg:table-cell whitespace-nowrap">WFH Used</th>
                           <th className="py-4 px-6 hidden lg:table-cell whitespace-nowrap">WFH Remaining</th>
-                          <th className="py-4 px-6 text-center whitespace-nowrap">Action</th>
+                          <th className="py-4 px-6 text-center whitespace-nowrap sticky right-0 bg-gray-50/80 z-10">Action</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-100">
@@ -312,14 +312,14 @@ export default function EmployeesPage() {
                                 {emp.wfhDaysRemaining || 0} days
                               </span>
                             </td>
-                            <td className="py-4 px-6 text-center whitespace-nowrap">
+                            <td className="py-4 px-6 text-center whitespace-nowrap sticky right-0 bg-white z-10">
                               <div className="flex items-center justify-center">
                                 <button
                                   onClick={() => handleEditClick(emp)}
-                                  className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                  className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                                   title="Edit employee"
                                 >
-                                  <ClipboardList size={18} />
+                                  <Pencil size={18} />
                                 </button>
                               </div>
                             </td>

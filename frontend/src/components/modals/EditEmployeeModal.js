@@ -12,12 +12,20 @@ export function EditEmployeeModal({ isOpen, onClose, employee, onSuccess }) {
     name: "",
     email: "",
     role: "EMPLOYEE",
+    department: "",
     isActive: true,
     officeId: "",
     managerId: "",
     wfhAllowed: false,
     usedWFHDays: 0,
   });
+
+  // Default departments as fallback
+  const DEFAULT_DEPARTMENTS = ["Administration", "HR", "Engineering", "Design", "Marketing"];
+  
+  const [departments, setDepartments] = useState(DEFAULT_DEPARTMENTS);
+  const [showCustomDepartment, setShowCustomDepartment] = useState(false);
+  const [customDepartment, setCustomDepartment] = useState("");
 
   const [offices, setOffices] = useState([]);
   const [managers, setManagers] = useState([]);
@@ -31,6 +39,7 @@ export function EditEmployeeModal({ isOpen, onClose, employee, onSuccess }) {
         name: employee.name || "",
         email: employee.email || "",
         role: employee.role || "EMPLOYEE",
+        department: employee.department || "",
         isActive: employee.isActive ?? true,
         officeId: employee.officeId || "",
         managerId: employee.managerId || "",
@@ -39,18 +48,25 @@ export function EditEmployeeModal({ isOpen, onClose, employee, onSuccess }) {
       });
       setErrors({});
       setApiError(null);
+      setShowCustomDepartment(false);
+      setCustomDepartment("");
       fetchDependentData();
     }
   }, [employee, isOpen]);
 
   const fetchDependentData = async () => {
     try {
-      const [officesRes, managersRes] = await Promise.all([
+      const [officesRes, managersRes, departmentsRes] = await Promise.all([
         apiService.office.getAll(),
         apiService.user.getAll({ role: "MANAGER" }),
+        apiService.user.getDepartments(),
       ]);
       setOffices(officesRes.data || []);
       setManagers(managersRes.data?.records || []);
+      // Use fetched departments or fall back to defaults
+      if (departmentsRes.data && departmentsRes.data.length > 0) {
+        setDepartments(departmentsRes.data);
+      }
     } catch (err) {
       console.error("Error fetching dependent data:", err);
     }
@@ -58,16 +74,39 @@ export function EditEmployeeModal({ isOpen, onClose, employee, onSuccess }) {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
+    
+    // Handle department selection
+    if (name === "department") {
+      if (value === "__ADD_NEW__") {
+        setShowCustomDepartment(true);
+        setFormData((prev) => ({ ...prev, department: "" }));
+      } else {
+        setShowCustomDepartment(false);
+        setCustomDepartment("");
+        setFormData((prev) => ({ ...prev, [name]: value }));
+      }
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: type === "checkbox" ? checked : value,
+      }));
+    }
+    
     // Clear error for this field
     if (errors[name]) {
       setErrors((prev) => ({
         ...prev,
         [name]: "",
       }));
+    }
+  };
+
+  const handleCustomDepartmentChange = (e) => {
+    const value = e.target.value;
+    setCustomDepartment(value);
+    setFormData((prev) => ({ ...prev, department: value }));
+    if (errors.department) {
+      setErrors((prev) => ({ ...prev, department: "" }));
     }
   };
 
@@ -100,11 +139,12 @@ export function EditEmployeeModal({ isOpen, onClose, employee, onSuccess }) {
     setIsLoading(true);
 
     try {
-      // 1. General Info Update
+      // 1. General Info Update (including department)
       await apiService.user.update(employee._id, {
         name: formData.name,
         email: formData.email,
         role: formData.role,
+        department: formData.department,
         isActive: formData.isActive,
         managerId: formData.managerId,
       });
@@ -214,6 +254,55 @@ export function EditEmployeeModal({ isOpen, onClose, employee, onSuccess }) {
             <p className="text-xs md:text-sm text-red-600 mt-1">
               {errors.email}
             </p>
+          )}
+        </div>
+
+        {/* Department */}
+        <div>
+          <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
+            Department
+          </label>
+          {showCustomDepartment ? (
+            <div className="space-y-2">
+              <div className="flex gap-2">
+                <Input
+                  type="text"
+                  value={customDepartment}
+                  onChange={handleCustomDepartmentChange}
+                  placeholder="Enter new department name"
+                  className="flex-1"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowCustomDepartment(false);
+                    setCustomDepartment("");
+                    setFormData((prev) => ({ ...prev, department: employee?.department || "" }));
+                  }}
+                  className="px-3 py-2 text-xs md:text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+              </div>
+              <p className="text-xs text-gray-500">Enter a custom department name</p>
+            </div>
+          ) : (
+            <select
+              name="department"
+              value={formData.department}
+              onChange={handleChange}
+              className="w-full px-3 md:px-4 py-2 md:py-2.5 text-xs md:text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">Select Department</option>
+              {departments.map((dept) => (
+                <option key={dept} value={dept}>
+                  {dept}
+                </option>
+              ))}
+              <option value="__ADD_NEW__" className="font-medium text-blue-600">
+                ＋ Add New Department
+              </option>
+            </select>
           )}
         </div>
 
