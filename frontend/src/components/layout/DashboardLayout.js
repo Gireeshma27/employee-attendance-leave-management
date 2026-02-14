@@ -14,6 +14,7 @@ import {
   MapPin,
   Search,
   Bell,
+  Timer,
 } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
@@ -122,6 +123,7 @@ const DashboardLayout = ({ children, role = "employee" }) => {
     const adminLinks = [
       { href: `/admin/dashboard`, label: "Dashboard", icon: LayoutDashboard },
       { href: `/admin/employees`, label: "Employees", icon: Users },
+      { href: `/admin/timings`, label: "Timings", icon: Timer },
       { href: `/admin/attendance`, label: "Attendance", icon: Clock },
       { href: `/admin/leaves`, label: "Leaves", icon: Calendar },
       // GEOFENCING TEMPORARILY DISABLED

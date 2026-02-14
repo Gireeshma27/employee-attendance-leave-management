@@ -9,6 +9,7 @@ import {
 } from "../controllers/attendancecontroller.js";
 import protect from "../middlewares/protectmiddleware.js";
 import isAdmin from "../middlewares/isadminmiddleware.js";
+import isAdminOrManager from "../middlewares/isadminormanagermiddleware.js";
 import { validate } from "../middlewares/validatemiddleware.js";
 import { getAttendanceSchema } from "../validations/attendancevalidation.js";
 
@@ -23,10 +24,10 @@ router.post("/check-out", checkOut);
 router.get("/my", validate(getAttendanceSchema), getMyAttendance);
 
 // Admin/Manager routes
-router.get("/team", isAdmin, validate(getAttendanceSchema), getTeamAttendance);
+router.get("/team", isAdminOrManager, validate(getAttendanceSchema), getTeamAttendance);
 router.get(
   "/export/excel",
-  isAdmin,
+  isAdminOrManager,
   validate(getAttendanceSchema),
   downloadExcelReport,
 );

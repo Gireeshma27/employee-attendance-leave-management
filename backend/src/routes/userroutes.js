@@ -13,6 +13,7 @@ import {
 } from "../controllers/usercontroller.js";
 import protect from "../middlewares/protectmiddleware.js";
 import isAdmin from "../middlewares/isadminmiddleware.js";
+import isAdminOrManager from "../middlewares/isadminormanagermiddleware.js";
 import { validate } from "../middlewares/validatemiddleware.js";
 import {
   createUserSchema,
@@ -45,12 +46,15 @@ router.patch("/:id/assign-location", assignLocation);
 router.patch("/:id/wfh-permission", updateWFHPermission);
 
 /**
- * ADMIN ONLY ROUTES
+ * READ-ONLY ROUTES (Admin and Manager can view users and team members)
  */
-router.use(isAdmin);
-router.get("/", getAllUsers);
-router.post("/", validate(createUserSchema), createUser);
-router.get("/:id", getUserById);
-router.put("/:id", validate(updateUserSchema), updateUser);
+router.get("/", isAdminOrManager, getAllUsers);
+router.get("/:id", isAdminOrManager, getUserById);
+
+/**
+ * ADMIN ONLY - WRITE OPERATIONS (Only admin can create/update/delete)
+ */
+router.post("/", isAdmin, validate(createUserSchema), createUser);
+router.put("/:id", isAdmin, validate(updateUserSchema), updateUser);
 
 export default router;

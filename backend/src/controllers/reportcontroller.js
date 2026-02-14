@@ -1,6 +1,7 @@
 import Attendance from "#models/attendance";
 import User from "#models/user";
 import Leave from "#models/leave";
+import Timing from "#models/timing";
 import { sendSuccess, sendError } from "#utils/api_response_fix";
 import ExcelJS from "exceljs";
 
@@ -120,12 +121,16 @@ const getAdminReportData = async (req, res) => {
 
     // Fetch ALL employees (not limited to 10)
     const users = await User.find({ role: "EMPLOYEE" });
+    
+    // Fetch all active timings for department matching
+    const allTimings = await Timing.find({ isActive: true });
+    
     const employeeReports = await Promise.all(
       users.map(async (u) => {
         const userAttendance = await Attendance.find({
           userId: u._id,
           date: { $gte: start, $lte: end },
-        });
+        }).sort({ date: -1 });
 
         // Check for approved leaves during this period
         const userLeaves = await Leave.find({
@@ -150,6 +155,28 @@ const getAdminReportData = async (req, res) => {
           status = latestRecord.status === "WFH" ? "Remote" : "On-site";
         }
 
+        // Get expected login time from timing configuration
+        let expectedLogin = null;
+        const matchingTiming = allTimings.find(t => t.departments.includes(u.department));
+        if (matchingTiming) {
+          expectedLogin = matchingTiming.loginTime;
+        }
+
+        // Get actual average login time
+        let actualLogin = null;
+        const checkedInRecords = userAttendance.filter(a => a.checkInTime);
+        if (checkedInRecords.length > 0) {
+          let totalMinutes = 0;
+          checkedInRecords.forEach(r => {
+            const time = new Date(r.checkInTime);
+            totalMinutes += time.getHours() * 60 + time.getMinutes();
+          });
+          const avgMinutes = Math.floor(totalMinutes / checkedInRecords.length);
+          const hours = Math.floor(avgMinutes / 60).toString().padStart(2, "0");
+          const minutes = (avgMinutes % 60).toString().padStart(2, "0");
+          actualLogin = `${hours}:${minutes}`;
+        }
+
         return {
           id: u._id,
           employeeId: u.employeeId || "N/A",
@@ -158,6 +185,8 @@ const getAdminReportData = async (req, res) => {
           status,
           daysPresent: `${presentDays} / ${daysDiff}`,
           efficiency,
+          expectedLogin,
+          actualLogin,
         };
       }),
     );

@@ -13,6 +13,7 @@ import reportRoutes from "./routes/reportroutes.js";
 import userRoutes from "./routes/userroutes.js";
 import dashboardRoutes from "./routes/dashboardroutes.js";
 import notificationRoutes from "./routes/notificationroutes.js";
+import timingRoutes from "./routes/timingroutes.js";
 // We'll import other routes as we refactor them
 
 const app = express();
@@ -44,6 +45,7 @@ app.use("/api/v1/reports", reportRoutes);
 app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/dashboard", dashboardRoutes);
 app.use("/api/v1/notifications", notificationRoutes);
+app.use("/api/v1/timings", timingRoutes);
 
 // 404 Handler
 app.use((req, res) => {

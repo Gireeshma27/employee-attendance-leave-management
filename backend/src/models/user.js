@@ -55,6 +55,10 @@ const userSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
     },
+    timingId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Timing",
+    },
     wfhAllowed: {
       type: Boolean,
       default: false,

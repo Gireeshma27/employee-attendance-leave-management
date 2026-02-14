@@ -264,6 +264,7 @@ export default function EmployeesPage() {
                           <th className="py-4 px-6 whitespace-nowrap">Status</th>
                           <th className="py-4 px-6 hidden lg:table-cell whitespace-nowrap">WFH Used</th>
                           <th className="py-4 px-6 hidden lg:table-cell whitespace-nowrap">WFH Remaining</th>
+                          <th className="py-4 px-6 hidden xl:table-cell whitespace-nowrap">Timing Group</th>
                           <th className="py-4 px-6 text-center whitespace-nowrap sticky right-0 bg-gray-50/80 z-10">Action</th>
                         </tr>
                       </thead>
@@ -311,6 +312,19 @@ export default function EmployeesPage() {
                               <span className={emp.wfhAllowed && emp.wfhDaysRemaining > 0 ? 'text-green-600 font-medium' : 'text-gray-400'}>
                                 {emp.wfhDaysRemaining || 0} days
                               </span>
+                            </td>
+                            <td className="py-4 px-6 text-gray-600 hidden xl:table-cell whitespace-nowrap">
+                              {emp.timingId ? (
+                                <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-700 rounded-md text-xs font-medium">
+                                  {emp.timingId.teamName} ({emp.timingId.loginTime})
+                                </span>
+                              ) : emp.timingInfo ? (
+                                <span className="inline-flex items-center gap-1 px-2 py-1 bg-gray-50 text-gray-600 rounded-md text-xs font-medium">
+                                  {emp.timingInfo.teamName} ({emp.timingInfo.loginTime})
+                                </span>
+                              ) : (
+                                <span className="text-gray-400 text-xs">Not assigned</span>
+                              )}
                             </td>
                             <td className="py-4 px-6 text-center whitespace-nowrap sticky right-0 bg-white z-10">
                               <div className="flex items-center justify-center">

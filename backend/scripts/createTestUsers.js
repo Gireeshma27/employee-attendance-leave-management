@@ -1,16 +1,12 @@
 import mongoose from 'mongoose';
-import { config } from '../src/config/env.js';
-import User from '../src/models/user.model.js';
+import env from '../src/config/env.js';
+import User from '../src/models/user.js';
 import { hashPassword } from '../src/utils/password.js';
 
 const createTestUsers = async () => {
   try {
     // Connect to MongoDB
-    await mongoose.connect(config.MONGODB_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
-
+    await mongoose.connect(env.MONGODB_URI);
     console.log('✓ Connected to MongoDB');
 
     // Admin User
@@ -32,13 +28,13 @@ const createTestUsers = async () => {
       console.log('✓ Admin user already exists');
     }
 
-    // Manager User
-    const managerExists = await User.findOne({ email: 'manager@example.com' });
+    // Manager User (with requested credentials)
+    const managerExists = await User.findOne({ email: 'manager@test.com' });
     if (!managerExists) {
-      const hashedPassword = await hashPassword('manager123');
+      const hashedPassword = await hashPassword('Manager@123');
       await User.create({
-        name: 'Manager User',
-        email: 'manager@example.com',
+        name: 'Test Manager',
+        email: 'manager@test.com',
         password: hashedPassword,
         role: 'MANAGER',
         employeeId: 'MGR001',
@@ -46,7 +42,7 @@ const createTestUsers = async () => {
         department: 'Engineering',
         phone: '9876543211'
       });
-      console.log('✓ Manager user created');
+      console.log('✓ Manager user created (manager@test.com)');
     } else {
       console.log('✓ Manager user already exists');
     }
@@ -75,9 +71,9 @@ const createTestUsers = async () => {
     console.log('  Email: admin@example.com');
     console.log('  Password: admin123\n');
     
-    console.log('Manager:');
-    console.log('  Email: manager@example.com');
-    console.log('  Password: manager123\n');
+    console.log('Manager (For Test):');
+    console.log('  Email: manager@test.com');
+    console.log('  Password: Manager@123\n');
     
     console.log('Employee:');
     console.log('  Email: employee@example.com');
@@ -85,6 +81,7 @@ const createTestUsers = async () => {
 
     console.log('⚠️  Change passwords after first login!');
     
+    await mongoose.disconnect();
     process.exit(0);
   } catch (error) {
     console.error('✗ Error creating test users:', error.message);
