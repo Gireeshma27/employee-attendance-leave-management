@@ -471,6 +471,41 @@ class ApiService {
       }
     },
   };
+
+  /**
+   * Timing Endpoints
+   */
+  timing = {
+    getAll: (filters = {}) => {
+      const params = new URLSearchParams();
+      if (filters.location) params.append("location", filters.location);
+      if (filters.isActive !== undefined) params.append("isActive", filters.isActive);
+      if (filters.department) params.append("department", filters.department);
+      const query = params.toString();
+      return this.request(`/timings${query ? "?" + query : ""}`, { method: "GET" });
+    },
+
+    getById: (id) => this.request(`/timings/${id}`, { method: "GET" }),
+
+    getByDepartment: (department) =>
+      this.request(`/timings/department/${encodeURIComponent(department)}`, { method: "GET" }),
+
+    getLocations: () => this.request("/timings/locations", { method: "GET" }),
+
+    create: (data) =>
+      this.request("/timings", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+
+    update: (id, data) =>
+      this.request(`/timings/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify(data),
+      }),
+
+    delete: (id) => this.request(`/timings/${id}`, { method: "DELETE" }),
+  };
 }
 
 export const apiService = new ApiService();

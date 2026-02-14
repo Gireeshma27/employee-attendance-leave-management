@@ -1,4 +1,5 @@
 import User from "#models/user";
+import Timing from "#models/timing";
 import { hashPassword, comparePassword } from "../utils/password.js";
 import { sendSuccess, sendError } from "#utils/api_response_fix";
 
@@ -22,12 +23,31 @@ const getAllUsers = async (req, res) => {
     const totalRecords = await User.countDocuments(filter);
     const users = await User.find(filter)
       .select("-password")
+      .populate("timingId", "teamName loginTime logoutTime location")
       .skip(skip)
       .limit(limitNum)
       .sort({ createdAt: -1 });
 
+    // Enrich users with timing info based on department if no timingId assigned
+    const timings = await Timing.find({ isActive: true });
+    const enrichedUsers = users.map(user => {
+      const userObj = user.toObject();
+      if (!userObj.timingId && userObj.department) {
+        const matchingTiming = timings.find(t => t.departments.includes(userObj.department));
+        if (matchingTiming) {
+          userObj.timingInfo = {
+            teamName: matchingTiming.teamName,
+            loginTime: matchingTiming.loginTime,
+            logoutTime: matchingTiming.logoutTime,
+            location: matchingTiming.location,
+          };
+        }
+      }
+      return userObj;
+    });
+
     return sendSuccess(res, "Users retrieved successfully", {
-      records: users,
+      records: enrichedUsers,
       pagination: {
         totalRecords,
         totalPages: Math.ceil(totalRecords / limitNum),

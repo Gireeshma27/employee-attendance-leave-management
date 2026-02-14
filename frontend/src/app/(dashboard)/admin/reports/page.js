@@ -428,10 +428,10 @@ export default function AdminReports() {
                     Status
                   </th>
                   <th className="px-6 py-4 font-semibold text-gray-500 uppercase tracking-wider text-xs whitespace-nowrap">
-                    Days Present
+                    Login Time
                   </th>
                   <th className="px-6 py-4 font-semibold text-gray-500 uppercase tracking-wider text-xs whitespace-nowrap">
-                    Late Marks
+                    Days Present
                   </th>
                   <th className="px-6 py-4 font-semibold text-gray-500 uppercase tracking-wider text-xs whitespace-nowrap">
                     Efficiency
@@ -480,15 +480,30 @@ export default function AdminReports() {
                         {emp.status}
                       </Badge>
                     </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex flex-col gap-0.5">
+                        {emp.expectedLogin || emp.actualLogin ? (
+                          <>
+                            <div className="flex items-center gap-1.5 text-xs">
+                              <span className="text-gray-400">Exp:</span>
+                              <span className="font-mono font-medium text-gray-600">{emp.expectedLogin || "-"}</span>
+                            </div>
+                            <div className="flex items-center gap-1.5 text-xs">
+                              <span className="text-gray-400">Avg:</span>
+                              <span className={`font-mono font-medium ${
+                                emp.expectedLogin && emp.actualLogin && emp.actualLogin > emp.expectedLogin
+                                  ? "text-amber-600"
+                                  : "text-green-600"
+                              }`}>{emp.actualLogin || "-"}</span>
+                            </div>
+                          </>
+                        ) : (
+                          <span className="text-gray-400 text-xs">-</span>
+                        )}
+                      </div>
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-800">
                       {emp.daysPresent}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span
-                        className={`text-sm font-bold ${emp.lateMarks > 0 ? "text-red-500" : "text-gray-400"}`}
-                      >
-                        {emp.lateMarks}
-                      </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap min-w-[120px]">
                       <div className="flex items-center gap-2">
@@ -593,17 +608,32 @@ export default function AdminReports() {
                   {selectedEmployee.status}
                 </Badge>
               </div>
-              <div className="bg-white border border-gray-100 rounded-xl p-4">
+              <div className="bg-white border border-gray-100 rounded-xl p-4 col-span-2">
                 <p className="text-xs text-gray-500 mb-1">Days Present</p>
                 <p className="text-2xl font-bold text-gray-900">{selectedEmployee.daysPresent}</p>
               </div>
-              <div className="bg-white border border-gray-100 rounded-xl p-4">
-                <p className="text-xs text-gray-500 mb-1">Late Marks</p>
-                <p className={`text-2xl font-bold ${selectedEmployee.lateMarks > 0 ? "text-red-500" : "text-gray-400"}`}>
-                  {selectedEmployee.lateMarks}
-                </p>
-              </div>
             </div>
+
+            {/* Login Time Comparison */}
+            {(selectedEmployee.expectedLogin || selectedEmployee.actualLogin) && (
+              <div className="bg-white border border-gray-100 rounded-xl p-4">
+                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">Login Time Analysis</p>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="text-center p-3 bg-gray-50 rounded-lg">
+                    <p className="text-xs text-gray-500 mb-1">Expected</p>
+                    <p className="text-lg font-mono font-bold text-gray-900">{selectedEmployee.expectedLogin || "-"}</p>
+                  </div>
+                  <div className="text-center p-3 bg-gray-50 rounded-lg">
+                    <p className="text-xs text-gray-500 mb-1">Avg. Actual</p>
+                    <p className={`text-lg font-mono font-bold ${
+                      selectedEmployee.expectedLogin && selectedEmployee.actualLogin && selectedEmployee.actualLogin > selectedEmployee.expectedLogin
+                        ? "text-amber-600"
+                        : "text-green-600"
+                    }`}>{selectedEmployee.actualLogin || "-"}</p>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Efficiency */}
             <div className="bg-white border border-gray-100 rounded-xl p-4">
