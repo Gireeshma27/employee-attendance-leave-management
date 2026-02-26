@@ -1,0 +1,46 @@
+{
+  "name": "employee-attendance-backend",
+  "version": "1.0.0",
+  "description": "Backend API for Employee Attendance & Leave Management System",
+  "main": "src/server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "create-admin": "node scripts/createAdmin.js",
+    "create-test-users": "node scripts/createTestUsers.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "attendance",
+    "leave",
+    "management",
+    "employee"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "exceljs": "^4.4.0",
+    "express": "^4.18.2",
+    "express-validator": "^7.0.0",
+    "joi": "^18.0.2",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^7.5.0",
+    "nodemailer": "^6.9.4",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "imports": {
+    "#config/*": "./src/config/*.js",
+    "#controllers/*": "./src/controllers/*.js",
+    "#middlewares/*": "./src/middlewares/*.js",
+    "#models/*": "./src/models/*.js",
+    "#utils/*": "./src/utils/*.js",
+    "#validations/*": "./src/validations/*.js"
+  }
+}
