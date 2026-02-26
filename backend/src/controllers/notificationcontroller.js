@@ -8,7 +8,7 @@ const _sendPushNotification = async (recipientId, title, message) => {
     return true;
   } catch (error) {
     console.error("Push notification failed:", error);
-    return false;
+    return false;// In a real implementation, you might want to log this error to a monitoring service
   }
 };
 
