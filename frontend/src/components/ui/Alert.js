@@ -10,7 +10,7 @@ export function Alert({ title, description, type = 'info', dismissible = true, c
     info: 'bg-blue-50 border-blue-200 text-blue-900',
     success: 'bg-green-50 border-green-200 text-green-900',
     warning: 'bg-yellow-50 border-yellow-200 text-yellow-900',
-    error: 'bg-red-50 border-red-200 text-red-900',
+    error: 'bg-red-50 border-red-200/60 text-red-900',
   };
 
   if (!isVisible) return null;

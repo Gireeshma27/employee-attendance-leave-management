@@ -98,8 +98,8 @@ export default function EmployeesPage() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
           <div>
-            <h1 className="text-lg sm:text-2xl md:text-3xl font-bold text-gray-900">Employees</h1>
-            <p className="text-xs sm:text-sm md:text-base text-gray-600 mt-1">Manage all employees in the system</p>
+            <h1 className="text-lg sm:text-2xl md:text-3xl font-semibold text-slate-900">Employees</h1>
+            <p className="text-xs sm:text-sm md:text-base text-slate-500 mt-1">Manage all employees in the system</p>
           </div>
           <Button
             variant="primary"
@@ -113,10 +113,10 @@ export default function EmployeesPage() {
         </div>
 
         {/* Search & Filters */}
-        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+        <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200/60">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
-              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
+              <label className="block text-xs sm:text-sm font-medium text-slate-600 mb-1.5 sm:mb-2">
                 Search
               </label>
               <Input
@@ -128,13 +128,13 @@ export default function EmployeesPage() {
             </div>
 
             <div>
-              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
+              <label className="block text-xs sm:text-sm font-medium text-slate-600 mb-1.5 sm:mb-2">
                 Role
               </label>
               <select
                 value={roleFilter}
                 onChange={(e) => setRoleFilter(e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 bg-white transition-all"
               >
                 <option value="">All Roles</option>
                 <option value="ADMIN">Admin</option>
@@ -144,13 +144,13 @@ export default function EmployeesPage() {
             </div>
 
             <div>
-              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
+              <label className="block text-xs sm:text-sm font-medium text-slate-600 mb-1.5 sm:mb-2">
                 Status
               </label>
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 bg-white transition-all"
               >
                 <option value="">All Statuses</option>
                 <option value="active">Active</option>
@@ -165,7 +165,7 @@ export default function EmployeesPage() {
                   setRoleFilter('');
                   setStatusFilter('');
                 }}
-                className="w-full px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:ring-4 focus:ring-gray-100 transition-all h-[42px]"
+                className="w-full px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 focus:ring-4 focus:ring-slate-100 transition-all h-[42px]"
               >
                 Clear Filters
               </button>
@@ -176,7 +176,7 @@ export default function EmployeesPage() {
         {/* Error State */}
         {
           error && (
-            <Card className="border-red-200 bg-red-50">
+            <Card className="border-red-200/60 bg-red-50">
               <CardContent className="pt-6">
                 <p className="text-sm md:text-base text-red-700">{error}</p>
               </CardContent>
@@ -190,7 +190,7 @@ export default function EmployeesPage() {
             <Card>
               <CardContent className="pt-6">
                 <div className="text-center py-8">
-                  <p className="text-gray-600">Loading employees...</p>
+                  <p className="text-slate-500">Loading employees...</p>
                 </div>
               </CardContent>
             </Card>
@@ -201,26 +201,26 @@ export default function EmployeesPage() {
         {
           !loading && employees.length > 0 && (
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-              <Card className="hover:shadow-md transition-shadow border-gray-100">
+              <Card className="hover:shadow-md transition-shadow">
                 <CardContent className="pt-6 text-center">
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Total Employees</p>
-                  <p className="text-3xl font-bold text-gray-900 mt-2 tracking-tight">
+                  <p className="text-xs font-medium text-slate-500">Total Employees</p>
+                  <p className="text-3xl font-semibold text-slate-900 mt-2 tracking-tight">
                     {pagination.totalRecords}
                   </p>
                 </CardContent>
               </Card>
-              <Card className="hover:shadow-md transition-shadow border-gray-100">
+              <Card className="hover:shadow-md transition-shadow">
                 <CardContent className="pt-6 text-center">
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Active</p>
-                  <p className="text-3xl font-bold text-green-600 mt-2 tracking-tight">
+                  <p className="text-xs font-medium text-slate-500">Active</p>
+                  <p className="text-3xl font-semibold text-green-600 mt-2 tracking-tight">
                     {activeCount}
                   </p>
                 </CardContent>
               </Card>
-              <Card className="hover:shadow-md transition-shadow border-gray-100">
+              <Card className="hover:shadow-md transition-shadow">
                 <CardContent className="pt-6 text-center">
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Inactive</p>
-                  <p className="text-3xl font-bold text-gray-600 mt-2 tracking-tight">
+                  <p className="text-xs font-medium text-slate-500">Inactive</p>
+                  <p className="text-3xl font-semibold text-slate-400 mt-2 tracking-tight">
                     {inactiveCount}
                   </p>
                 </CardContent>
@@ -240,7 +240,7 @@ export default function EmployeesPage() {
                     <select
                       value={rowsPerPage}
                       onChange={(e) => setRowsPerPage(parseInt(e.target.value))}
-                      className="px-2 py-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700"
+                      className="px-2 py-1 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900/10 text-slate-700 transition-all"
                     >
                       <option value="5">5 per page</option>
                       <option value="10">10 per page</option>
@@ -251,86 +251,87 @@ export default function EmployeesPage() {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="rounded-md border border-gray-100 overflow-hidden">
+                <div className="rounded-xl border border-slate-200/60 overflow-hidden">
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm text-left">
-                      <thead className="bg-gray-50/80 border-b border-gray-200">
-                        <tr className="text-gray-500 font-semibold uppercase tracking-wider text-xs">
-                          <th className="py-4 px-6 whitespace-nowrap">Name</th>
-                          <th className="py-4 px-6 hidden sm:table-cell whitespace-nowrap">Email</th>
-                          <th className="py-4 px-6 hidden md:table-cell whitespace-nowrap">Employee ID</th>
-                          <th className="py-4 px-6 hidden lg:table-cell whitespace-nowrap">Department</th>
-                          <th className="py-4 px-6 whitespace-nowrap">Role</th>
-                          <th className="py-4 px-6 whitespace-nowrap">Status</th>
-                          <th className="py-4 px-6 hidden lg:table-cell whitespace-nowrap">WFH Used</th>
-                          <th className="py-4 px-6 hidden lg:table-cell whitespace-nowrap">WFH Remaining</th>
-                          <th className="py-4 px-6 hidden xl:table-cell whitespace-nowrap">Timing Group</th>
-                          <th className="py-4 px-6 text-center whitespace-nowrap sticky right-0 bg-gray-50/80 z-10">Action</th>
+                      <thead className="border-b border-slate-200">
+                        <tr className="text-slate-500 font-medium text-xs">
+                          <th className="py-3.5 px-5 whitespace-nowrap">Name</th>
+                          <th className="py-3.5 px-5 hidden sm:table-cell whitespace-nowrap">Email</th>
+                          <th className="py-3.5 px-5 hidden md:table-cell whitespace-nowrap">Employee ID</th>
+                          <th className="py-3.5 px-5 hidden lg:table-cell whitespace-nowrap">Department</th>
+                          <th className="py-3.5 px-5 whitespace-nowrap">Role</th>
+                          <th className="py-3.5 px-5 whitespace-nowrap">Status</th>
+                          <th className="py-3.5 px-5 hidden lg:table-cell whitespace-nowrap">WFH Used</th>
+                          <th className="py-3.5 px-5 hidden lg:table-cell whitespace-nowrap">WFH Remaining</th>
+                          <th className="py-3.5 px-5 hidden xl:table-cell whitespace-nowrap">Timing Group</th>
+                          <th className="py-3.5 px-5 text-center whitespace-nowrap sticky right-0 bg-white z-10">Action</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-gray-100">
+                      <tbody className="divide-y divide-slate-100">
                         {employees.map((emp) => (
                           <tr
                             key={emp._id}
-                            className="hover:bg-gray-50/80 transition-colors border-b border-gray-50 last:border-0"
+                            className="hover:bg-slate-50/50 transition-colors"
                           >
-                            <td className="py-4 px-6 font-medium text-gray-900 whitespace-nowrap">
+                            <td className="py-3.5 px-5 font-medium text-slate-900 whitespace-nowrap">
                               <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-xs uppercase">
+                                <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center font-semibold text-xs uppercase">
                                   {emp.name.charAt(0)}
                                 </div>
                                 {emp.name}
                               </div>
                             </td>
-                            <td className="py-4 px-6 text-gray-500 hidden sm:table-cell whitespace-nowrap">
+                            <td className="py-3.5 px-5 text-slate-500 hidden sm:table-cell whitespace-nowrap">
                               {emp.email}
                             </td>
-                            <td className="py-4 px-6 text-gray-500 font-mono text-xs hidden md:table-cell whitespace-nowrap">
+                            <td className="py-3.5 px-5 text-slate-500 font-mono text-xs hidden md:table-cell whitespace-nowrap">
                               {emp.employeeId || 'N/A'}
                             </td>
-                            <td className="py-4 px-6 text-gray-600 hidden lg:table-cell whitespace-nowrap">
+                            <td className="py-3.5 px-5 text-slate-600 hidden lg:table-cell whitespace-nowrap">
                               {emp.department || 'N/A'}
                             </td>
-                            <td className="py-4 px-6 text-gray-600 capitalize whitespace-nowrap">
-                              <Badge variant="outline" className="bg-gray-50 text-gray-600 border-gray-200">
+                            <td className="py-3.5 px-5 text-slate-600 capitalize whitespace-nowrap">
+                              <Badge variant="outline" className="bg-slate-50 text-slate-600 border-slate-200">
                                 {emp.role.toLowerCase()}
                               </Badge>
                             </td>
-                            <td className="py-4 px-6 whitespace-nowrap">
+                            <td className="py-3.5 px-5 whitespace-nowrap">
                               <Badge
                                 variant={emp.isActive ? 'success' : 'secondary'}
+                                dot
                               >
                                 {emp.isActive ? 'Active' : 'Inactive'}
                               </Badge>
                             </td>
-                            <td className="py-4 px-6 text-gray-600 hidden lg:table-cell whitespace-nowrap">
-                              <span className={emp.wfhAllowed ? 'text-blue-600 font-medium' : 'text-gray-400'}>
+                            <td className="py-3.5 px-5 text-slate-600 hidden lg:table-cell whitespace-nowrap">
+                              <span className={emp.wfhAllowed ? 'text-blue-600 font-medium' : 'text-slate-400'}>
                                 {emp.usedWFHDays || 0} days
                               </span>
                             </td>
-                            <td className="py-4 px-6 text-gray-600 hidden lg:table-cell whitespace-nowrap">
-                              <span className={emp.wfhAllowed && emp.wfhDaysRemaining > 0 ? 'text-green-600 font-medium' : 'text-gray-400'}>
+                            <td className="py-3.5 px-5 text-slate-600 hidden lg:table-cell whitespace-nowrap">
+                              <span className={emp.wfhAllowed && emp.wfhDaysRemaining > 0 ? 'text-green-600 font-medium' : 'text-slate-400'}>
                                 {emp.wfhDaysRemaining || 0} days
                               </span>
                             </td>
-                            <td className="py-4 px-6 text-gray-600 hidden xl:table-cell whitespace-nowrap">
+                            <td className="py-3.5 px-5 text-slate-600 hidden xl:table-cell whitespace-nowrap">
                               {emp.timingId ? (
-                                <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-700 rounded-md text-xs font-medium">
+                                <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-700 rounded-lg text-xs font-medium">
                                   {emp.timingId.teamName} ({emp.timingId.loginTime})
                                 </span>
                               ) : emp.timingInfo ? (
-                                <span className="inline-flex items-center gap-1 px-2 py-1 bg-gray-50 text-gray-600 rounded-md text-xs font-medium">
+                                <span className="inline-flex items-center gap-1 px-2 py-1 bg-slate-50 text-slate-600 rounded-lg text-xs font-medium">
                                   {emp.timingInfo.teamName} ({emp.timingInfo.loginTime})
                                 </span>
                               ) : (
-                                <span className="text-gray-400 text-xs">Not assigned</span>
+                                <span className="text-slate-400 text-xs">Not assigned</span>
                               )}
                             </td>
-                            <td className="py-4 px-6 text-center whitespace-nowrap sticky right-0 bg-white z-10">
+                            <td className="py-3.5 px-5 text-center whitespace-nowrap sticky right-0 bg-white z-10">
                               <div className="flex items-center justify-center">
                                 <button
                                   onClick={() => handleEditClick(emp)}
-                                  className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                  className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                                   title="Edit employee"
                                 >
                                   <Pencil size={18} />
@@ -345,11 +346,11 @@ export default function EmployeesPage() {
                 </div>
 
                 {/* Pagination Controls - Matching Attendance Page Style */}
-                <div className="px-5 py-4 border-t border-gray-100 bg-white flex items-center justify-between">
+                <div className="px-5 py-4 border-t border-slate-100 bg-white flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <p className="text-xs sm:text-sm text-gray-500">Rows per page:</p>
+                    <p className="text-xs sm:text-sm text-slate-500">Rows per page:</p>
                     <select
-                      className="text-xs sm:text-sm bg-transparent border-none focus:ring-0 text-gray-700 font-medium cursor-pointer"
+                      className="text-xs sm:text-sm bg-transparent border-none focus:ring-0 text-slate-700 font-medium cursor-pointer"
                       value={rowsPerPage}
                       onChange={(e) => {
                         setRowsPerPage(Number(e.target.value));
@@ -366,18 +367,18 @@ export default function EmployeesPage() {
                     <button
                       onClick={() => fetchEmployees(Math.max(1, currentPage - 1))}
                       disabled={currentPage === 1}
-                      className="p-1.5 rounded-md hover:bg-gray-100 disabled:opacity-30 transition-colors"
+                      className="p-1.5 rounded-lg hover:bg-slate-100 disabled:opacity-30 transition-colors"
                     >
-                      <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+                      <svg className="w-4 h-4 sm:w-5 sm:h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
                     </button>
                     <div className="flex items-center">
                       {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((page) => (
                         <button
                           key={page}
                           onClick={() => fetchEmployees(page)}
-                          className={`min-w-[32px] h-8 flex items-center justify-center rounded-md text-sm font-medium transition-colors ${currentPage === page
-                            ? 'bg-blue-600 text-white shadow-sm'
-                            : 'text-gray-700 hover:bg-gray-100'
+                          className={`min-w-[32px] h-8 flex items-center justify-center rounded-lg text-sm font-medium transition-colors ${currentPage === page
+                            ? 'bg-slate-900 text-white shadow-sm'
+                            : 'text-slate-500 hover:bg-slate-100'
                             }`}
                         >
                           {page}
@@ -387,9 +388,9 @@ export default function EmployeesPage() {
                     <button
                       onClick={() => fetchEmployees(Math.min(pagination.totalPages, currentPage + 1))}
                       disabled={currentPage === pagination.totalPages}
-                      className="p-1.5 rounded-md hover:bg-gray-100 disabled:opacity-30 transition-colors"
+                      className="p-1.5 rounded-lg hover:bg-slate-100 disabled:opacity-30 transition-colors"
                     >
-                      <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                      <svg className="w-4 h-4 sm:w-5 sm:h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
                     </button>
                   </div>
                 </div>
@@ -404,7 +405,7 @@ export default function EmployeesPage() {
             <Card>
               <CardContent className="pt-6">
                 <div className="text-center py-8">
-                  <p className="text-gray-600">No employees found</p>
+                  <p className="text-slate-500">No employees found</p>
                 </div>
               </CardContent>
             </Card>

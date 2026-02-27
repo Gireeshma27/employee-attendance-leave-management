@@ -32,60 +32,57 @@ export function SuccessModal({ isOpen, onClose, title, message, time }) {
 
       {/* Modal Content */}
       <div
-        className={`relative bg-white w-full max-w-sm rounded-[32px] overflow-hidden shadow-2xl transition-all duration-500 transform ${
+        className={`relative bg-white w-full max-w-sm rounded-2xl overflow-hidden shadow-2xl transition-all duration-500 transform ${
           isVisible ? "scale-100 translate-y-0" : "scale-90 translate-y-12"
         }`}
       >
         <button
           onClick={onClose}
-          className="absolute top-6 right-6 p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-all"
+          className="absolute top-5 right-5 p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl transition-all"
         >
-          <X size={20} />
+          <X size={18} />
         </button>
 
-        <div className="pt-12 pb-10 px-8 text-center">
+        <div className="pt-10 pb-8 px-8 text-center">
           {/* Animated Success Icon container */}
-          <div className="relative mb-8 flex justify-center">
-            <div className="absolute inset-0 bg-emerald-500/10 rounded-full animate-ping scale-150 opacity-20" />
-            <div className="relative w-24 h-24 bg-emerald-50 rounded-full flex items-center justify-center text-emerald-500 shadow-inner">
+          <div className="relative mb-6 flex justify-center">
+            <div className="absolute inset-0 bg-green-500/10 rounded-full animate-ping scale-150 opacity-20" />
+            <div className="relative w-20 h-20 bg-green-50 rounded-full flex items-center justify-center text-green-500">
               <CheckCircle2
-                size={48}
-                strokeWidth={2.5}
-                className="animate-in zoom-in duration-500"
+                size={40}
+                strokeWidth={2}
               />
             </div>
           </div>
 
-          <h3 className="text-2xl font-black text-slate-900 tracking-tight mb-2">
+          <h3 className="text-xl font-semibold text-slate-900 mb-2">
             {title || "Success!"}
           </h3>
-          <p className="text-slate-500 font-medium leading-relaxed mb-6">
+          <p className="text-sm text-slate-500 leading-relaxed mb-6">
             {message}
           </p>
 
           {time && (
-            <div className="bg-slate-50 rounded-2xl py-4 px-6 mb-8 inline-block">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">
-                {" "}
-                Recorded Time{" "}
+            <div className="bg-slate-50 rounded-xl py-3 px-5 mb-6 inline-block">
+              <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">
+                Recorded Time
               </p>
-              <p className="text-2xl font-black text-blue-600 tracking-tighter">
-                {" "}
-                {time}{" "}
+              <p className="text-xl font-semibold text-green-600">
+                {time}
               </p>
             </div>
           )}
 
           <button
             onClick={onClose}
-            className="w-full py-4 bg-[#0F172A] text-white rounded-2xl font-black uppercase tracking-widest text-[11px] shadow-xl shadow-slate-200 hover:scale-105 active:scale-95 transition-all"
+            className="w-full py-3 bg-slate-900 text-white rounded-xl font-semibold text-sm shadow-sm hover:bg-slate-800 active:scale-[0.98] transition-all"
           >
-            Got it, thanks!
+            Done
           </button>
         </div>
 
-        {/* Bottom Decorative Bar */}
-        <div className="h-2 bg-gradient-to-r from-emerald-400 via-blue-500 to-indigo-600" />
+        {/* Bottom accent */}
+        <div className="h-1 bg-gradient-to-r from-green-400 via-green-500 to-green-600" />
       </div>
 
       <style jsx>{`

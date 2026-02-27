@@ -87,8 +87,8 @@ export default function LeafletMap({
         <Marker position={center} icon={markerIcon}>
           <Popup>
             <div className="p-1">
-              <p className="font-bold text-sm">Target Office Center</p>
-              <p className="text-xs text-gray-500">Radius: {radius}m</p>
+              <p className="font-semibold text-sm">Target Office Center</p>
+              <p className="text-xs text-slate-500">Radius: {radius}m</p>
               <p className="text-[10px] text-blue-600 mt-1">
                 Click anywhere on map to move
               </p>
@@ -123,8 +123,8 @@ export default function LeafletMap({
           >
             <Popup>
               <div className="p-1">
-                <p className="font-bold text-sm">{loc.name}</p>
-                <p className="text-xs text-gray-500">{loc.address}</p>
+                <p className="font-semibold text-sm">{loc.name}</p>
+                <p className="text-xs text-slate-500">{loc.address}</p>
               </div>
             </Popup>
           </Marker>

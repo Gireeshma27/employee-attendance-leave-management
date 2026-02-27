@@ -4,7 +4,7 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Input } from "@/components/ui/Input";
-import { Search, Info } from "lucide-react";
+import { Search, Eye } from "lucide-react";
 import { useState, useEffect } from "react";
 import apiService from "@/lib/api";
 import { EditEmployeeModal } from "@/components/modals/EditEmployeeModal";
@@ -15,6 +15,7 @@ export default function TeamAttendancePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [attendanceData, setAttendanceData] = useState([]);
+  const [teamStats, setTeamStats] = useState(null);
 
   // Modal state
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -27,7 +28,15 @@ export default function TeamAttendancePage() {
   const fetchAttendanceData = async () => {
     try {
       setLoading(true);
-      const attendanceRes = await apiService.attendance.getTeamAttendance();
+      const [attendanceRes, dashboardRes] = await Promise.all([
+        apiService.attendance.getTeamAttendance(),
+        apiService.dashboard.getManagerStats(),
+      ]);
+
+      if (dashboardRes.success && dashboardRes.data?.stats) {
+        setTeamStats(dashboardRes.data.stats);
+      }
+
       const attendance = attendanceRes.data?.records || [];
 
       // Extract unique team members and calculate statistics
@@ -90,8 +99,8 @@ export default function TeamAttendancePage() {
       <DashboardLayout role="manager">
         <div className="flex items-center justify-center h-96">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-            <p className="text-gray-600 font-medium">Loading team data...</p>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-slate-500 font-medium">Loading team data...</p>
           </div>
         </div>
       </DashboardLayout>
@@ -107,19 +116,43 @@ export default function TeamAttendancePage() {
       <div className="space-y-6 md:space-y-8">
         {/* Header */}
         <div>
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 tracking-tight">
+          <h1 className="text-xl sm:text-2xl font-semibold text-slate-900 tracking-tight">
             Team Attendance
           </h1>
-          <p className="text-sm text-gray-500 mt-1">
-            Monitor and manage your team's office assignments and WFH quotas.
+          <p className="text-sm text-slate-500 mt-1">
+            Monitor and manage your team's attendance records.
           </p>
         </div>
 
+        {/* Summary Stats Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <StatsCard
+            label="Team Size"
+            value={teamStats?.teamSize || attendanceData.length}
+            color="blue"
+          />
+          <StatsCard
+            label="Avg. Rate"
+            value={`${Math.round(attendanceData.reduce((acc, curr) => acc + curr.percentage, 0) / (attendanceData.length || 1))}%`}
+            color="blue"
+          />
+          <StatsCard
+            label="Field Employees"
+            value={attendanceData.filter((e) => !e.rawUser.officeId).length}
+            color="yellow"
+          />
+          <StatsCard
+            label="WFH Allowed"
+            value={attendanceData.filter((e) => e.rawUser.wfhAllowed).length}
+            color="blue"
+          />
+        </div>
+
         {/* Filters */}
-        <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex flex-col sm:flex-row gap-4">
+        <div className="bg-white p-4 rounded-xl border border-slate-200/60 shadow-sm flex flex-col sm:flex-row gap-4">
           <div className="relative flex-1">
             <Search
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
               size={18}
             />
             <Input
@@ -132,7 +165,7 @@ export default function TeamAttendancePage() {
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            className="px-4 py-2 text-sm border border-gray-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50/50 font-medium"
+            className="px-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50/50 font-medium"
           >
             <option value="all">Recent Activity</option>
             <option value="present">Active Now</option>
@@ -140,76 +173,76 @@ export default function TeamAttendancePage() {
         </div>
 
         {/* Attendance Table */}
-        <Card className="border-gray-100 overflow-hidden shadow-sm">
-          <CardHeader className="bg-gray-50/30 border-b border-gray-50">
-            <CardTitle className="text-base font-bold">
+        <Card className="overflow-hidden">
+          <CardHeader className="bg-slate-50/50 border-b border-slate-100">
+            <CardTitle className="text-base">
               Team Performance
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             <div className="overflow-x-auto">
               <table className="w-full text-sm text-left">
-                <thead className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest bg-gray-50/50">
+                <thead className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest bg-slate-50/30">
                   <tr>
-                    <th className="py-4 px-6">Employee</th>
-                    <th className="py-4 px-6 text-center">Days Tracked</th>
-                    <th className="py-4 px-6 text-center">Present</th>
-                    <th className="py-4 px-6 text-center">Absent</th>
-                    <th className="py-4 px-6 text-center">Rate (%)</th>
-                    <th className="py-4 px-6 text-center">Action</th>
+                    <th className="py-3.5 px-5">Employee</th>
+                    <th className="py-3.5 px-5 text-center">Days Tracked</th>
+                    <th className="py-3.5 px-5 text-center">Present</th>
+                    <th className="py-3.5 px-5 text-center">Absent</th>
+                    <th className="py-3.5 px-5 text-center">Rate (%)</th>
+                    <th className="py-3.5 px-5 text-center">Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-50">
+                <tbody className="divide-y divide-slate-100">
                   {filteredData.map((emp) => (
                     <tr
                       key={emp.id}
-                      className="hover:bg-gray-50/50 transition-colors"
+                      className="hover:bg-slate-50/50 transition-colors"
                     >
-                      <td className="py-4 px-6">
+                      <td className="py-3.5 px-5">
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-xs">
+                          <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center font-semibold text-xs">
                             {emp.name.charAt(0)}
                           </div>
-                          <span className="font-semibold text-gray-900">
+                          <span className="font-medium text-slate-800">
                             {emp.name}
                           </span>
                         </div>
                       </td>
-                      <td className="py-4 px-6 text-center text-gray-500 font-medium">
+                      <td className="py-3.5 px-5 text-center text-slate-500 font-medium">
                         {emp.days}
                       </td>
-                      <td className="py-4 px-6 text-center">
+                      <td className="py-3.5 px-5 text-center">
                         <Badge variant="success" className="font-semibold h-5">
                           {emp.present}
                         </Badge>
                       </td>
-                      <td className="py-4 px-6 text-center">
-                        <Badge variant="danger" className="font-semibold h-5">
+                      <td className="py-3.5 px-5 text-center">
+                        <Badge variant="danger" className="font-medium h-5">
                           {emp.absent}
                         </Badge>
                       </td>
-                      <td className="py-4 px-6">
+                      <td className="py-3.5 px-5">
                         <div className="flex items-center justify-center gap-2">
-                          <div className="w-12 bg-gray-100 rounded-full h-1.5 hidden sm:block">
+                          <div className="w-12 bg-slate-100 rounded-full h-1.5 hidden sm:block">
                             <div
-                              className="h-1.5 rounded-full bg-blue-600"
+                              className="h-1.5 rounded-full bg-blue-500"
                               style={{ width: `${emp.percentage}%` }}
                             ></div>
                           </div>
-                          <span className="text-xs font-semibold text-gray-900">
+                          <span className="text-xs font-semibold text-slate-900">
                             {emp.percentage}%
                           </span>
                         </div>
                       </td>
-                      <td className="py-4 px-6 text-center">
+                      <td className="py-3.5 px-5 text-center">
                         <button
                           onClick={() => handleEditClick(emp)}
                           className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors inline-flex items-center gap-2"
-                          title="Manage Location / WFH"
+                          title="View Details"
                         >
-                          <Info size={18} />
-                          <span className="text-xs font-bold md:hidden lg:inline text-blue-700">
-                            Settings
+                          <Eye size={18} />
+                          <span className="text-xs font-medium md:hidden lg:inline text-blue-700">
+                            Details
                           </span>
                         </button>
                       </td>
@@ -221,29 +254,6 @@ export default function TeamAttendancePage() {
           </CardContent>
         </Card>
 
-        {/* Global Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <StatsCard
-            label="Team Size"
-            value={attendanceData.length}
-            color="indigo"
-          />
-          <StatsCard
-            label="Avg. Rate"
-            value={`${Math.round(attendanceData.reduce((acc, curr) => acc + curr.percentage, 0) / (attendanceData.length || 1))}%`}
-            color="blue"
-          />
-          <StatsCard
-            label="Field Employees"
-            value={attendanceData.filter((e) => !e.rawUser.officeId).length}
-            color="amber"
-          />
-          <StatsCard
-            label="WFH Allowed"
-            value={attendanceData.filter((e) => e.rawUser.wfhAllowed).length}
-            color="purple"
-          />
-        </div>
       </div>
 
       <EditEmployeeModal
@@ -261,10 +271,8 @@ export default function TeamAttendancePage() {
 
 function StatsCard({ label, value, color }) {
   const colorMap = {
-    indigo: "bg-indigo-50 text-indigo-700 border-indigo-100",
     blue: "bg-blue-50 text-blue-700 border-blue-100",
-    amber: "bg-amber-50 text-amber-700 border-amber-100",
-    purple: "bg-purple-50 text-purple-700 border-purple-100",
+    yellow: "bg-yellow-50 text-yellow-700 border-yellow-100",
   };
 
   return (

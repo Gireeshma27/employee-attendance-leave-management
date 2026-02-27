@@ -199,7 +199,7 @@ export default function AttendancePage() {
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="flex flex-col items-center gap-4">
             <div className="w-12 h-12 border-4 border-blue-600/20 border-t-blue-600 rounded-full animate-spin"></div>
-            <p className="text-gray-500 font-medium">Loading attendance...</p>
+            <p className="text-slate-500 font-medium">Loading attendance...</p>
           </div>
         </div>
       </DashboardLayout>
@@ -230,10 +230,10 @@ export default function AttendancePage() {
         {/* Page Title */}
         <div className="pt-1 md:pt-2 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
           <div>
-            <h1 className="text-lg sm:text-2xl font-semibold text-gray-900">
+            <h1 className="text-lg sm:text-2xl font-semibold text-slate-900">
               Attendance
             </h1>
-            <p className="text-xs sm:text-sm text-gray-500 mt-1">
+            <p className="text-xs sm:text-sm text-slate-500 mt-1">
               Track your daily check-in, check-out and location data.
             </p>
           </div>
@@ -255,17 +255,17 @@ export default function AttendancePage() {
         </div>
 
         {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-          <div className="bg-white border border-gray-100 rounded-2xl p-4 md:p-6 shadow-sm hover:shadow-md transition-shadow">
-            <div className="flex flex-col items-center text-center space-y-2 md:space-y-3">
-              <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="bg-white border border-slate-200/60 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex flex-col items-center text-center space-y-2">
+              <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center">
                 <LogIn size={20} />
               </div>
               <div>
-                <p className="text-[9px] md:text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
+                <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
                   Check-in Time
                 </p>
-                <p className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 mt-1">
+                <p className="text-xl sm:text-2xl font-semibold text-slate-900 mt-1">
                   {formatTime(todayAttendance?.checkInTime)}
                 </p>
               </div>
@@ -273,15 +273,15 @@ export default function AttendancePage() {
           </div>
 
           <div
-            className={`rounded-2xl p-4 md:p-6 shadow-sm hover:shadow-md transition-shadow border ${
+            className={`rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow border ${
               isOutOfRange
-                ? "bg-red-50 border-red-100"
-                : "bg-green-50 border-green-100"
+                ? "bg-red-50 border-red-200/60"
+                : "bg-green-50 border-green-200/60"
             }`}
           >
-            <div className="flex flex-col items-center text-center space-y-2 md:space-y-3">
+            <div className="flex flex-col items-center text-center space-y-2">
               <div
-                className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                className={`w-10 h-10 rounded-xl flex items-center justify-center ${
                   isOutOfRange
                     ? "bg-red-100 text-red-600"
                     : "bg-green-100 text-green-600"
@@ -291,14 +291,14 @@ export default function AttendancePage() {
               </div>
               <div>
                 <p
-                  className={`text-[9px] md:text-[10px] font-semibold uppercase tracking-wider ${
+                  className={`text-[10px] font-semibold uppercase tracking-wider ${
                     isOutOfRange ? "text-red-400" : "text-green-500"
                   }`}
                 >
                   Check-out Time
                 </p>
                 <p
-                  className={`text-xl md:text-2xl font-bold mt-1 ${
+                  className={`text-xl sm:text-2xl font-semibold mt-1 ${
                     isOutOfRange ? "text-red-900" : "text-green-900"
                   }`}
                 >
@@ -308,20 +308,20 @@ export default function AttendancePage() {
             </div>
           </div>
 
-          <div className="bg-white border border-gray-100 rounded-2xl p-4 md:p-6 shadow-sm hover:shadow-md transition-shadow">
-            <div className="flex flex-col items-center text-center space-y-2 md:space-y-3">
-              <div className="w-10 h-10 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center">
+          <div className="bg-white border border-slate-200/60 rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex flex-col items-center text-center space-y-2">
+              <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center">
                 <Locate size={20} />
               </div>
               <div>
-                <p className="text-[9px] md:text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
+                <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
                   Total Hours
                 </p>
                 <div className="flex items-baseline gap-1 mt-1 justify-center">
-                  <p className="text-xl md:text-2xl font-bold text-gray-900">
+                  <p className="text-xl sm:text-2xl font-semibold text-slate-900">
                     {activeDuration.h}h
                   </p>
-                  <p className="text-base md:text-lg font-bold text-gray-400">
+                  <p className="text-base font-semibold text-slate-400">
                     {activeDuration.m}m
                   </p>
                 </div>
@@ -333,22 +333,22 @@ export default function AttendancePage() {
         {/* Action Center & Map */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
           {/* Action Center */}
-          <div className="lg:col-span-2 bg-white border border-gray-100 rounded-3xl p-6 md:p-8 shadow-sm">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6 md:mb-8">
-              <h2 className="text-base md:text-lg font-semibold text-gray-900">
+          <div className="lg:col-span-2 bg-white border border-slate-200/60 rounded-2xl p-6 shadow-sm">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+              <h2 className="text-base font-semibold text-slate-900">
                 Action Center
               </h2>
               <div className="flex items-center gap-4">
                 {userProfile?.wfhAllowed && !todayAttendance?.checkInTime && (
-                  <label className="flex items-center gap-2 cursor-pointer bg-gray-50 px-3 py-1.5 rounded-full border border-gray-100 hover:bg-white transition-colors">
+                  <label className="flex items-center gap-2 cursor-pointer bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200/60 hover:bg-white transition-colors">
                     <input
                       type="checkbox"
                       checked={isWFH}
                       onChange={(e) => setIsWFH(e.target.checked)}
                       disabled={userProfile.wfhDaysRemaining <= 0}
-                      className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-gray-300"
+                      className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-300"
                     />
-                    <span className="text-xs font-semibold text-gray-700 uppercase tracking-tighter">
+                    <span className="text-xs font-medium text-slate-700">
                       Work From Home
                     </span>
                   </label>
@@ -380,7 +380,7 @@ export default function AttendancePage() {
                   todayAttendance?.checkInTime
                     ? "bg-blue-50 text-blue-400 cursor-not-allowed"
                     : isOutOfRange && !isWFH
-                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                      ? "bg-slate-100 text-slate-400 cursor-not-allowed"
                       : "bg-[#10b981] text-white hover:bg-[#059669] shadow-lg shadow-green-100 active:scale-95"
                 }`}
               >
@@ -416,7 +416,7 @@ export default function AttendancePage() {
                   todayAttendance?.checkOutTime
                     ? "bg-red-50 text-red-400 cursor-not-allowed"
                     : !todayAttendance?.checkInTime
-                      ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                      ? "bg-slate-100 text-slate-400 cursor-not-allowed"
                       : "bg-[#ef4444] text-white hover:bg-[#dc2626] shadow-lg shadow-red-100 active:scale-95"
                 }`}
               >
@@ -433,28 +433,28 @@ export default function AttendancePage() {
             </div>
 
             {/* Hint Box */}
-            <div className="mt-6 md:mt-8 text-center bg-gray-50/50 border border-gray-100 rounded-2xl p-3 md:p-4">
+            <div className="mt-6 text-center bg-slate-50/50 border border-slate-200/60 rounded-xl p-3">
               {isOutOfRange && !isWFH ? (
-                <p className="text-xs md:text-sm text-red-500 font-medium flex items-center justify-center gap-2">
+                <p className="text-xs text-red-500 font-medium flex items-center justify-center gap-2">
                   <AlertTriangle size={16} className="flex-shrink-0" /> Check-in
                   disabled: You are outside the office geofence.
                 </p>
               ) : todayAttendance?.checkInTime ? (
-                <p className="text-xs md:text-sm text-gray-500 font-medium">
+                <p className="text-xs text-slate-500">
                   Last activity:{" "}
                   {todayAttendance.status === "WFH"
                     ? "Remote Check-in"
                     : "Check-in"}{" "}
                   at{" "}
-                  <span className="text-blue-600">
+                  <span className="text-blue-600 font-medium">
                     {formatTime(todayAttendance.checkInTime)}
                   </span>{" "}
                   from{" "}
                   <span
                     className={
                       todayAttendance.status === "WFH"
-                        ? "text-purple-600 font-semibold"
-                        : "text-green-600 font-semibold"
+                        ? "text-blue-600 font-medium"
+                        : "text-blue-600 font-medium"
                     }
                   >
                     {todayAttendance.status === "WFH"
@@ -463,7 +463,7 @@ export default function AttendancePage() {
                   </span>
                 </p>
               ) : (
-                <p className="text-xs md:text-sm text-gray-500 font-medium">
+                <p className="text-xs text-slate-500">
                   {isWFH
                     ? "Ready for remote work session."
                     : "Verify your location to enable check-in/out actions."}
@@ -473,11 +473,11 @@ export default function AttendancePage() {
           </div>
 
           {/* Live Location Card - TEMPORARILY DISABLED 
-          <div className="bg-white border border-gray-100 rounded-3xl overflow-hidden shadow-sm flex flex-col">
-            <div className="p-4 md:p-5 border-b border-gray-50 flex items-center justify-between">
+          <div className="bg-white border border-slate-200/60 rounded-3xl overflow-hidden shadow-sm flex flex-col">
+            <div className="p-4 md:p-5 border-b border-slate-100 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <MapPin size={18} className="text-red-500 flex-shrink-0" />
-                <span className="text-xs md:text-sm font-semibold text-gray-900">
+                <span className="text-xs md:text-sm font-semibold text-slate-900">
                   Live Location
                 </span>
               </div>
@@ -489,7 +489,7 @@ export default function AttendancePage() {
               </Badge>
             </div>
 
-            <div className="relative flex-1 bg-gray-100 min-h-[200px] md:min-h-[220px] flex items-center justify-center">
+            <div className="relative flex-1 bg-slate-100 min-h-[200px] md:min-h-[220px] flex items-center justify-center">
               <div
                 className="absolute inset-0 opacity-20 pointer-events-none"
                 style={{
@@ -524,23 +524,23 @@ export default function AttendancePage() {
                         isOutOfRange ? "bg-red-500" : "bg-blue-600"
                       }`}
                     ></div>
-                    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-white text-[8px] md:text-[9px] font-semibold py-0.5 px-2 rounded-full border border-gray-100 shadow-sm whitespace-nowrap">
+                    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-white text-[8px] md:text-[9px] font-semibold py-0.5 px-2 rounded-full border border-slate-100 shadow-sm whitespace-nowrap">
                       You
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div className="absolute bottom-3 left-3 right-3 md:bottom-4 md:left-4 md:right-4 bg-white/95 backdrop-blur-sm p-2 md:p-3 rounded-xl border border-gray-100 shadow-xl">
-                <p className="text-[8px] md:text-[10px] font-semibold text-gray-400 uppercase tracking-widest leading-none">
+              <div className="absolute bottom-3 left-3 right-3 md:bottom-4 md:left-4 md:right-4 bg-white/95 backdrop-blur-sm p-2 md:p-3 rounded-xl border border-slate-100 shadow-xl">
+                <p className="text-[8px] md:text-[10px] font-semibold text-slate-400 uppercase tracking-widest leading-none">
                   Detected Location
                 </p>
-                <p className="text-[9px] md:text-[11px] font-semibold text-gray-800 mt-1.5 leading-tight">
+                <p className="text-[9px] md:text-[11px] font-semibold text-slate-800 mt-1.5 leading-tight">
                   {isOutOfRange
                     ? "Sector 22, Residential Block"
                     : "Office Building 4, Zone A"}
                 </p>
-                <p className="text-[8px] md:text-[10px] font-medium text-gray-500 mt-0.5">
+                <p className="text-[8px] md:text-[10px] font-medium text-slate-500 mt-0.5">
                   {isOutOfRange
                     ? "Distance: 1.2km from perimeter"
                     : "Lat: 12.9716° N, Long: 77.5946° E"}
@@ -552,43 +552,43 @@ export default function AttendancePage() {
         </div>
 
         {/* Attendance History */}
-        <div className="bg-white border border-gray-100 rounded-3xl overflow-hidden shadow-sm">
-          <div className="p-6 border-b border-gray-50 flex items-center justify-between">
-            <h3 className="font-semibold text-gray-900">Attendance History</h3>
-            <span className="text-gray-400 text-xs">
+        <div className="bg-white border border-slate-200/60 rounded-2xl overflow-hidden shadow-sm">
+          <div className="p-5 border-b border-slate-100 flex items-center justify-between">
+            <h3 className="font-semibold text-slate-900">Attendance History</h3>
+            <span className="text-slate-400 text-xs">
               Showing all {attendanceHistory.length} records
             </span>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-xs md:text-sm">
-              <thead className="bg-gray-50/50 text-[9px] md:text-[10px] font-semibold text-gray-400 uppercase tracking-widest">
+              <thead className="bg-slate-50/50 text-[10px] font-semibold text-slate-400 uppercase tracking-widest">
                 <tr>
-                  <th className="px-4 md:px-6 py-3 md:py-4 text-left">Date</th>
-                  <th className="px-4 md:px-6 py-3 md:py-4 text-left hidden sm:table-cell">
+                  <th className="px-5 py-3.5 text-left">Date</th>
+                  <th className="px-5 py-3.5 text-left hidden sm:table-cell">
                     Check-in
                   </th>
-                  <th className="px-4 md:px-6 py-3 md:py-4 text-left hidden md:table-cell">
+                  <th className="px-5 py-3.5 text-left hidden md:table-cell">
                     Check-out
                   </th>
-                  <th className="px-4 md:px-6 py-3 md:py-4 text-left">
+                  <th className="px-5 py-3.5 text-left">
                     Duration
                   </th>
-                  <th className="px-4 md:px-6 py-3 md:py-4 text-left">
+                  <th className="px-5 py-3.5 text-left">
                     Status
                   </th>
-                  <th className="px-4 md:px-6 py-3 md:py-4 text-center hidden xs:table-cell">
+                  <th className="px-5 py-3.5 text-center hidden xs:table-cell">
                     Action
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50">
+              <tbody className="divide-y divide-slate-100">
                 {attendanceHistory.map((record, idx) => (
                   <tr
                     key={idx}
-                    className="hover:bg-gray-50/80 transition-colors"
+                    className="hover:bg-slate-50/50 transition-colors"
                   >
-                    <td className="px-4 md:px-6 py-3 md:py-4 whitespace-nowrap">
-                      <p className="text-xs md:text-sm font-semibold text-gray-800">
+                    <td className="px-5 py-3.5 whitespace-nowrap">
+                      <p className="text-sm font-medium text-slate-800">
                         {new Date(record.date).toLocaleDateString("en-US", {
                           month: "short",
                           day: "numeric",
@@ -596,20 +596,20 @@ export default function AttendancePage() {
                         })}
                       </p>
                     </td>
-                    <td className="px-4 md:px-6 py-3 md:py-4 text-xs md:text-sm font-medium text-gray-500 hidden sm:table-cell">
+                    <td className="px-5 py-3.5 text-sm font-medium text-slate-500 hidden sm:table-cell">
                       {formatTime(record.checkInTime)}
                     </td>
-                    <td className="px-4 md:px-6 py-3 md:py-4 text-xs md:text-sm font-medium text-gray-500 hidden md:table-cell">
+                    <td className="px-5 py-3.5 text-sm font-medium text-slate-500 hidden md:table-cell">
                       {formatTime(record.checkOutTime)}
                     </td>
-                    <td className="px-4 md:px-6 py-3 md:py-4">
-                      <p className="text-xs md:text-sm font-semibold text-gray-800">
+                    <td className="px-5 py-3.5">
+                      <p className="text-sm font-medium text-slate-800">
                         {record.workingHours
                           ? `${Math.floor(record.workingHours)}h ${Math.round((record.workingHours % 1) * 60)}m`
                           : "-"}
                       </p>
                     </td>
-                    <td className="px-4 md:px-6 py-3 md:py-4">
+                    <td className="px-5 py-3.5">
                       <Badge
                         variant={
                           record.status === "Present"
@@ -618,13 +618,13 @@ export default function AttendancePage() {
                               ? "danger"
                               : "secondary"
                         }
-                        className="text-[9px] md:text-[10px] font-semibold py-0.5 px-2"
+                        dot
                       >
                         {record.status?.toUpperCase() || "PENDING"}
                       </Badge>
                     </td>
-                    <td className="px-4 md:px-6 py-3 md:py-4 hidden xs:table-cell">
-                      <button className="w-8 h-8 rounded-full flex items-center justify-center text-gray-400 hover:bg-gray-100 transition-colors">
+                    <td className="px-5 py-3.5 hidden xs:table-cell">
+                      <button className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:bg-slate-100 transition-colors">
                         <AlertTriangle size={16} />
                       </button>
                     </td>

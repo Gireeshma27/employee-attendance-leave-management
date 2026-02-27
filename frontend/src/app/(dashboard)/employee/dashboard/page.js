@@ -75,7 +75,7 @@ const EmployeeDashboard = () => {
         <div className="flex items-center justify-center h-96">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-500 font-medium">Loading dashboard...</p>
+            <p className="text-slate-500 font-medium">Loading dashboard...</p>
           </div>
         </div>
       </DashboardLayout>
@@ -91,34 +91,32 @@ const EmployeeDashboard = () => {
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h1 className="text-xl sm:text-2xl font-semibold text-gray-900">
+            <h1 className="text-xl sm:text-2xl font-semibold text-slate-900">
               Welcome back, {user?.name || "Employee"}!
             </h1>
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-sm text-slate-500 mt-1">
               Here's your attendance overview for today
             </p>
           </div>
-          <Badge variant="info" className="px-4 py-1 w-fit">
+          <Badge variant="info" className="px-3 py-1 w-fit text-xs">
             {user?.employeeId || "EMP-001"}
           </Badge>
         </div>
 
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-3 animate-in fade-in slide-in-from-top-2">
-            <p className="text-sm text-red-600 flex items-center gap-2">
-              <AlertCircle size={16} />
-              {error}
-            </p>
+          <div className="bg-red-50 border border-red-200 rounded-xl p-3 flex items-center gap-2">
+            <AlertCircle size={16} className="text-red-500 flex-shrink-0" />
+            <p className="text-sm text-red-600">{error}</p>
           </div>
         )}
 
         {/* Quick Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard
             label="Today's Status"
             value={todayStatus?.checkInTime ? "Present" : "Not Checked In"}
             icon={Clock}
-            color="blue"
+            color="green"
           />
 
           <StatCard
@@ -129,44 +127,44 @@ const EmployeeDashboard = () => {
                 : "0h 0m"
             }
             icon={TrendingUp}
-            color="emerald"
+            color="blue"
           />
 
           <StatCard
             label="Leave Balance"
             value={`${leaveBalance.total} days`}
             icon={Calendar}
-            color="amber"
+            color="yellow"
           />
 
           <StatCard
             label="Pending Requests"
             value={String(pendingLeaves)}
             icon={AlertCircle}
-            color="rose"
+            color="red"
           />
         </div>
 
         {/* Recent Attendance */}
-        <Card className="overflow-hidden shadow-sm border-slate-200">
+        <Card className="overflow-hidden">
           <CardHeader className="bg-slate-50/50 border-b border-slate-100 flex flex-row items-center justify-between">
-            <CardTitle className="text-base font-semibold text-gray-800">
+            <CardTitle className="text-base font-semibold text-slate-800">
               Recent Attendance
             </CardTitle>
-            <span className="text-xs text-gray-400">Last 5 records</span>
+            <span className="text-xs text-slate-400">Last 5 records</span>
           </CardHeader>
           <CardContent className="p-0">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-gray-500 bg-slate-50/30 uppercase text-[10px] font-semibold tracking-widest">
-                    <th className="text-left px-4 md:px-6 py-4">Date</th>
-                    <th className="text-left px-4 md:px-6 py-4">Check-in</th>
-                    <th className="text-left px-4 md:px-6 py-4 hidden sm:table-cell">
+                  <tr className="text-slate-400 bg-slate-50/30 uppercase text-[10px] font-semibold tracking-widest">
+                    <th className="text-left px-5 py-3.5">Date</th>
+                    <th className="text-left px-5 py-3.5">Check-in</th>
+                    <th className="text-left px-5 py-3.5 hidden sm:table-cell">
                       Check-out
                     </th>
-                    <th className="text-left px-4 md:px-6 py-4">Hours</th>
-                    <th className="text-left px-4 md:px-6 py-4">Status</th>
+                    <th className="text-left px-5 py-3.5">Hours</th>
+                    <th className="text-left px-5 py-3.5">Status</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -176,14 +174,14 @@ const EmployeeDashboard = () => {
                         key={idx}
                         className="hover:bg-slate-50/50 transition-colors"
                       >
-                        <td className="px-4 md:px-6 py-4 text-gray-900 font-medium">
+                        <td className="px-5 py-3.5 text-slate-800 font-medium">
                           {new Date(record.date).toLocaleDateString("en-US", {
                             month: "short",
                             day: "numeric",
                             year: "numeric",
                           })}
                         </td>
-                        <td className="px-4 md:px-6 py-4 text-gray-600">
+                        <td className="px-5 py-3.5 text-slate-500">
                           {record.checkInTime
                             ? new Date(record.checkInTime).toLocaleTimeString(
                                 "en-US",
@@ -195,7 +193,7 @@ const EmployeeDashboard = () => {
                               )
                             : "-"}
                         </td>
-                        <td className="px-4 md:px-6 py-4 text-gray-600 hidden sm:table-cell">
+                        <td className="px-5 py-3.5 text-slate-500 hidden sm:table-cell">
                           {record.checkOutTime
                             ? new Date(record.checkOutTime).toLocaleTimeString(
                                 "en-US",
@@ -207,12 +205,12 @@ const EmployeeDashboard = () => {
                               )
                             : "-"}
                         </td>
-                        <td className="px-4 md:px-6 py-4 text-gray-700 font-medium">
+                        <td className="px-5 py-3.5 text-slate-700 font-medium">
                           {record.workingHours
                             ? `${Math.floor(record.workingHours)}h ${Math.round((record.workingHours % 1) * 60)}m`
                             : "0h 0m"}
                         </td>
-                        <td className="px-4 md:px-6 py-4">
+                        <td className="px-5 py-3.5">
                           <Badge
                             variant={
                               record.status === "Present"
@@ -221,6 +219,7 @@ const EmployeeDashboard = () => {
                                   ? "danger"
                                   : "secondary"
                             }
+                            dot
                           >
                             {record.status}
                           </Badge>
@@ -231,7 +230,7 @@ const EmployeeDashboard = () => {
                     <tr>
                       <td
                         colSpan="5"
-                        className="px-6 py-10 text-center text-gray-400"
+                        className="px-5 py-12 text-center text-slate-400"
                       >
                         No attendance records found
                       </td>
@@ -260,28 +259,31 @@ const EmployeeDashboard = () => {
 };
 
 const StatCard = ({ label, value, icon: Icon, color }) => {
-  const colorMap = {
-    blue: "text-blue-600 bg-blue-50",
-    emerald: "text-emerald-600 bg-emerald-50",
-    amber: "text-amber-600 bg-amber-50",
-    rose: "text-rose-600 bg-rose-50",
+  const colors = {
+    green: "bg-green-500 text-white shadow-green-500/20",
+    blue: "bg-blue-600 text-white shadow-blue-600/20",
+    yellow: "bg-yellow-500 text-white shadow-yellow-500/20",
+    red: "bg-red-500 text-white shadow-red-500/20",
   };
 
   return (
-    <Card className="hover:shadow-md transition-shadow border-slate-200">
-      <CardContent className="p-5">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-xs text-gray-500 uppercase tracking-wider font-medium">
-              {label}
-            </p>
-            <p className="mt-2 text-2xl font-semibold text-gray-900">{value}</p>
-          </div>
-          <div className={`p-3 rounded-xl ${colorMap[color] || colorMap.blue}`}>
-            <Icon size={22} />
-          </div>
+    <Card className="hover:shadow-md transition-all duration-300 overflow-hidden relative group">
+      <div className="absolute top-0 right-0 w-20 h-20 bg-slate-50 rounded-full translate-x-8 -translate-y-8 opacity-40 group-hover:scale-110 transition-transform duration-500" />
+      <div className="flex flex-col gap-3 relative z-10 p-4 md:p-5">
+        <div
+          className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-lg ${colors[color] || colors.blue}`}
+        >
+          <Icon size={18} strokeWidth={2} />
         </div>
-      </CardContent>
+        <div>
+          <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">
+            {label}
+          </p>
+          <p className="text-xl md:text-2xl font-semibold text-slate-900 tracking-tight leading-none">
+            {value}
+          </p>
+        </div>
+      </div>
     </Card>
   );
 };

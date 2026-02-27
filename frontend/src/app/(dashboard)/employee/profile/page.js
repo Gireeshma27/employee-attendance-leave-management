@@ -135,10 +135,10 @@ export default function ProfilePage() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-xl sm:text-2xl font-semibold text-gray-900">
+            <h1 className="text-xl sm:text-2xl font-semibold text-slate-900">
               Profile
             </h1>
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-sm text-slate-500 mt-1">
               Manage your personal information
             </p>
           </div>
@@ -156,7 +156,7 @@ export default function ProfilePage() {
 
         {/* Success Message */}
         {success && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+          <div className="bg-green-50 border border-green-200 rounded-xl p-3">
             <p className="text-green-700 text-sm">
               Profile updated successfully!
             </p>
@@ -168,8 +168,8 @@ export default function ProfilePage() {
           <Card>
             <CardContent className="pt-8">
               <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                <p className="text-gray-500 font-medium">Loading profile...</p>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-900 mx-auto mb-4"></div>
+                <p className="text-slate-500 font-medium">Loading profile...</p>
               </div>
             </CardContent>
           </Card>
@@ -185,13 +185,13 @@ export default function ProfilePage() {
                   {profileData.name?.charAt(0).toUpperCase() || "U"}
                 </div>
                 <div className="text-center sm:text-left">
-                  <h2 className="text-2xl font-semibold text-gray-900">
+                  <h2 className="text-2xl font-semibold text-slate-900">
                     {profileData.name}
                   </h2>
-                  <p className="text-gray-500 mt-1">
+                  <p className="text-slate-500 mt-1">
                     {profileData.role || "Employee"}
                   </p>
-                  <p className="text-sm text-gray-400 mt-1">
+                  <p className="text-sm text-slate-400 mt-1">
                     {profileData.employeeId || "-"}
                   </p>
                 </div>
@@ -205,10 +205,10 @@ export default function ProfilePage() {
                       <Mail className="text-blue-600" size={20} />
                     </div>
                     <div>
-                      <p className="text-xs text-gray-400 uppercase tracking-wider font-medium">
+                      <p className="text-xs text-slate-400 uppercase tracking-wider font-medium">
                         Email
                       </p>
-                      <p className="text-gray-900 mt-1">{profileData.email}</p>
+                      <p className="text-slate-900 mt-1">{profileData.email}</p>
                     </div>
                   </div>
 
@@ -217,10 +217,10 @@ export default function ProfilePage() {
                       <Phone className="text-blue-600" size={20} />
                     </div>
                     <div>
-                      <p className="text-xs text-gray-400 uppercase tracking-wider font-medium">
+                      <p className="text-xs text-slate-400 uppercase tracking-wider font-medium">
                         Phone
                       </p>
-                      <p className="text-gray-900 mt-1">
+                      <p className="text-slate-900 mt-1">
                         {profileData.phone || "Not provided"}
                       </p>
                     </div>
@@ -231,10 +231,10 @@ export default function ProfilePage() {
                       <MapPin className="text-blue-600" size={20} />
                     </div>
                     <div>
-                      <p className="text-xs text-gray-400 uppercase tracking-wider font-medium">
+                      <p className="text-xs text-slate-400 uppercase tracking-wider font-medium">
                         Department
                       </p>
-                      <p className="text-gray-900 mt-1">
+                      <p className="text-slate-900 mt-1">
                         {profileData.department || "Not assigned"}
                       </p>
                     </div>
@@ -245,7 +245,7 @@ export default function ProfilePage() {
                       <Lock className="text-slate-600" size={20} />
                     </div>
                     <div>
-                      <p className="text-xs text-gray-400 uppercase tracking-wider font-medium">
+                      <p className="text-xs text-slate-400 uppercase tracking-wider font-medium">
                         Security
                       </p>
                       <button
@@ -267,10 +267,10 @@ export default function ProfilePage() {
                       <Briefcase className="text-blue-600" size={20} />
                     </div>
                     <div>
-                      <p className="text-xs text-gray-400 uppercase tracking-wider font-medium">
+                      <p className="text-xs text-slate-400 uppercase tracking-wider font-medium">
                         Role
                       </p>
-                      <p className="text-gray-900 mt-1">
+                      <p className="text-slate-900 mt-1">
                         {profileData.role || "Employee"}
                       </p>
                     </div>
@@ -281,10 +281,10 @@ export default function ProfilePage() {
                       <User className="text-blue-600" size={20} />
                     </div>
                     <div>
-                      <p className="text-xs text-gray-400 uppercase tracking-wider font-medium">
+                      <p className="text-xs text-slate-400 uppercase tracking-wider font-medium">
                         Employee ID
                       </p>
-                      <p className="text-gray-900 mt-1">
+                      <p className="text-slate-900 mt-1">
                         {profileData.employeeId || "-"}
                       </p>
                     </div>
@@ -295,10 +295,10 @@ export default function ProfilePage() {
                       <Calendar className="text-blue-600" size={20} />
                     </div>
                     <div>
-                      <p className="text-xs text-gray-400 uppercase tracking-wider font-medium">
+                      <p className="text-xs text-slate-400 uppercase tracking-wider font-medium">
                         Status
                       </p>
-                      <p className="text-gray-900 mt-1">
+                      <p className="text-slate-900 mt-1">
                         <span
                           className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium ${profileData.isActive ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"}`}
                         >
@@ -323,7 +323,7 @@ export default function ProfilePage() {
           title="Edit Profile"
         >
           {error && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
+            <div className="bg-red-50 border border-red-200 rounded-xl p-3 mb-4">
               <p className="text-red-600 text-sm">{error}</p>
             </div>
           )}
@@ -378,7 +378,7 @@ export default function ProfilePage() {
           title="Change Password"
         >
           {error && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
+            <div className="bg-red-50 border border-red-200 rounded-xl p-3 mb-4">
               <p className="text-red-600 text-sm">{error}</p>
             </div>
           )}
