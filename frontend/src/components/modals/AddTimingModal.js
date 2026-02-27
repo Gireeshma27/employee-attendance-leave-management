@@ -237,16 +237,16 @@ export function AddTimingModal({ isOpen, onClose, onSuccess, editingTiming = nul
     return (
       <Modal isOpen={isOpen} onClose={handleClose} title={isEditMode ? "Timing Updated" : "Timing Added"} size="lg">
         <div className="py-8 text-center">
-          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 animate-in zoom-in duration-300">
+          <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4 animate-in zoom-in duration-300">
             <CheckCircle2 className="w-8 h-8 text-green-600" />
           </div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+          <h3 className="text-lg font-semibold text-slate-900 mb-2">
             {isEditMode ? "Timing Updated Successfully!" : "Timing Created Successfully!"}
           </h3>
-          <p className="text-sm text-gray-500">
-            <span className="font-medium text-gray-700">{createdTimingName}</span> has been {isEditMode ? "updated" : "added"}.
+          <p className="text-sm text-slate-500">
+            <span className="font-medium text-slate-700">{createdTimingName}</span> has been {isEditMode ? "updated" : "added"}.
           </p>
-          <p className="text-xs text-gray-400 mt-4">
+          <p className="text-xs text-slate-400 mt-4">
             This dialog will close automatically...
           </p>
         </div>
@@ -259,7 +259,7 @@ export function AddTimingModal({ isOpen, onClose, onSuccess, editingTiming = nul
       <form onSubmit={handleSubmit} className="space-y-5">
         {/* API Error */}
         {apiError && (
-          <div className="p-3 bg-red-50 border border-red-200 rounded-lg flex gap-2">
+          <div className="p-3 bg-red-50 border border-red-200/60 rounded-xl flex gap-2">
             <AlertCircle className="text-red-600 flex-shrink-0" size={18} />
             <p className="text-sm text-red-700">{apiError}</p>
           </div>
@@ -267,21 +267,21 @@ export function AddTimingModal({ isOpen, onClose, onSuccess, editingTiming = nul
 
         {/* Location & Branch Section */}
         <div className="space-y-4">
-          <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
+          <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
             <MapPin size={16} className="text-blue-600" />
-            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Location Details</span>
+            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Location Details</span>
           </div>
 
           {/* Location */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-slate-700 mb-1">
               Location <span className="text-red-500">*</span>
             </label>
             <select
               name="location"
               value={formData.location}
               onChange={handleChange}
-              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm ${errors.location ? "border-red-500" : "border-gray-300"}`}
+              className={`w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900/10 text-sm ${errors.location ? "border-red-500" : "border-slate-300"}`}
             >
               <option value="">Select Location</option>
               {LOCATIONS.map((loc) => (
@@ -298,7 +298,7 @@ export function AddTimingModal({ isOpen, onClose, onSuccess, editingTiming = nul
           {/* Branch & Team Name */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-slate-700 mb-1">
                 Branch <span className="text-red-500">*</span>
               </label>
               <Input
@@ -315,7 +315,7 @@ export function AddTimingModal({ isOpen, onClose, onSuccess, editingTiming = nul
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-slate-700 mb-1">
                 Team Name <span className="text-red-500">*</span>
               </label>
               <Input
@@ -335,14 +335,14 @@ export function AddTimingModal({ isOpen, onClose, onSuccess, editingTiming = nul
 
         {/* Timing Section */}
         <div className="space-y-4">
-          <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
+          <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
             <Clock size={16} className="text-blue-600" />
-            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Work Schedule</span>
+            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Work Schedule</span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-slate-700 mb-1">
                 Login Time <span className="text-red-500">*</span>
               </label>
               <Input
@@ -358,7 +358,7 @@ export function AddTimingModal({ isOpen, onClose, onSuccess, editingTiming = nul
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-slate-700 mb-1">
                 Logout Time <span className="text-red-500">*</span>
               </label>
               <Input
@@ -377,21 +377,21 @@ export function AddTimingModal({ isOpen, onClose, onSuccess, editingTiming = nul
 
         {/* Departments Section */}
         <div className="space-y-4">
-          <div className="flex items-center justify-between pb-2 border-b border-gray-100">
+          <div className="flex items-center justify-between pb-2 border-b border-slate-100">
             <div className="flex items-center gap-2">
               <Users size={16} className="text-blue-600" />
-              <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Departments</span>
+              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Departments</span>
             </div>
-            <span className="text-xs text-gray-500">
+            <span className="text-xs text-slate-500">
               Selected: {formData.departments.length} / {ALL_DEPARTMENTS.length - MAX_DEPARTMENT_GROUPS}
             </span>
           </div>
 
-          <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-            <p className="text-xs text-gray-500 mb-3">
+          <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
+            <p className="text-xs text-slate-500 mb-3">
               Select departments for this timing. Maximum {ALL_DEPARTMENTS.length - MAX_DEPARTMENT_GROUPS} departments can be assigned per timing group.
               {assignedDepartments.length > 0 && (
-                <span className="text-amber-600"> Grayed out departments are already assigned to other timings.</span>
+                <span className="text-yellow-600"> Grayed out departments are already assigned to other timings.</span>
               )}
             </p>
 
@@ -409,8 +409,8 @@ export function AddTimingModal({ isOpen, onClose, onSuccess, editingTiming = nul
                       ${isSelected
                         ? "bg-blue-50 border-blue-300 text-blue-700"
                         : isDisabled
-                          ? "bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed"
-                          : "bg-white border-gray-200 text-gray-700 hover:border-blue-200 hover:bg-blue-50/50"
+                          ? "bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed"
+                          : "bg-white border-slate-200 text-slate-700 hover:border-blue-200 hover:bg-blue-50/50"
                       }
                     `}
                   >
@@ -419,7 +419,7 @@ export function AddTimingModal({ isOpen, onClose, onSuccess, editingTiming = nul
                       checked={isSelected}
                       onChange={() => !isDisabled && handleDepartmentToggle(dept)}
                       disabled={isDisabled}
-                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 disabled:opacity-50"
+                      className="w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-slate-900/10 disabled:opacity-50"
                     />
                     <span className="text-sm font-medium truncate">
                       {dept}
@@ -437,11 +437,11 @@ export function AddTimingModal({ isOpen, onClose, onSuccess, editingTiming = nul
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-3 pt-5 border-t border-gray-200">
+        <div className="flex gap-3 pt-5 border-t border-slate-200">
           <button
             type="button"
             onClick={handleClose}
-            className="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium text-sm"
+            className="flex-1 px-4 py-2.5 border border-slate-300 text-slate-700 rounded-xl hover:bg-slate-50 transition-colors font-medium text-sm"
           >
             Cancel
           </button>

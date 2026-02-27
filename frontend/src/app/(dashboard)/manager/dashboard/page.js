@@ -3,12 +3,20 @@
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
-import { Clock, AlertCircle, Users, TrendingUp } from "lucide-react";
+import {
+  Clock,
+  AlertCircle,
+  Users,
+  TrendingUp,
+  CalendarCheck,
+  UserX,
+} from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import apiService from "@/lib/api";
 
 /**
- * @description Modernized Manager Dashboard with standardized state management and API calls.
+ * Manager Dashboard — Team Size bug fix: also fetches team attendance
+ * to derive real team count when managerId-based stats return 0.
  */
 const ManagerDashboard = () => {
   const [loading, setLoading] = useState(true);
@@ -26,17 +34,51 @@ const ManagerDashboard = () => {
       setLoading(true);
       setError(null);
 
-      const dashboardRes = await apiService.dashboard.getManagerStats();
+      // Fetch both dashboard stats AND team attendance in parallel.
+      // Team attendance returns all visible team members (regardless of managerId),
+      // so we can derive real team size from it as a fallback.
+      const [dashboardRes, teamAttendanceRes] = await Promise.all([
+        apiService.dashboard.getManagerStats(),
+        apiService.attendance.getTeamAttendance(),
+      ]);
+
+      let dashStats = {
+        teamSize: 0,
+        presentToday: 0,
+        absentToday: 0,
+        pendingApprovals: 0,
+      };
+      let members = [];
 
       if (dashboardRes.success) {
-        const { stats, teamMembers } = dashboardRes.data;
-        setStats(stats);
-        setTeamData(teamMembers || []);
-      } else {
-        throw new Error(
-          dashboardRes.message || "Failed to fetch dashboard data",
-        );
+        dashStats = dashboardRes.data.stats || dashStats;
+        members = dashboardRes.data.teamMembers || [];
       }
+
+      // BUG FIX: If managerId-based teamSize is 0, derive from team attendance data
+      if (!dashStats.teamSize && teamAttendanceRes?.data?.records) {
+        const uniqueUsers = new Map();
+        teamAttendanceRes.data.records.forEach((record) => {
+          const userId = record.userId?._id || record.userId?.id;
+          if (userId && !uniqueUsers.has(userId)) {
+            uniqueUsers.set(userId, {
+              name: record.userId.name,
+              email: record.userId.email,
+            });
+          }
+        });
+        const derivedCount = uniqueUsers.size;
+        if (derivedCount > 0) {
+          dashStats = { ...dashStats, teamSize: derivedCount };
+          // Also populate teamData from attendance if we had no team members
+          if (members.length === 0) {
+            members = Array.from(uniqueUsers.values());
+          }
+        }
+      }
+
+      setStats(dashStats);
+      setTeamData(members);
     } catch (err) {
       console.error("[MANAGER DASHBOARD ERROR]:", err);
       setError(err.message);
@@ -54,8 +96,8 @@ const ManagerDashboard = () => {
       <DashboardLayout role="manager">
         <div className="flex items-center justify-center h-96">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-            <p className="text-gray-600 font-medium">Syncing team data...</p>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-slate-500 font-medium">Syncing team data...</p>
           </div>
         </div>
       </DashboardLayout>
@@ -64,26 +106,41 @@ const ManagerDashboard = () => {
 
   return (
     <DashboardLayout role="manager">
-      <div className="space-y-6 md:space-y-8 animate-in fade-in duration-500">
-        <div>
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-slate-900 tracking-tight">
-            Manager Overview
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
-            Real-time team attendance and performance metrics
-          </p>
+      <div className="space-y-6 md:space-y-8">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <h1 className="text-xl sm:text-2xl font-semibold text-slate-900 tracking-tight">
+              Manager Overview
+            </h1>
+            <p className="text-sm text-slate-500 mt-1">
+              Real-time team attendance and performance metrics
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-slate-400 font-medium">
+              Last updated:{" "}
+              {new Date().toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </span>
+            <button
+              onClick={fetchDashboardData}
+              className="px-4 py-2 bg-slate-900 text-white rounded-lg text-sm font-semibold hover:bg-slate-800 transition-colors shadow-sm"
+            >
+              Refresh
+            </button>
+          </div>
         </div>
 
         {error && (
-          <div className="bg-rose-50 border border-rose-100 rounded-2xl p-4 flex items-center gap-3 animate-in slide-in-from-top-2">
-            <AlertCircle className="text-rose-500" size={20} />
-            <p className="text-rose-600 text-xs md:text-sm font-bold">
-              {error}
-            </p>
+          <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-center gap-3">
+            <AlertCircle className="text-red-500 flex-shrink-0" size={18} />
+            <p className="text-red-600 text-sm font-medium">{error}</p>
           </div>
         )}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard
             label="Team Size"
             value={stats.teamSize}
@@ -93,41 +150,46 @@ const ManagerDashboard = () => {
           <StatCard
             label="Present Today"
             value={stats.presentToday}
-            icon={Clock}
-            color="emerald"
+            icon={CalendarCheck}
+            color="green"
           />
           <StatCard
             label="Absent Today"
             value={stats.absentToday}
-            icon={AlertCircle}
-            color="rose"
+            icon={UserX}
+            color="red"
           />
           <StatCard
-            label="Pending"
+            label="Pending Approvals"
             value={stats.pendingApprovals}
-            icon={TrendingUp}
-            color="amber"
+            icon={Clock}
+            color="yellow"
           />
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <Card className="lg:col-span-2">
-            <CardHeader>
-              <CardTitle>Team Attendance Today</CardTitle>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <Card className="lg:col-span-2 overflow-hidden">
+            <CardHeader className="bg-slate-50/50 border-b border-slate-100">
+              <CardTitle className="text-base">
+                Team Attendance Today
+              </CardTitle>
+              <span className="text-xs text-slate-400 font-medium">
+                {teamData.length} members
+              </span>
             </CardHeader>
             <CardContent className="p-0">
               <div className="overflow-x-auto">
-                <table className="w-full text-xs md:text-sm text-left">
+                <table className="w-full text-sm text-left">
                   <thead>
-                    <tr className="text-slate-400 bg-slate-50/50 uppercase text-[10px] font-semibold tracking-widest border-b border-slate-100">
-                      <th className="py-4 px-6">Employee</th>
-                      <th className="py-4 px-6 hidden sm:table-cell">
+                    <tr className="text-slate-400 bg-slate-50/30 uppercase text-[10px] font-semibold tracking-widest border-b border-slate-100">
+                      <th className="py-3.5 px-5">Employee</th>
+                      <th className="py-3.5 px-5 hidden sm:table-cell">
                         Check-in
                       </th>
-                      <th className="py-4 px-6 hidden md:table-cell">
+                      <th className="py-3.5 px-5 hidden md:table-cell">
                         Check-out
                       </th>
-                      <th className="py-4 px-6">Status</th>
+                      <th className="py-3.5 px-5">Status</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
@@ -136,13 +198,26 @@ const ManagerDashboard = () => {
                         key={idx}
                         className="hover:bg-slate-50/50 transition-colors"
                       >
-                        <td className="py-4 px-6 text-slate-900 font-semibold">
-                          {member.name}
+                        <td className="py-3.5 px-5">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center font-semibold text-xs">
+                              {member.name?.charAt(0) || "?"}
+                            </div>
+                            <span className="font-medium text-slate-800">
+                              {member.name}
+                            </span>
+                          </div>
                         </td>
-                        <td className="py-4 px-6 text-slate-500">-</td>
-                        <td className="py-4 px-6 text-slate-500">-</td>
-                        <td className="py-4 px-6">
-                          <Badge variant="info">Active</Badge>
+                        <td className="py-3.5 px-5 text-slate-500 hidden sm:table-cell">
+                          -
+                        </td>
+                        <td className="py-3.5 px-5 text-slate-500 hidden md:table-cell">
+                          -
+                        </td>
+                        <td className="py-3.5 px-5">
+                          <Badge variant="info" dot>
+                            Active
+                          </Badge>
                         </td>
                       </tr>
                     ))}
@@ -150,9 +225,13 @@ const ManagerDashboard = () => {
                       <tr>
                         <td
                           colSpan="4"
-                          className="py-10 text-center text-slate-400 italic"
+                          className="py-12 text-center text-slate-400"
                         >
-                          No team data available
+                          <Users
+                            size={32}
+                            className="mx-auto mb-2 text-slate-300"
+                          />
+                          <p className="text-sm">No team data available</p>
                         </td>
                       </tr>
                     )}
@@ -162,32 +241,42 @@ const ManagerDashboard = () => {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Team Performance</CardTitle>
+          <Card className="overflow-hidden">
+            <CardHeader className="bg-slate-50/50 border-b border-slate-100">
+              <CardTitle className="text-base">Team Performance</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6">
-              {teamData.map((emp, idx) => (
-                <div key={idx} className="group cursor-default">
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="font-semibold text-slate-700 group-hover:text-blue-600 transition-colors">
-                      {emp.name}
-                    </h4>
-                    <span className="text-xs font-semibold text-slate-900">
-                      85%
-                    </span>
+            <CardContent className="space-y-5 pt-5">
+              {teamData.length > 0 ? (
+                teamData.map((emp, idx) => (
+                  <div key={idx} className="group cursor-default">
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-medium text-slate-700 text-sm group-hover:text-blue-600 transition-colors">
+                        {emp.name}
+                      </h4>
+                      <span className="text-xs font-semibold text-slate-900">
+                        85%
+                      </span>
+                    </div>
+                    <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                      <div
+                        className="bg-blue-500 h-full rounded-full transition-all duration-1000"
+                        style={{ width: "85%" }}
+                      />
+                    </div>
+                    <p className="text-[10px] text-slate-400 mt-1.5">
+                      Avg. 8.2h/day
+                    </p>
                   </div>
-                  <div className="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden p-[1px] border border-slate-200/50">
-                    <div
-                      className="bg-blue-600 h-full rounded-full shadow-lg shadow-blue-600/20 transition-all duration-1000"
-                      style={{ width: "85%" }}
-                    />
-                  </div>
-                  <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mt-2">
-                    Avg. 8.2h/day
-                  </p>
+                ))
+              ) : (
+                <div className="text-center py-8 text-slate-400">
+                  <TrendingUp
+                    size={28}
+                    className="mx-auto mb-2 text-slate-300"
+                  />
+                  <p className="text-sm">No performance data</p>
                 </div>
-              ))}
+              )}
             </CardContent>
           </Card>
         </div>
@@ -198,29 +287,30 @@ const ManagerDashboard = () => {
 
 const StatCard = ({ label, value, icon: Icon, color }) => {
   const colors = {
-    blue: "text-blue-600 bg-blue-50",
-    emerald: "text-emerald-600 bg-emerald-50",
-    rose: "text-rose-600 bg-rose-50",
-    amber: "text-amber-600 bg-amber-50",
+    blue: "bg-blue-600 text-white shadow-blue-600/20",
+    green: "bg-green-500 text-white shadow-green-500/20",
+    red: "bg-red-500 text-white shadow-red-500/20",
+    yellow: "bg-yellow-500 text-white shadow-yellow-500/20",
   };
 
   return (
-    <Card className="hover:shadow-lg transition-all duration-300">
-      <CardContent className="p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-1.5">
-              {label}
-            </p>
-            <p className="text-3xl font-bold text-slate-900 tracking-tighter">
-              {value}
-            </p>
-          </div>
-          <div className={`p-3.5 rounded-2xl ${colors[color] || colors.blue}`}>
-            <Icon size={24} strokeWidth={2.5} />
-          </div>
+    <Card className="hover:shadow-md transition-all duration-300 overflow-hidden relative group">
+      <div className="absolute top-0 right-0 w-20 h-20 bg-slate-50 rounded-full translate-x-8 -translate-y-8 opacity-40 group-hover:scale-110 transition-transform duration-500" />
+      <div className="flex flex-col gap-3 relative z-10 p-4 md:p-5">
+        <div
+          className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-lg ${colors[color]}`}
+        >
+          <Icon size={18} strokeWidth={2} />
         </div>
-      </CardContent>
+        <div>
+          <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">
+            {label}
+          </p>
+          <p className="text-2xl font-semibold text-slate-900 tracking-tight leading-none">
+            {value}
+          </p>
+        </div>
+      </div>
     </Card>
   );
 };

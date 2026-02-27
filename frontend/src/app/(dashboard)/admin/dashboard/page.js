@@ -65,19 +65,19 @@ const AdminDashboard = () => {
   if (error) {
     return (
       <DashboardLayout role="admin">
-        <div className="p-8 text-center bg-white rounded-[32px] shadow-sm border border-slate-100">
-          <AlertCircle className="w-16 h-16 text-rose-500 mx-auto mb-6 opacity-20" />
-          <h2 className="text-2xl font-bold text-slate-800 mb-3 tracking-tight">
-            Backend Connection Failed
+        <div className="p-8 text-center bg-white rounded-2xl shadow-sm border border-slate-200/60">
+          <AlertCircle className="w-14 h-14 text-red-400 mx-auto mb-5 opacity-30" />
+          <h2 className="text-xl font-semibold text-slate-800 mb-2 tracking-tight">
+            Connection Failed
           </h2>
-          <p className="text-slate-500 mb-8 max-w-md mx-auto font-medium">
+          <p className="text-slate-500 mb-6 max-w-md mx-auto text-sm">
             {error}
           </p>
           <button
             onClick={fetchDashboardData}
-            className="px-10 py-4 bg-[#0F172A] text-white rounded-2xl font-bold uppercase tracking-widest text-[11px] shadow-xl shadow-slate-200 hover:scale-105 active:scale-95 transition-all"
+            className="px-6 py-2.5 bg-slate-900 text-white rounded-xl font-semibold text-sm shadow-sm hover:bg-slate-800 active:scale-[0.98] transition-all"
           >
-            Retry Connection
+            Retry
           </button>
         </div>
       </DashboardLayout>
@@ -94,11 +94,11 @@ const AdminDashboard = () => {
 
   return (
     <DashboardLayout role="admin">
-      <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <div className="space-y-6 md:space-y-8">
         {/* Welcome Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight">
+            <h1 className="text-xl sm:text-2xl font-semibold text-slate-900 tracking-tight">
               Admin Dashboard
             </h1>
             <p className="text-sm text-slate-500 mt-1">
@@ -123,7 +123,7 @@ const AdminDashboard = () => {
         </div>
 
         {/* Key Metrics Row */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
           <StatCard
             label="Total Employees"
             value={summary?.totalEmployees?.toLocaleString() || "0"}
@@ -134,34 +134,34 @@ const AdminDashboard = () => {
             label="Present Today"
             value={summary?.presentToday?.toLocaleString() || "0"}
             icon={Zap}
-            color="emerald"
+            color="green"
           />
           <StatCard
             label="Absent Today"
             value={summary?.absentToday?.toLocaleString() || "0"}
             icon={AlertCircle}
-            color="rose"
+            color="red"
           />
           <StatCard
             label="Pending Leaves"
             value={summary?.pendingLeaves?.toLocaleString() || "0"}
             icon={Calendar}
-            color="amber"
+            color="yellow"
           />
           <StatCard
             label="Avg. Attendance"
             value={`${summary?.avgAttendance || 0}%`}
             icon={TrendingUp}
-            color="indigo"
+            color="blue"
           />
         </div>
 
         {/* Charts Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
-          <Card className="lg:col-span-2 shadow-lg shadow-slate-100/50 border border-slate-100">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base md:text-lg">
-                Office vs. WFH (Attendance Trends)
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <Card className="lg:col-span-2 overflow-hidden">
+            <CardHeader className="pb-2 bg-slate-50/50 border-b border-slate-100">
+              <CardTitle className="text-base">
+                Office vs. WFH Trends
               </CardTitle>
               <div className="flex gap-4">
                 <div className="flex items-center gap-1.5">
@@ -193,29 +193,29 @@ const AdminDashboard = () => {
             </div>
           </Card>
 
-          <Card className="shadow-lg shadow-slate-100/50 border border-slate-100">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base md:text-lg">
-                Departmental Performance
+          <Card className="overflow-hidden">
+            <CardHeader className="pb-2 bg-slate-50/50 border-b border-slate-100">
+              <CardTitle className="text-base">
+                Dept. Performance
               </CardTitle>
-              <div className="bg-slate-50 border-none text-[10px] font-semibold text-slate-500 uppercase tracking-widest px-3 py-1.5 rounded-lg">
-                LAST 7 DAYS
-              </div>
+              <span className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">
+                Last 7 days
+              </span>
             </CardHeader>
-            <div className="space-y-6 md:space-y-8 mt-4">
+            <div className="space-y-5 mt-4 p-1">
               {deptPerformance?.map((dept) => (
                 <div key={dept.name} className="space-y-2 md:space-y-3">
                   <div className="flex justify-between items-end">
-                    <span className="text-xs md:text-sm font-semibold text-slate-700 tracking-tight">
+                    <span className="text-sm font-medium text-slate-700">
                       {dept.name}
                     </span>
-                    <span className="text-xs md:text-sm font-bold text-slate-900">
+                    <span className="text-sm font-semibold text-slate-900">
                       {dept.value}%
                     </span>
                   </div>
-                  <div className="h-2 md:h-2.5 w-full bg-slate-50 rounded-full overflow-hidden border border-slate-100/50 p-[1px]">
+                  <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-blue-600 rounded-full shadow-lg shadow-blue-600/20 transition-all duration-1000 ease-out"
+                      className="h-full bg-blue-500 rounded-full transition-all duration-1000 ease-out"
                       style={{ width: `${dept.value}%` }}
                     />
                   </div>
@@ -226,34 +226,34 @@ const AdminDashboard = () => {
         </div>
 
         {/* Footer Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8 pb-8 md:pb-10">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pb-8">
           {/* Live Activity */}
-          <Card className="lg:col-span-2 shadow-lg shadow-slate-100/50 border border-slate-100">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base md:text-lg">
+          <Card className="lg:col-span-2 overflow-hidden">
+            <CardHeader className="pb-2 bg-slate-50/50 border-b border-slate-100">
+              <CardTitle className="text-base">
                 Live Activity Log
               </CardTitle>
               <button
                 onClick={fetchDashboardData}
-                className="text-[10px] font-semibold text-blue-600 uppercase tracking-widest hover:underline px-3 py-1.5 md:px-4 md:py-2 bg-blue-50 rounded-lg"
+                className="text-xs font-medium text-blue-600 hover:underline px-3 py-1.5 bg-blue-50 rounded-lg"
               >
-                Refresh Feed
+                Refresh
               </button>
             </CardHeader>
             <div className="space-y-1">
               {activities?.map((log, i) => (
                 <div
                   key={i}
-                  className={`flex items-center justify-between p-4 rounded-[20px] transition-all hover:bg-slate-50/50 group border border-transparent hover:border-slate-100`}
+                  className={`flex items-center justify-between p-4 rounded-xl transition-all hover:bg-slate-50/50 group`}
                 >
-                  <div className="flex items-center gap-5">
+                  <div className="flex items-center gap-4">
                     <div
-                      className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all group-hover:scale-110 shadow-sm ${
+                      className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all group-hover:scale-105 ${
                         log.type === "office"
-                          ? "bg-emerald-50 text-emerald-600"
+                          ? "bg-green-50 text-green-600"
                           : log.type === "wfh"
-                            ? "bg-indigo-50 text-indigo-600"
-                            : "bg-amber-50 text-amber-600"
+                            ? "bg-blue-50 text-blue-600"
+                            : "bg-yellow-50 text-yellow-600"
                       }`}
                     >
                       {log.type === "office" ? (
@@ -265,14 +265,14 @@ const AdminDashboard = () => {
                       )}
                     </div>
                     <div>
-                      <p className="text-[15px] font-semibold text-slate-800 tracking-tight">
+                      <p className="text-sm font-medium text-slate-800">
                         {log.user}{" "}
-                        <span className="font-medium text-slate-500">
+                        <span className="text-slate-500">
                           {log.action}
                         </span>{" "}
                         {log.location}
                       </p>
-                      <p className="text-xs text-slate-400 font-medium mt-0.5 opacity-60">
+                      <p className="text-xs text-slate-400 mt-0.5">
                         {mounted && log.time
                           ? new Date(log.time).toLocaleTimeString([], {
                               hour: "2-digit",
@@ -308,10 +308,10 @@ const AdminDashboard = () => {
           </Card>
 
           {/* System Status */}
-          <div className="space-y-6 md:space-y-8">
-            <Card className="shadow-lg shadow-slate-100/50 border border-slate-100">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base md:text-lg">
+          <div className="space-y-6">
+            <Card className="overflow-hidden">
+              <CardHeader className="pb-2 bg-slate-50/50 border-b border-slate-100">
+                <CardTitle className="text-base">
                   System Status
                 </CardTitle>
               </CardHeader>
@@ -336,10 +336,10 @@ const AdminDashboard = () => {
                 />
               </div>
 
-              <div className="mt-8 md:mt-14 pb-4">
-                <p className="text-[10px] md:text-[11px] font-semibold text-slate-400 uppercase tracking-[0.15em] mb-4 md:mb-6 flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
-                  Today's Active Sessions
+              <div className="mt-8 pb-4">
+                <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
+                  Active Sessions
                 </p>
                 <div className="flex items-center -space-x-3">
                   {activeSessions?.map((session, i) => (
@@ -348,9 +348,9 @@ const AdminDashboard = () => {
                       title={session.name}
                       className={`w-9 h-9 md:w-11 md:h-11 rounded-full border-4 border-white flex items-center justify-center text-[10px] md:text-[11px] font-bold shadow-lg hover:scale-110 active:scale-90 transition-transform cursor-pointer ${
                         [
-                          "bg-indigo-500 text-white",
-                          "bg-emerald-500 text-white",
-                          "bg-rose-500 text-white",
+                          "bg-blue-500 text-white",
+                          "bg-green-500 text-white",
+                          "bg-red-500 text-white",
                         ][i % 3]
                       }`}
                     >
@@ -379,26 +379,25 @@ const AdminDashboard = () => {
 const StatCard = ({ label, value, icon: Icon, color }) => {
   const colors = {
     blue: "bg-blue-600 text-white shadow-blue-600/20",
-    emerald: "bg-emerald-500 text-white shadow-emerald-500/20",
-    rose: "bg-rose-500 text-white shadow-rose-500/20",
-    amber: "bg-amber-500 text-white shadow-amber-500/20",
-    indigo: "bg-[#0F172A] text-white shadow-slate-900/20",
+    green: "bg-green-500 text-white shadow-green-500/20",
+    red: "bg-red-500 text-white shadow-red-500/20",
+    yellow: "bg-yellow-500 text-white shadow-yellow-500/20",
   };
 
   return (
-    <Card className="hover:scale-[1.02] active:scale-[0.98] shadow-md shadow-slate-100 transition-all cursor-default group overflow-hidden relative border border-slate-100">
-      <div className="absolute top-0 right-0 w-24 h-24 bg-slate-50 rounded-full translate-x-10 -translate-y-10 opacity-40 group-hover:scale-110 transition-transform duration-500" />
-      <div className="flex flex-col gap-3 md:gap-4 relative z-10 p-4 md:p-5">
+    <Card className="hover:shadow-md transition-all duration-300 overflow-hidden relative group">
+      <div className="absolute top-0 right-0 w-20 h-20 bg-slate-50 rounded-full translate-x-8 -translate-y-8 opacity-40 group-hover:scale-110 transition-transform duration-500" />
+      <div className="flex flex-col gap-3 relative z-10 p-4 md:p-5">
         <div
-          className={`w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl flex items-center justify-center shadow-lg ${colors[color]}`}
+          className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-lg ${colors[color]}`}
         >
-          <Icon size={18} className="md:w-5 md:h-5" strokeWidth={2.5} />
+          <Icon size={18} strokeWidth={2} />
         </div>
         <div>
-          <p className="text-[10px] md:text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">
+          <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">
             {label}
           </p>
-          <p className="text-xl md:text-2xl lg:text-3xl font-bold text-slate-900 tracking-tight leading-none">
+          <p className="text-xl md:text-2xl font-semibold text-slate-900 tracking-tight leading-none">
             {value}
           </p>
         </div>
@@ -409,17 +408,18 @@ const StatCard = ({ label, value, icon: Icon, color }) => {
 
 const StatusItem = ({ icon: Icon, label, status, variant }) => (
   <div className="flex items-center justify-between group py-1">
-    <div className="flex items-center gap-3 md:gap-4">
-      <div className="w-8 h-8 md:w-10 md:h-10 bg-slate-50 rounded-lg md:rounded-xl flex items-center justify-center text-slate-400 group-hover:bg-blue-50 group-hover:text-blue-500 transition-colors">
-        <Icon size={16} className="md:w-[18px] md:h-[18px]" strokeWidth={2.5} />
+    <div className="flex items-center gap-3">
+      <div className="w-9 h-9 bg-slate-50 rounded-lg flex items-center justify-center text-slate-400 group-hover:bg-blue-50 group-hover:text-blue-500 transition-colors">
+        <Icon size={16} strokeWidth={2} />
       </div>
-      <span className="text-xs md:text-sm font-semibold text-slate-700 tracking-tight">
+      <span className="text-sm font-medium text-slate-700">
         {label}
       </span>
     </div>
     <Badge
       variant={variant}
-      className="border-none px-2.5 py-1 md:px-4 md:py-1.5 shadow-sm text-[10px] md:text-xs"
+      dot
+      className="border-none text-xs"
     >
       {status}
     </Badge>

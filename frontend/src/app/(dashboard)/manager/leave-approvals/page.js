@@ -4,7 +4,7 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Clock, CheckCircle, XCircle } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import apiService from '@/lib/api';
 
@@ -13,6 +13,8 @@ export default function LeaveApprovalsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [actionLoading, setActionLoading] = useState(null);
+  const [approvedCount, setApprovedCount] = useState(0);
+  const [rejectedCount, setRejectedCount] = useState(0);
 
   useEffect(() => {
     fetchLeaveRequests();
@@ -38,6 +40,7 @@ export default function LeaveApprovalsPage() {
       await apiService.leave.approve(leaveId, {});
       // Remove from pending list after approval
       setLeaveRequests(leaveRequests.filter((req) => req._id !== leaveId));
+      setApprovedCount((prev) => prev + 1);
     } catch (err) {
       console.error('Error approving leave:', err);
       alert('Failed to approve leave: ' + (err.message || 'Unknown error'));
@@ -55,6 +58,7 @@ export default function LeaveApprovalsPage() {
       await apiService.leave.reject(leaveId, { rejectionReason });
       // Remove from pending list after rejection
       setLeaveRequests(leaveRequests.filter((req) => req._id !== leaveId));
+      setRejectedCount((prev) => prev + 1);
     } catch (err) {
       console.error('Error rejecting leave:', err);
       alert('Failed to reject leave: ' + (err.message || 'Unknown error'));
@@ -68,8 +72,8 @@ export default function LeaveApprovalsPage() {
       <div className="space-y-6 md:space-y-8">
         {/* Header */}
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Leave Approvals</h1>
-          <p className="text-xs md:text-sm text-gray-600 mt-1">Review and approve team leave requests</p>
+          <h1 className="text-xl sm:text-2xl font-semibold text-slate-900 tracking-tight">Leave Approvals</h1>
+          <p className="text-sm text-slate-500 mt-1">Review and approve team leave requests</p>
         </div>
 
         {/* Loading State */}
@@ -77,7 +81,7 @@ export default function LeaveApprovalsPage() {
           <Card>
             <CardContent className="pt-4 md:pt-6">
               <div className="text-center py-6 md:py-8">
-                <p className="text-xs md:text-sm text-gray-600">Loading leave requests...</p>
+                <p className="text-xs md:text-sm text-slate-500">Loading leave requests...</p>
               </div>
             </CardContent>
           </Card>
@@ -86,23 +90,48 @@ export default function LeaveApprovalsPage() {
         {/* Error State */}
         {error && (
           <Card className="border-red-200 bg-red-50">
-            <CardContent className="pt-4 md:pt-6">
-              <p className="text-xs md:text-sm text-red-700">{error}</p>
+            <CardContent className="pt-4">
+              <p className="text-sm text-red-700">{error}</p>
             </CardContent>
           </Card>
         )}
 
-        {/* Summary */}
+        {/* Summary Cards */}
         {!loading && (
-          <div className="grid grid-cols-1 md:grid-cols-1 gap-3 md:gap-4">
-            <Card>
-              <CardContent className="pt-4 md:pt-6">
-                <div className="text-center">
-                  <p className="text-xs md:text-sm text-gray-600">Pending Requests</p>
-                  <p className="text-2xl md:text-3xl font-bold text-yellow-600 mt-1 md:mt-2">{leaveRequests.length}</p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="p-4 rounded-2xl border bg-yellow-50 text-yellow-700 border-yellow-200/60 shadow-sm">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-yellow-100">
+                  <Clock size={18} strokeWidth={2} />
                 </div>
-              </CardContent>
-            </Card>
+                <div>
+                  <p className="text-[10px] font-semibold uppercase tracking-wider opacity-70 leading-none">Pending</p>
+                  <p className="text-xl font-semibold mt-1.5 leading-none">{leaveRequests.length}</p>
+                </div>
+              </div>
+            </div>
+            <div className="p-4 rounded-2xl border bg-green-50 text-green-700 border-green-200/60 shadow-sm">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-green-100">
+                  <CheckCircle size={18} strokeWidth={2} />
+                </div>
+                <div>
+                  <p className="text-[10px] font-semibold uppercase tracking-wider opacity-70 leading-none">Approved</p>
+                  <p className="text-xl font-semibold mt-1.5 leading-none">{approvedCount}</p>
+                </div>
+              </div>
+            </div>
+            <div className="p-4 rounded-2xl border bg-red-50 text-red-700 border-red-200/60 shadow-sm">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-red-100">
+                  <XCircle size={18} strokeWidth={2} />
+                </div>
+                <div>
+                  <p className="text-[10px] font-semibold uppercase tracking-wider opacity-70 leading-none">Rejected</p>
+                  <p className="text-xl font-semibold mt-1.5 leading-none">{rejectedCount}</p>
+                </div>
+              </div>
+            </div>
           </div>
         )}
 
@@ -110,9 +139,9 @@ export default function LeaveApprovalsPage() {
         {!loading && leaveRequests.length > 0 && (
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-base md:text-lg">
-                <AlertCircle className="text-yellow-600 flex-shrink-0" size={20} />
-                <span>Leave Requests for Approval ({leaveRequests.length})</span>
+              <CardTitle className="flex items-center gap-2 text-base">
+                <AlertCircle className="text-yellow-500 flex-shrink-0" size={18} />
+                <span>Leave Requests ({leaveRequests.length})</span>
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -120,24 +149,24 @@ export default function LeaveApprovalsPage() {
                 {leaveRequests.map((request) => (
                   <div
                     key={request._id}
-                    className="border border-gray-200 rounded-lg p-3 md:p-4 hover:bg-gray-50 transition-colors"
+                    className="border border-slate-200/60 rounded-xl p-4 hover:bg-slate-50/50 transition-colors"
                   >
-                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 md:gap-4 mb-3 md:mb-4">
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-3">
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-xs md:text-sm text-gray-900 truncate">
+                        <h3 className="font-medium text-sm text-slate-900 truncate">
                           {request.userId?.name || 'Unknown Employee'}
                         </h3>
-                        <p className="text-xs md:text-sm text-gray-600 mt-1">{request.leaveType}</p>
-                        <p className="text-xs text-gray-500 mt-1">
+                        <p className="text-sm text-slate-600 mt-1">{request.leaveType}</p>
+                        <p className="text-xs text-slate-400 mt-1">
                           {new Date(request.fromDate).toLocaleDateString()} to{' '}
                           {new Date(request.toDate).toLocaleDateString()} ({request.numberOfDays} days)
                         </p>
                       </div>
-                      <Badge variant="warning" className="flex-shrink-0 self-start sm:self-auto">Pending</Badge>
+                      <Badge variant="warning" dot className="flex-shrink-0 self-start">Pending</Badge>
                     </div>
 
-                    <p className="text-xs md:text-sm text-gray-700 mb-3 md:mb-4">
-                      <span className="font-semibold">Reason: </span>
+                    <p className="text-sm text-slate-600 mb-4">
+                      <span className="font-medium">Reason: </span>
                       {request.reason}
                     </p>
 
@@ -173,7 +202,7 @@ export default function LeaveApprovalsPage() {
           <Card>
             <CardContent className="pt-4 md:pt-6">
               <div className="text-center py-6 md:py-8">
-                <p className="text-xs md:text-sm text-gray-600">No pending leave requests</p>
+                <p className="text-xs md:text-sm text-slate-500">No pending leave requests</p>
               </div>
             </CardContent>
           </Card>

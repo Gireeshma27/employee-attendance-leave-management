@@ -31,7 +31,7 @@ export function Tabs({ defaultValue, children, className = '' }) {
 
 export function TabsList({ children, activeTab, setActiveTab, className = '' }) {
   return (
-    <div className={`flex border-b border-gray-200 ${className}`}>
+    <div className={`flex border-b border-slate-200 ${className}`}>
       {React.Children.map(children, (child) =>
         React.cloneElement(child, { activeTab, setActiveTab })
       )}
@@ -47,7 +47,7 @@ export function TabsTrigger({ value, children, activeTab, setActiveTab, classNam
       className={`px-4 py-2 font-medium text-sm border-b-2 transition-colors ${
         isActive
           ? 'border-blue-600 text-blue-600'
-          : 'border-transparent text-gray-600 hover:text-gray-900'
+          : 'border-transparent text-slate-600 hover:text-slate-900'
       } ${className}`}
     >
       {children}
