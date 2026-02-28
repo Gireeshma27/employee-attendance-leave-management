@@ -22,6 +22,7 @@ import {
   Calendar,
 } from "lucide-react";
 import apiService from "@/lib/api";
+import { formatDuration, getStatusVariant } from "@/utils/attendance";
 
 export default function AttendancePage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -116,27 +117,8 @@ export default function AttendancePage() {
     }
   };
 
-  const calculateHours = (checkIn, checkOut) => {
-    if (!checkIn || !checkOut) return "0h";
-    const start = new Date(checkIn);
-    const end = new Date(checkOut);
-    const diffMs = end - start;
-    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-    const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-    return `${diffHours}h ${diffMins}m`;
-  };
-
-  const getStatus = (checkIn, checkOut) => {
-    if (!checkIn) return "Absent";
-    const checkInDate = new Date(checkIn);
-    if (
-      checkInDate.getHours() > 9 ||
-      (checkInDate.getHours() === 9 && checkInDate.getMinutes() > 30)
-    ) {
-      return "Late";
-    }
-    return "Present";
-  };
+  // Duration calculation and status utilities are imported from @/utils/attendance
+  // for centralized, consistent logic across all dashboards.
 
   const totalPages = pagination.pages;
 
@@ -156,14 +138,17 @@ export default function AttendancePage() {
 
   const handleEditClick = (record) => {
     setEditingEmployee(record.userId);
-    // Calculate current total hours
+    // Use workingHours from backend (already enriched for legacy records)
     let totalHrs = "0";
-    if (record.checkInTime && record.checkOutTime) {
+    if (record.workingHours && record.workingHours > 0) {
+      totalHrs = record.workingHours.toFixed(1);
+    } else if (record.checkInTime && record.checkOutTime) {
       const start = new Date(record.checkInTime);
       const end = new Date(record.checkOutTime);
       const diffMs = end - start;
-      const diffHours = (diffMs / (1000 * 60 * 60)).toFixed(1);
-      totalHrs = diffHours;
+      if (diffMs > 0) {
+        totalHrs = (diffMs / (1000 * 60 * 60)).toFixed(1);
+      }
     }
     setEditForm({
       recordId: record._id,
@@ -420,10 +405,7 @@ export default function AttendancePage() {
                       employeeId: "N/A",
                     };
                     const status = record.status;
-                    const hours = calculateHours(
-                      record.checkInTime,
-                      record.checkOutTime,
-                    );
+                    const hours = formatDuration(record);
 
                     return (
                       <tr
@@ -454,9 +436,11 @@ export default function AttendancePage() {
                         <td className="px-5 py-3.5 whitespace-nowrap">
                           <span
                             className={
-                              record.checkInTime
-                                ? "text-slate-900 font-medium text-sm"
-                                : "text-slate-300 text-sm"
+                              hours === "Active"
+                                ? "text-blue-600 font-semibold text-sm"
+                                : record.checkInTime
+                                  ? "text-slate-900 font-medium text-sm"
+                                  : "text-slate-300 text-sm"
                             }
                           >
                             {hours}
@@ -464,13 +448,7 @@ export default function AttendancePage() {
                         </td>
                         <td className="px-5 py-3.5 whitespace-nowrap">
                           <Badge
-                            variant={
-                              status === "Present"
-                                ? "success"
-                                : status === "Late"
-                                  ? "warning"
-                                  : "absent"
-                            }
+                            variant={getStatusVariant(status)}
                             dot
                           >
                             {status}

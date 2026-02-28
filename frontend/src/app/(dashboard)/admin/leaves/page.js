@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/Badge';
 import { SideDrawer } from '@/components/ui/SideDrawer';
 import { Pencil, CheckCircle, XCircle, Clock, Search, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
 import apiService from '@/lib/api';
+import { useToast } from '@/components/ui/Toast';
 
 export default function AdminLeavesPage() {
   const [leaves, setLeaves] = useState([]);
@@ -36,6 +37,7 @@ export default function AdminLeavesPage() {
   const [selectedStatus, setSelectedStatus] = useState('');
   const [rejectionReason, setRejectionReason] = useState('');
   const [isUpdating, setIsUpdating] = useState(false);
+  const toast = useToast();
 
   useEffect(() => {
     fetchLeaveData();
@@ -133,6 +135,7 @@ export default function AdminLeavesPage() {
 
       if (selectedStatus === 'Approved') {
         await apiService.leave.approve(editingLeave._id, {});
+        toast.success('Leave Approved', `${editingLeave.employeeName}'s leave has been approved.`);
       } else if (selectedStatus === 'Rejected') {
         if (!rejectionReason.trim()) {
           setError('Rejection reason is required');
@@ -140,6 +143,7 @@ export default function AdminLeavesPage() {
           return;
         }
         await apiService.leave.reject(editingLeave._id, { rejectionReason });
+        toast.success('Leave Rejected', `${editingLeave.employeeName}'s leave has been rejected.`);
       }
 
       // Refresh data
@@ -149,6 +153,7 @@ export default function AdminLeavesPage() {
     } catch (err) {
       console.error('Error updating leave status:', err);
       setError(err.message || 'Failed to update leave status');
+      toast.error('Update Failed', err.message || 'Failed to update leave status.');
     } finally {
       setIsUpdating(false);
     }

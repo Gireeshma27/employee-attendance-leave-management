@@ -295,11 +295,13 @@ const DashboardLayout = ({ children, role = "employee" }) => {
                                 handleMarkAsRead(notif._id);
                                 setShowNotifications(false);
                                 if (notif.type.includes("LEAVE")) {
-                                  router.push(
-                                    role === "admin"
-                                      ? "/admin/leaves"
-                                      : "/employee/leave",
-                                  );
+                                  if (role === "admin") {
+                                    router.push("/admin/leaves");
+                                  } else if (role === "manager") {
+                                    router.push("/manager/leave-approvals");
+                                  } else {
+                                    router.push("/employee/leave");
+                                  }
                                 } else if (notif.type.includes("ATTENDANCE")) {
                                   router.push(
                                     role === "admin"

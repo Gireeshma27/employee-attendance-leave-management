@@ -9,6 +9,7 @@ import { Modal } from "@/components/ui/Modal";
 import { Plus, Calendar } from "lucide-react";
 import { useState, useEffect } from "react";
 import apiService from "@/lib/api";
+import { useToast } from "@/components/ui/Toast";
 
 const LEAVE_TYPE_MAP = {
   CL: "Casual Leave",
@@ -38,6 +39,7 @@ export default function LeavePage() {
     reason: "",
   });
   const [formError, setFormError] = useState("");
+  const toast = useToast();
 
   useEffect(() => {
     fetchLeaveData(pagination.currentPage);
@@ -125,10 +127,12 @@ export default function LeavePage() {
 
       setFormData({ leaveType: "", fromDate: "", toDate: "", reason: "" });
       setShowModal(false);
+      toast.success("Leave Applied", "Your leave request has been submitted successfully.");
       await fetchLeaveData(1); // Refresh to first page
       setPagination((prev) => ({ ...prev, currentPage: 1 }));
     } catch (err) {
       setFormError(err.message || "Failed to apply for leave");
+      toast.error("Application Failed", err.message || "Failed to apply for leave");
     } finally {
       setIsSubmitting(false);
     }
