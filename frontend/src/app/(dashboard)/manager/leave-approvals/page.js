@@ -4,9 +4,11 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
+import { Modal } from '@/components/ui/Modal';
 import { AlertCircle, Clock, CheckCircle, XCircle } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import apiService from '@/lib/api';
+import { useToast } from '@/components/ui/Toast';
 
 export default function LeaveApprovalsPage() {
   const [leaveRequests, setLeaveRequests] = useState([]);
@@ -15,6 +17,10 @@ export default function LeaveApprovalsPage() {
   const [actionLoading, setActionLoading] = useState(null);
   const [approvedCount, setApprovedCount] = useState(0);
   const [rejectedCount, setRejectedCount] = useState(0);
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [rejectingLeaveId, setRejectingLeaveId] = useState(null);
+  const [rejectionReason, setRejectionReason] = useState('');
+  const toast = useToast();
 
   useEffect(() => {
     fetchLeaveRequests();
@@ -41,27 +47,39 @@ export default function LeaveApprovalsPage() {
       // Remove from pending list after approval
       setLeaveRequests(leaveRequests.filter((req) => req._id !== leaveId));
       setApprovedCount((prev) => prev + 1);
+      toast.success('Leave Approved', 'Leave request has been approved successfully.');
     } catch (err) {
       console.error('Error approving leave:', err);
-      alert('Failed to approve leave: ' + (err.message || 'Unknown error'));
+      toast.error('Approval Failed', err.message || 'Failed to approve leave request.');
     } finally {
       setActionLoading(null);
     }
   };
 
   const handleReject = async (leaveId) => {
-    const rejectionReason = prompt('Please provide a reason for rejection:');
-    if (!rejectionReason) return; // User cancelled or didn't provide a reason
-    
+    setRejectingLeaveId(leaveId);
+    setRejectionReason('');
+    setShowRejectModal(true);
+  };
+
+  const confirmReject = async () => {
+    if (!rejectionReason.trim()) {
+      toast.warning('Reason Required', 'Please provide a reason for rejection.');
+      return;
+    }
+
     try {
-      setActionLoading(leaveId);
-      await apiService.leave.reject(leaveId, { rejectionReason });
-      // Remove from pending list after rejection
-      setLeaveRequests(leaveRequests.filter((req) => req._id !== leaveId));
+      setActionLoading(rejectingLeaveId);
+      await apiService.leave.reject(rejectingLeaveId, { rejectionReason });
+      setLeaveRequests(leaveRequests.filter((req) => req._id !== rejectingLeaveId));
       setRejectedCount((prev) => prev + 1);
+      setShowRejectModal(false);
+      setRejectingLeaveId(null);
+      setRejectionReason('');
+      toast.success('Leave Rejected', 'Leave request has been rejected.');
     } catch (err) {
       console.error('Error rejecting leave:', err);
-      alert('Failed to reject leave: ' + (err.message || 'Unknown error'));
+      toast.error('Rejection Failed', err.message || 'Failed to reject leave request.');
     } finally {
       setActionLoading(null);
     }
@@ -207,6 +225,56 @@ export default function LeaveApprovalsPage() {
             </CardContent>
           </Card>
         )}
+
+        {/* Rejection Reason Modal */}
+        <Modal
+          isOpen={showRejectModal}
+          onClose={() => {
+            setShowRejectModal(false);
+            setRejectingLeaveId(null);
+            setRejectionReason('');
+          }}
+          title="Reject Leave Request"
+        >
+          <div className="space-y-4">
+            <p className="text-sm text-slate-600">
+              Please provide a reason for rejecting this leave request.
+            </p>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                Rejection Reason <span className="text-red-500">*</span>
+              </label>
+              <textarea
+                value={rejectionReason}
+                onChange={(e) => setRejectionReason(e.target.value)}
+                placeholder="Enter the reason for rejection..."
+                className="w-full px-4 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none"
+                rows="3"
+              />
+            </div>
+            <div className="flex flex-col-reverse sm:flex-row gap-3 justify-end pt-2">
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => {
+                  setShowRejectModal(false);
+                  setRejectingLeaveId(null);
+                  setRejectionReason('');
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                variant="danger"
+                onClick={confirmReject}
+                disabled={actionLoading === rejectingLeaveId}
+              >
+                {actionLoading === rejectingLeaveId ? 'Rejecting...' : 'Confirm Rejection'}
+              </Button>
+            </div>
+          </div>
+        </Modal>
       </div>
     </DashboardLayout>
   );

@@ -1,4 +1,5 @@
 import "./globals.css";
+import { Providers } from "./providers";
 
 export const metadata = {
   title: " Employee Attendance & Leave Management",
@@ -10,7 +11,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <body className="antialiased" suppressHydrationWarning>
-        {children}
+        <Providers>{children}</Providers>
       </body>
     </html>
   );
