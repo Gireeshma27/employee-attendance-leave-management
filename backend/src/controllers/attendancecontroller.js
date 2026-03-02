@@ -1,5 +1,6 @@
 import Attendance from "#models/attendance";
 import User from "#models/user";
+import Timing from "#models/timing";
 import Notification from "#models/notification";
 import { sendSuccess, sendError } from "#utils/api_response_fix";
 
@@ -11,16 +12,16 @@ import { sendSuccess, sendError } from "#utils/api_response_fix";
  */
 const calculateWorkingDuration = (checkInTime, checkOutTime) => {
   if (!checkInTime || !checkOutTime) return null;
-  
+
   const checkIn = new Date(checkInTime);
   const checkOut = new Date(checkOutTime);
   const workingMilliseconds = checkOut - checkIn;
-  
+
   if (workingMilliseconds < 0) return null;
-  
+
   const totalMinutes = Math.floor(workingMilliseconds / (1000 * 60));
   const fractionalHours = Number((totalMinutes / 60).toFixed(2));
-  
+
   return { workingHours: fractionalHours, workingMinutes: totalMinutes };
 };
 
@@ -30,8 +31,14 @@ const calculateWorkingDuration = (checkInTime, checkOutTime) => {
  */
 const enrichAttendanceRecord = (record) => {
   // If checkOutTime exists but workingHours is 0 or missing, recalculate
-  if (record.checkOutTime && (!record.workingHours || record.workingHours === 0)) {
-    const duration = calculateWorkingDuration(record.checkInTime, record.checkOutTime);
+  if (
+    record.checkOutTime &&
+    (!record.workingHours || record.workingHours === 0)
+  ) {
+    const duration = calculateWorkingDuration(
+      record.checkInTime,
+      record.checkOutTime,
+    );
     if (duration) {
       record.workingHours = duration.workingHours;
       record.workingMinutes = duration.workingMinutes;
@@ -61,15 +68,37 @@ const checkIn = async (req, res) => {
     }
 
     const { isWFH } = req.body;
+    const user = await User.findById(userId);
+    const now = new Date();
+
+    // Determine Late Status based on Timing
+    let isLate = false;
+    let timingDetails = null;
+
+    if (user.timingId) {
+      const timing = await Timing.findById(user.timingId);
+      if (timing && timing.loginTime) {
+        timingDetails = timing;
+        const [scheduledHour, scheduledMinute] = timing.loginTime
+          .split(":")
+          .map(Number);
+
+        // Create a deadline for today: scheduled time + 10 minutes buffer
+        const deadline = new Date(now);
+        deadline.setHours(scheduledHour, scheduledMinute + 10, 0, 0);
+
+        if (now > deadline) {
+          isLate = true;
+        }
+      }
+    }
 
     let attendance;
     if (existingAttendance) {
-      existingAttendance.checkInTime = new Date();
-      existingAttendance.status = isWFH ? "WFH" : "Present";
+      existingAttendance.checkInTime = now;
+      existingAttendance.status = isWFH ? "WFH" : isLate ? "Late" : "Present";
       attendance = await existingAttendance.save();
     } else {
-      const user = await User.findById(userId);
-
       // WFH Validation
       if (isWFH) {
         if (!user.wfhAllowed) {
@@ -80,13 +109,12 @@ const checkIn = async (req, res) => {
             403,
           );
         }
-        // Check if remaining days based on total - used is positive
-        const remainingDays = (user.totalWFHDays || 5) - (user.usedWFHDays || 0);
+        const remainingDays =
+          (user.totalWFHDays || 5) - (user.usedWFHDays || 0);
         if (remainingDays <= 0) {
           return sendError(res, "No WFH days remaining", "Bad Request", 400);
         }
 
-        // Increment usedWFHDays (pre-save hook will recalculate wfhDaysRemaining)
         user.usedWFHDays = (user.usedWFHDays || 0) + 1;
         await user.save();
       }
@@ -94,28 +122,41 @@ const checkIn = async (req, res) => {
       attendance = await Attendance.create({
         userId,
         date: today,
-        checkInTime: new Date(),
-        status: isWFH ? "WFH" : "Present",
+        checkInTime: now,
+        status: isWFH ? "WFH" : isLate ? "Late" : "Present",
       });
     }
 
-    // Notify Admins about check-in
-    try {
-      const user = await User.findById(userId);
-      const admins = await User.find({ role: "ADMIN" });
-      const notificationPromises = admins.map((admin) =>
-        Notification.create({
-          recipient: admin._id,
-          sender: userId,
-          type: "ATTENDANCE_UPDATE",
-          title: "New Check-in",
-          message: `${user.name} has checked in at ${new Date().toLocaleTimeString()}.`,
-          relatedId: attendance._id,
-        }),
-      );
-      await Promise.all(notificationPromises);
-    } catch (notifError) {
-      console.error("Failed to create check-in notification:", notifError);
+    // Notify Admins about late check-in ONLY
+    if (isLate) {
+      try {
+        const admins = await User.find({ role: "ADMIN" });
+
+        // Format time in IST (Asia/Kolkata)
+        const istTime = now.toLocaleTimeString("en-US", {
+          timeZone: "Asia/Kolkata",
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: true,
+        });
+
+        const notificationPromises = admins.map((admin) =>
+          Notification.create({
+            recipient: admin._id,
+            sender: userId,
+            type: "ATTENDANCE_UPDATE",
+            title: "Late Punch-in Alert",
+            message: `${user.name} has punched in LATE at ${istTime} (Scheduled: ${timingDetails?.loginTime}).`,
+            relatedId: attendance._id,
+          }),
+        );
+        await Promise.all(notificationPromises);
+      } catch (notifError) {
+        console.error(
+          "Failed to create late check-in notification:",
+          notifError,
+        );
+      }
     }
 
     return sendSuccess(res, "Check-in successful", attendance);
@@ -388,34 +429,19 @@ const updateAttendance = async (req, res) => {
     const { totalHours, status, reason } = req.body;
 
     if (!id) {
-      return sendError(
-        res,
-        "Attendance ID is required",
-        "Bad Request",
-        400,
-      );
+      return sendError(res, "Attendance ID is required", "Bad Request", 400);
     }
 
     const attendance = await Attendance.findById(id);
     if (!attendance) {
-      return sendError(
-        res,
-        "Attendance record not found",
-        "Not Found",
-        404,
-      );
+      return sendError(res, "Attendance record not found", "Not Found", 404);
     }
 
     // Update allowed fields
     if (totalHours !== undefined) {
       const parsedHours = parseFloat(totalHours);
       if (isNaN(parsedHours) || parsedHours < 0) {
-        return sendError(
-          res,
-          "Invalid total hours value",
-          "Bad Request",
-          400,
-        );
+        return sendError(res, "Invalid total hours value", "Bad Request", 400);
       }
       attendance.workingHours = parsedHours;
       // Also calculate workingMinutes from hours for consistency
@@ -424,12 +450,7 @@ const updateAttendance = async (req, res) => {
 
     if (status !== undefined) {
       if (!["Present", "Absent", "Half-day", "WFH", "Leave"].includes(status)) {
-        return sendError(
-          res,
-          "Invalid status value",
-          "Bad Request",
-          400,
-        );
+        return sendError(res, "Invalid status value", "Bad Request", 400);
       }
       attendance.status = status;
     }
@@ -441,7 +462,9 @@ const updateAttendance = async (req, res) => {
     const updatedAttendance = await attendance.save();
 
     // Enrich with recalculated duration for consistency
-    const enrichedRecord = enrichAttendanceRecord({ ...updatedAttendance.toObject() });
+    const enrichedRecord = enrichAttendanceRecord({
+      ...updatedAttendance.toObject(),
+    });
 
     return sendSuccess(
       res,
@@ -449,11 +472,7 @@ const updateAttendance = async (req, res) => {
       enrichedRecord,
     );
   } catch (error) {
-    return sendError(
-      res,
-      "Failed to update attendance record",
-      error.message,
-    );
+    return sendError(res, "Failed to update attendance record", error.message);
   }
 };
 
