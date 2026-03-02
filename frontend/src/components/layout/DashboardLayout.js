@@ -169,8 +169,15 @@ const DashboardLayout = ({ children, role = "employee" }) => {
           flex flex-col flex-shrink-0 shadow-2xl
         `}
       >
-        <div className="h-16 px-6 flex items-center border-b border-white/10">
-          <h1 className={`font-bold text-xl tracking-tight ${theme.sidebar.logo}`}>
+        <div className="h-16 px-6 flex items-center border-b border-white/10 gap-3">
+          <img
+            src="/logo.png"
+            alt="AttendEase Logo"
+            className="w-8 h-8 rounded-lg"
+          />
+          <h1
+            className={`font-bold text-xl tracking-tight ${theme.sidebar.logo}`}
+          >
             AttendEase
           </h1>
         </div>
@@ -192,9 +199,7 @@ const DashboardLayout = ({ children, role = "employee" }) => {
               <Icon
                 size={20}
                 className={`flex-shrink-0 transition-colors ${
-                  pathname === href
-                    ? "text-white"
-                    : theme.sidebar.inactiveIcon
+                  pathname === href ? "text-white" : theme.sidebar.inactiveIcon
                 }`}
               />
               <span
@@ -238,7 +243,9 @@ const DashboardLayout = ({ children, role = "employee" }) => {
       </aside>
 
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <header className={`h-16 ${theme.header.bg} px-5 sm:px-6 flex items-center justify-between sticky top-0 z-20`}>
+        <header
+          className={`h-16 ${theme.header.bg} px-5 sm:px-6 flex items-center justify-between sticky top-0 z-20`}
+        >
           <div className="flex items-center gap-4 flex-1">
             <button
               type="button"
@@ -436,7 +443,9 @@ const DashboardLayout = ({ children, role = "employee" }) => {
           </div>
         </header>
 
-        <main className={`flex-1 overflow-y-auto ${theme.page.bg} custom-scrollbar`}>
+        <main
+          className={`flex-1 overflow-y-auto ${theme.page.bg} custom-scrollbar`}
+        >
           <div className="p-5 sm:p-6 lg:p-8 max-w-[1600px] mx-auto">
             {children}
           </div>

@@ -30,10 +30,12 @@ const getAllUsers = async (req, res) => {
 
     // Enrich users with timing info based on department if no timingId assigned
     const timings = await Timing.find({ isActive: true });
-    const enrichedUsers = users.map(user => {
+    const enrichedUsers = users.map((user) => {
       const userObj = user.toObject();
       if (!userObj.timingId && userObj.department) {
-        const matchingTiming = timings.find(t => t.departments.includes(userObj.department));
+        const matchingTiming = timings.find((t) =>
+          t.departments.includes(userObj.department),
+        );
         if (matchingTiming) {
           userObj.timingInfo = {
             teamName: matchingTiming.teamName,
@@ -117,8 +119,29 @@ const createUser = async (req, res) => {
         409,
       );
 
-    if (employeeId) {
-      const existingEmployee = await User.findOne({ employeeId });
+    // Auto-generate employeeId if not provided
+    let finalEmployeeId = employeeId;
+    if (!finalEmployeeId || !finalEmployeeId.trim()) {
+      const lastUser = await User.findOne(
+        { employeeId: { $regex: /^SNN00/ } },
+        { employeeId: 1 },
+        { sort: { employeeId: -1 } },
+      );
+
+      let nextNumber = 1;
+      if (lastUser && lastUser.employeeId) {
+        const currentId = lastUser.employeeId;
+        const numberMatch = currentId.match(/SNN00(\d+)/);
+        if (numberMatch) {
+          nextNumber = parseInt(numberMatch[1]) + 1;
+        }
+      }
+      finalEmployeeId = `SNN00${nextNumber}`;
+    } else {
+      // Validate provided employeeId
+      const existingEmployee = await User.findOne({
+        employeeId: finalEmployeeId,
+      });
       if (existingEmployee)
         return sendError(res, "Employee ID already exists", "Conflict", 409);
     }
@@ -134,7 +157,7 @@ const createUser = async (req, res) => {
       email: email.toLowerCase(),
       password: hashedPassword,
       role: role ? role.toUpperCase() : "EMPLOYEE",
-      employeeId,
+      employeeId: finalEmployeeId,
       department,
       isActive: true,
       wfhAllowed: wfhAllowed || false,
@@ -311,17 +334,23 @@ const getDepartments = async (req, res) => {
       "Design",
       "Marketing",
     ];
-    
+
     // Get unique departments from existing users
     const existingDepartments = await User.distinct("department");
-    
+
     // Combine predefined and existing, remove duplicates and empty values
-    const allDepartments = [...new Set([
-      ...predefinedDepartments,
-      ...existingDepartments.filter(d => d && d.trim())
-    ])].sort();
-    
-    return sendSuccess(res, "Departments retrieved successfully", allDepartments);
+    const allDepartments = [
+      ...new Set([
+        ...predefinedDepartments,
+        ...existingDepartments.filter((d) => d && d.trim()),
+      ]),
+    ].sort();
+
+    return sendSuccess(
+      res,
+      "Departments retrieved successfully",
+      allDepartments,
+    );
   } catch (error) {
     return sendError(res, "Failed to retrieve departments", error.message);
   }
