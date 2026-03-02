@@ -2,9 +2,13 @@ import "./globals.css";
 import { Providers } from "./providers";
 
 export const metadata = {
-  title: " Employee Attendance & Leave Management",
+  title: "AttendEase | Employee Attendance & Leave Management",
   description:
     "Modern attendance and leave management system for organizations",
+  icons: {
+    icon: "/icon.png",
+    apple: "/icon.png",
+  },
 };
 
 export default function RootLayout({ children }) {
