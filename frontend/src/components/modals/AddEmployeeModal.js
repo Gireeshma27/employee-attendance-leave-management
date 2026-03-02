@@ -236,15 +236,15 @@ export function AddEmployeeModal({ isOpen, onClose, onSuccess }) {
         size="lg"
       >
         <div className="py-8 text-center">
-          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 animate-in zoom-in duration-300">
+          <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4 animate-in zoom-in duration-300">
             <CheckCircle2 className="w-8 h-8 text-green-600" />
           </div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+          <h3 className="text-lg font-semibold text-slate-900 mb-2">
             Employee Created Successfully!
           </h3>
           <div className="space-y-1">
-            <p className="text-sm text-gray-500">
-              <span className="font-medium text-gray-700">
+            <p className="text-sm text-slate-500">
+              <span className="font-medium text-slate-700">
                 {createdEmployeeName}
               </span>{" "}
               has been added.
@@ -261,7 +261,7 @@ export function AddEmployeeModal({ isOpen, onClose, onSuccess }) {
             )}
           </div>
 
-          <p className="text-xs text-gray-400 mt-4">
+          <p className="text-xs text-slate-400 mt-4">
             This dialog will close automatically...
           </p>
         </div>
@@ -279,7 +279,7 @@ export function AddEmployeeModal({ isOpen, onClose, onSuccess }) {
       <form onSubmit={handleSubmit} className="space-y-5">
         {/* API Error */}
         {apiError && (
-          <div className="p-3 bg-red-50 border border-red-200 rounded-lg flex gap-2">
+          <div className="p-3 bg-red-50 border border-red-200/60 rounded-xl flex gap-2">
             <AlertCircle className="text-red-600 flex-shrink-0" size={18} />
             <p className="text-sm text-red-700">{apiError}</p>
           </div>
@@ -287,16 +287,16 @@ export function AddEmployeeModal({ isOpen, onClose, onSuccess }) {
 
         {/* Personal Information Section */}
         <div className="space-y-4">
-          <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
+          <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
             <User size={16} className="text-blue-600" />
-            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
               Personal Information
             </span>
           </div>
 
           {/* Name */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-slate-700 mb-1">
               Full Name <span className="text-red-500">*</span>
             </label>
             <Input
@@ -314,7 +314,7 @@ export function AddEmployeeModal({ isOpen, onClose, onSuccess }) {
 
           {/* Email */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-slate-700 mb-1">
               Email Address <span className="text-red-500">*</span>
             </label>
             <Input
@@ -333,9 +333,9 @@ export function AddEmployeeModal({ isOpen, onClose, onSuccess }) {
 
         {/* Work Information Section */}
         <div className="space-y-4">
-          <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
+          <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
             <Briefcase size={16} className="text-blue-600" />
-            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
               Work Information
             </span>
           </div>
@@ -343,14 +343,14 @@ export function AddEmployeeModal({ isOpen, onClose, onSuccess }) {
           {/* Role & Department */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-slate-700 mb-1">
                 Role <span className="text-red-500">*</span>
               </label>
               <select
                 name="role"
                 value={formData.role}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                className="w-full px-3 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900/10 text-sm"
               >
                 <option value="EMPLOYEE">Employee</option>
                 <option value="MANAGER">Manager</option>
@@ -359,7 +359,7 @@ export function AddEmployeeModal({ isOpen, onClose, onSuccess }) {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-slate-700 mb-1">
                 Department <span className="text-red-500">*</span>
               </label>
               {showCustomDepartment ? (
@@ -379,12 +379,12 @@ export function AddEmployeeModal({ isOpen, onClose, onSuccess }) {
                         setCustomDepartment("");
                         setFormData((prev) => ({ ...prev, department: "" }));
                       }}
-                      className="px-3 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
+                      className="px-3 py-2 text-sm text-slate-600 border border-slate-300 rounded-xl hover:bg-slate-50"
                     >
                       Cancel
                     </button>
                   </div>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-slate-500">
                     Enter a custom department name
                   </p>
                 </div>
@@ -393,7 +393,7 @@ export function AddEmployeeModal({ isOpen, onClose, onSuccess }) {
                   name="department"
                   value={formData.department}
                   onChange={handleChange}
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm ${errors.department ? "border-red-500" : "border-gray-300"}`}
+                  className={`w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900/10 text-sm ${errors.department ? "border-red-500" : "border-slate-300"}`}
                 >
                   <option value="">Select Department</option>
                   {departments.map((dept) => (
@@ -418,14 +418,14 @@ export function AddEmployeeModal({ isOpen, onClose, onSuccess }) {
           {/* Office & Manager */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-slate-700 mb-1">
                 Office Location
               </label>
               <select
                 name="officeId"
                 value={formData.officeId}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                className="w-full px-3 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900/10 text-sm"
               >
                 <option value="">Select Location (Optional)</option>
                 {offices.map((off) => (
@@ -437,14 +437,14 @@ export function AddEmployeeModal({ isOpen, onClose, onSuccess }) {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-slate-700 mb-1">
                 Reporting Manager
               </label>
               <select
                 name="managerId"
                 value={formData.managerId}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                className="w-full px-3 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900/10 text-sm"
               >
                 <option value="">Select Manager (Optional)</option>
                 {managers.map((mgr) => (
@@ -458,11 +458,11 @@ export function AddEmployeeModal({ isOpen, onClose, onSuccess }) {
         </div>
 
         {/* WFH Settings - Improved UI */}
-        <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+        <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <Building size={16} className="text-blue-600" />
-              <label className="text-sm font-medium text-gray-700">
+              <label className="text-sm font-medium text-slate-700">
                 Work From Home (WFH)
               </label>
             </div>
@@ -479,17 +479,17 @@ export function AddEmployeeModal({ isOpen, onClose, onSuccess }) {
                 }
                 className="sr-only peer"
               />
-              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-              <span className="ml-2 text-sm text-gray-600">
+              <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-slate-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-slate-900"></div>
+              <span className="ml-2 text-sm text-slate-600">
                 {formData.wfhAllowed ? "Enabled" : "Disabled"}
               </span>
             </label>
           </div>
 
           {formData.wfhAllowed && (
-            <div className="grid grid-cols-2 gap-4 pt-3 border-t border-gray-200">
-              <div className="bg-white rounded-lg p-3 border border-gray-100">
-                <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
+            <div className="grid grid-cols-2 gap-4 pt-3 border-t border-slate-200">
+              <div className="bg-white rounded-xl p-3 border border-slate-100">
+                <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-2">
                   Days Used
                 </label>
                 <div className="flex items-center gap-2">
@@ -509,20 +509,20 @@ export function AddEmployeeModal({ isOpen, onClose, onSuccess }) {
                     placeholder="0"
                     className="text-center font-semibold"
                   />
-                  <span className="text-sm text-gray-500">of 5</span>
+                  <span className="text-sm text-slate-500">of 5</span>
                 </div>
               </div>
-              <div className="bg-white rounded-lg p-3 border border-gray-100">
-                <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
+              <div className="bg-white rounded-xl p-3 border border-slate-100">
+                <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-2">
                   Days Remaining
                 </label>
                 <div className="flex items-center justify-center h-[42px]">
                   <span
-                    className={`text-2xl font-bold ${5 - (formData.usedWFHDays || 0) > 0 ? "text-green-600" : "text-red-500"}`}
+                    className={`text-2xl font-semibold ${5 - (formData.usedWFHDays || 0) > 0 ? "text-green-600" : "text-red-500"}`}
                   >
                     {5 - (formData.usedWFHDays || 0)}
                   </span>
-                  <span className="text-sm text-gray-500 ml-1">days</span>
+                  <span className="text-sm text-slate-500 ml-1">days</span>
                 </div>
               </div>
             </div>
@@ -531,9 +531,9 @@ export function AddEmployeeModal({ isOpen, onClose, onSuccess }) {
 
         {/* Security Section */}
         <div className="space-y-4">
-          <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
+          <div className="flex items-center gap-2 pb-2 border-b border-slate-100">
             <Lock size={16} className="text-blue-600" />
-            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
               Security
             </span>
           </div>
@@ -541,7 +541,7 @@ export function AddEmployeeModal({ isOpen, onClose, onSuccess }) {
           {/* Password */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-slate-700 mb-1">
                 Password <span className="text-red-500">*</span>
               </label>
               <Input
@@ -558,7 +558,7 @@ export function AddEmployeeModal({ isOpen, onClose, onSuccess }) {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-slate-700 mb-1">
                 Confirm Password <span className="text-red-500">*</span>
               </label>
               <Input
@@ -579,11 +579,11 @@ export function AddEmployeeModal({ isOpen, onClose, onSuccess }) {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-3 pt-5 border-t border-gray-200">
+        <div className="flex gap-3 pt-5 border-t border-slate-200">
           <button
             type="button"
             onClick={handleClose}
-            className="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium text-sm"
+            className="flex-1 px-4 py-2.5 border border-slate-300 text-slate-700 rounded-xl hover:bg-slate-50 transition-colors font-medium text-sm"
           >
             Cancel
           </button>

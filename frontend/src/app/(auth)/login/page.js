@@ -98,12 +98,12 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50 to-emerald-50 flex items-center justify-center p-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-blue-50 flex items-center justify-center p-6">
       {/* Background decoration */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 -left-40 w-80 h-80 bg-indigo-400 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-pulse-slow"></div>
+        <div className="absolute top-0 -left-40 w-80 h-80 bg-blue-400 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-pulse-slow"></div>
         <div
-          className="absolute bottom-0 -right-40 w-96 h-96 bg-emerald-400 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-pulse-slow"
+          className="absolute bottom-0 -right-40 w-96 h-96 bg-blue-400 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-pulse-slow"
           style={{ animationDelay: "2s" }}
         ></div>
       </div>
@@ -115,10 +115,10 @@ const LoginPage = () => {
             href="/"
             className="inline-flex items-center gap-3 mb-4 sm:mb-6"
           >
-            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-indigo-600 to-emerald-600 rounded-xl flex items-center justify-center">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl flex items-center justify-center">
               <Clock className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
             </div>
-            <span className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-indigo-600 to-emerald-600 bg-clip-text text-transparent">
+            <span className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">
               AttendEase
             </span>
           </Link>
@@ -131,7 +131,7 @@ const LoginPage = () => {
         </div>
 
         {/* Login Card */}
-        <div className="bg-white/90 sm:bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl border border-indigo-100 p-6 sm:p-8">
+        <div className="bg-white/90 sm:bg-white/80 backdrop-blur-lg rounded-2xl shadow-xl border border-blue-100 p-6 sm:p-8">
           <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-6">
             {/* Error Alert */}
             {errors.submit && (
@@ -166,7 +166,7 @@ const LoginPage = () => {
                   className={`w-full pl-12 pr-4 py-3 bg-slate-50 border ${
                     errors.email
                       ? "border-red-300 focus:ring-red-500 focus:border-red-500"
-                      : "border-slate-200 focus:ring-indigo-500 focus:border-indigo-500"
+                      : "border-slate-200 focus:ring-blue-500 focus:border-blue-500"
                   } rounded-xl focus:outline-none focus:ring-2 transition-all`}
                   placeholder="you@company.com"
                 />
@@ -200,7 +200,7 @@ const LoginPage = () => {
                   className={`w-full pl-12 pr-12 py-3 bg-slate-50 border ${
                     errors.password
                       ? "border-red-300 focus:ring-red-500 focus:border-red-500"
-                      : "border-slate-200 focus:ring-indigo-500 focus:border-indigo-500"
+                      : "border-slate-200 focus:ring-blue-500 focus:border-blue-500"
                   } rounded-xl focus:outline-none focus:ring-2 transition-all`}
                   placeholder="••••••••"
                 />
@@ -232,13 +232,13 @@ const LoginPage = () => {
                   name="remember"
                   checked={formData.remember}
                   onChange={handleChange}
-                  className="w-4 h-4 text-indigo-600 bg-slate-50 border-slate-300 rounded focus:ring-indigo-500 focus:ring-2 cursor-pointer"
+                  className="w-4 h-4 text-blue-600 bg-slate-50 border-slate-300 rounded focus:ring-blue-500 focus:ring-2 cursor-pointer"
                 />
                 <span className="text-sm text-slate-600">Remember me</span>
               </label>
               <Link
                 href="/forgot-password"
-                className="text-sm font-semibold text-indigo-600 hover:text-indigo-700 transition"
+                className="text-sm font-semibold text-blue-600 hover:text-blue-700 transition"
               >
                 Forgot password?
               </Link>
@@ -248,7 +248,7 @@ const LoginPage = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-3.5 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-indigo-500/50 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-3.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-blue-500/50 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? (
                 <span className="flex items-center justify-center gap-2">
@@ -281,8 +281,8 @@ const LoginPage = () => {
           </form>
 
           {/* Demo Credentials */}
-          <div className="mt-6 p-4 bg-indigo-50 border border-indigo-100 rounded-xl">
-            <p className="text-xs font-semibold text-indigo-700 mb-2">
+          <div className="mt-6 p-4 bg-blue-50 border border-blue-100 rounded-xl">
+            <p className="text-xs font-semibold text-blue-700 mb-2">
               Demo Credentials:
             </p>
             <div className="text-xs text-slate-600 space-y-1">
@@ -304,7 +304,7 @@ const LoginPage = () => {
           Don't have an account?{" "}
           <Link
             href="/contact"
-            className="font-semibold text-indigo-600 hover:text-indigo-700 transition"
+            className="font-semibold text-blue-600 hover:text-blue-700 transition"
           >
             Contact Admin
           </Link>

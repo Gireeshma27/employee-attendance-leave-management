@@ -9,6 +9,7 @@ import { Modal } from "@/components/ui/Modal";
 import { Plus, Calendar } from "lucide-react";
 import { useState, useEffect } from "react";
 import apiService from "@/lib/api";
+import { useToast } from "@/components/ui/Toast";
 
 const LEAVE_TYPE_MAP = {
   CL: "Casual Leave",
@@ -38,6 +39,7 @@ export default function LeavePage() {
     reason: "",
   });
   const [formError, setFormError] = useState("");
+  const toast = useToast();
 
   useEffect(() => {
     fetchLeaveData(pagination.currentPage);
@@ -125,10 +127,12 @@ export default function LeavePage() {
 
       setFormData({ leaveType: "", fromDate: "", toDate: "", reason: "" });
       setShowModal(false);
+      toast.success("Leave Applied", "Your leave request has been submitted successfully.");
       await fetchLeaveData(1); // Refresh to first page
       setPagination((prev) => ({ ...prev, currentPage: 1 }));
     } catch (err) {
       setFormError(err.message || "Failed to apply for leave");
+      toast.error("Application Failed", err.message || "Failed to apply for leave");
     } finally {
       setIsSubmitting(false);
     }
@@ -153,7 +157,7 @@ export default function LeavePage() {
         <div className="flex items-center justify-center h-96">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-500 font-medium">Loading leave data...</p>
+            <p className="text-slate-500 font-medium">Loading leave data...</p>
           </div>
         </div>
       </DashboardLayout>
@@ -166,10 +170,10 @@ export default function LeavePage() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h1 className="text-xl sm:text-2xl font-semibold text-gray-900">
+            <h1 className="text-xl sm:text-2xl font-semibold text-slate-900">
               Leave Management
             </h1>
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-sm text-slate-500 mt-1">
               Apply and track your leaves
             </p>
           </div>
@@ -184,52 +188,52 @@ export default function LeavePage() {
         </div>
 
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+          <div className="bg-red-50 border border-red-200 rounded-xl p-3">
             <p className="text-red-600 text-sm">{error}</p>
           </div>
         )}
 
         {/* Leave Balance Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <Card className="border-slate-200">
+          <Card>
             <CardContent className="pt-5">
-              <p className="text-sm text-gray-500">Casual Leave</p>
+              <p className="text-sm text-slate-500">Casual Leave</p>
               <p className="text-3xl font-semibold text-blue-600 mt-2">
                 {leaveBalance.casual}
               </p>
-              <p className="text-xs text-gray-400 mt-1">days remaining</p>
+              <p className="text-xs text-slate-400 mt-1">days remaining</p>
             </CardContent>
           </Card>
 
-          <Card className="border-slate-200">
+          <Card>
             <CardContent className="pt-5">
-              <p className="text-sm text-gray-500">Sick Leave</p>
-              <p className="text-3xl font-semibold text-green-600 mt-2">
+              <p className="text-sm text-slate-500">Sick Leave</p>
+              <p className="text-3xl font-semibold text-blue-600 mt-2">
                 {leaveBalance.sick}
               </p>
-              <p className="text-xs text-gray-400 mt-1">days remaining</p>
+              <p className="text-xs text-slate-400 mt-1">days remaining</p>
             </CardContent>
           </Card>
 
-          <Card className="border-slate-200">
+          <Card>
             <CardContent className="pt-5">
-              <p className="text-sm text-gray-500">Paid Leave</p>
-              <p className="text-3xl font-semibold text-orange-600 mt-2">
+              <p className="text-sm text-slate-500">Paid Leave</p>
+              <p className="text-3xl font-semibold text-blue-600 mt-2">
                 {leaveBalance.paid}
               </p>
-              <p className="text-xs text-gray-400 mt-1">days remaining</p>
+              <p className="text-xs text-slate-400 mt-1">days remaining</p>
             </CardContent>
           </Card>
         </div>
 
         {/* Leave History Table */}
-        <Card className="overflow-hidden shadow-sm border-slate-200">
+        <Card className="overflow-hidden">
           <CardHeader className="bg-slate-50/50 border-b border-slate-100 flex flex-row items-center justify-between">
-            <CardTitle className="text-base font-semibold text-gray-800 flex items-center gap-2">
-              <Calendar size={18} className="text-gray-500" />
+            <CardTitle className="text-base font-semibold text-slate-800 flex items-center gap-2">
+              <Calendar size={18} className="text-slate-500" />
               Leave History
             </CardTitle>
-            <span className="text-xs text-gray-400">
+            <span className="text-xs text-slate-400">
               Showing {leaveApplications.length} of {pagination.totalRecords}{" "}
               records
             </span>
@@ -238,18 +242,18 @@ export default function LeavePage() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-gray-500 bg-slate-50/30 uppercase text-[10px] font-semibold tracking-widest">
-                    <th className="text-left px-4 md:px-6 py-4">Leave Type</th>
-                    <th className="text-left px-4 md:px-6 py-4 hidden md:table-cell">
+                  <tr className="text-slate-400 bg-slate-50/30 uppercase text-[10px] font-semibold tracking-widest">
+                    <th className="text-left px-5 py-3.5">Leave Type</th>
+                    <th className="text-left px-5 py-3.5 hidden md:table-cell">
                       From
                     </th>
-                    <th className="text-left px-4 md:px-6 py-4 hidden md:table-cell">
+                    <th className="text-left px-5 py-3.5 hidden md:table-cell">
                       To
                     </th>
-                    <th className="text-left px-4 md:px-6 py-4 hidden lg:table-cell">
+                    <th className="text-left px-5 py-3.5 hidden lg:table-cell">
                       Reason
                     </th>
-                    <th className="text-left px-4 md:px-6 py-4">Status</th>
+                    <th className="text-left px-5 py-3.5">Status</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -259,10 +263,10 @@ export default function LeavePage() {
                         key={leave._id}
                         className="hover:bg-slate-50/50 transition-colors"
                       >
-                        <td className="px-4 md:px-6 py-4 text-gray-700">
+                        <td className="px-5 py-3.5 text-slate-700">
                           {LEAVE_TYPE_MAP[leave.leaveType] || leave.leaveType}
                         </td>
-                        <td className="px-4 md:px-6 py-4 text-gray-600 hidden md:table-cell">
+                        <td className="px-5 py-3.5 text-slate-500 hidden md:table-cell">
                           {new Date(leave.fromDate).toLocaleDateString(
                             "en-US",
                             {
@@ -272,7 +276,7 @@ export default function LeavePage() {
                             },
                           )}
                         </td>
-                        <td className="px-4 md:px-6 py-4 text-gray-600 hidden md:table-cell">
+                        <td className="px-5 py-3.5 text-slate-500 hidden md:table-cell">
                           {new Date(leave.toDate).toLocaleDateString("en-US", {
                             month: "short",
                             day: "numeric",
@@ -280,15 +284,15 @@ export default function LeavePage() {
                           })}
                         </td>
                         <td
-                          className="px-4 md:px-6 py-4 text-gray-600 hidden lg:table-cell max-w-[200px] truncate"
+                          className="px-5 py-3.5 text-slate-500 hidden lg:table-cell max-w-[200px] truncate"
                           title={leave.reason}
                         >
                           {leave.reason}
                         </td>
-                        <td className="px-4 md:px-6 py-4">
+                        <td className="px-5 py-3.5">
                           <Badge
                             variant={getStatusBadgeVariant(leave.status)}
-                            className="text-xs"
+                            dot
                           >
                             {leave.status}
                           </Badge>
@@ -299,7 +303,7 @@ export default function LeavePage() {
                     <tr>
                       <td
                         colSpan="5"
-                        className="px-6 py-12 text-center text-gray-400"
+                        className="px-6 py-12 text-center text-slate-400"
                       >
                         No leave applications found. Click "Apply Leave" to
                         submit a new request.
@@ -312,14 +316,14 @@ export default function LeavePage() {
 
             {/* Pagination Controls */}
             {pagination.totalPages > 1 && (
-              <div className="px-6 py-4 bg-slate-50/30 border-t border-slate-100 flex items-center justify-between">
-                <div className="text-xs text-gray-500">
+              <div className="px-5 py-4 bg-slate-50/30 border-t border-slate-100 flex items-center justify-between">
+                <div className="text-xs text-slate-500">
                   Page{" "}
-                  <span className="font-semibold text-gray-900">
+                  <span className="font-semibold text-slate-900">
                     {pagination.currentPage}
                   </span>{" "}
                   of{" "}
-                  <span className="font-semibold text-gray-900">
+                  <span className="font-semibold text-slate-900">
                     {pagination.totalPages}
                   </span>
                 </div>
@@ -351,21 +355,21 @@ export default function LeavePage() {
         {/* Apply Leave Modal */}
         <Modal isOpen={showModal} onClose={closeModal} title="Apply for Leave">
           {formError && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
+            <div className="bg-red-50 border border-red-200 rounded-xl p-3 mb-4">
               <p className="text-red-600 text-sm">{formError}</p>
             </div>
           )}
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Leave Type <span className="text-red-500">*</span>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                <span className="text-red-500">*</span>
               </label>
               <select
                 value={formData.leaveType}
                 onChange={(e) =>
                   setFormData({ ...formData, leaveType: e.target.value })
                 }
-                className="w-full px-4 py-2.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 required
               >
                 <option value="">Select leave type</option>
@@ -398,7 +402,7 @@ export default function LeavePage() {
             </div>
 
             {formData.fromDate && formData.toDate && (
-              <div className="bg-blue-50 border border-blue-100 rounded-lg p-3">
+              <div className="bg-blue-50 border border-blue-100 rounded-xl p-3">
                 <p className="text-sm text-blue-700">
                   Duration:{" "}
                   <span className="font-semibold">
@@ -409,7 +413,7 @@ export default function LeavePage() {
             )}
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-slate-700 mb-2">
                 Reason <span className="text-red-500">*</span>
               </label>
               <textarea
@@ -418,7 +422,7 @@ export default function LeavePage() {
                   setFormData({ ...formData, reason: e.target.value })
                 }
                 placeholder="Please provide a reason for your leave request"
-                className="w-full px-4 py-2.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                className="w-full px-4 py-2.5 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                 rows="4"
                 required
               />

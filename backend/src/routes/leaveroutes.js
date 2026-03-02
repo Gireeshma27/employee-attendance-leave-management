@@ -36,7 +36,7 @@ router.delete("/:leaveId", cancelLeave);
 router.get("/pending", isAdminOrManager, validate(getLeavesSchema), getPendingLeaves);
 router.get(
   "/admin/all",
-  isAdmin,
+  isAdminOrManager,
   validate(getLeavesSchema),
   getAllLeavesForAdmin,
 );

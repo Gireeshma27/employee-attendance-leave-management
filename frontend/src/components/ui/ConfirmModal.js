@@ -15,43 +15,43 @@ export function ConfirmModal({
   if (!isOpen) return null;
 
   const variantStyles = {
-    danger: "bg-red-600 hover:bg-red-700 shadow-red-100",
-    primary: "bg-blue-600 hover:bg-blue-700 shadow-blue-100",
+    danger: "bg-red-600 hover:bg-red-700 shadow-red-600/20",
+    primary: "bg-blue-600 hover:bg-blue-700 shadow-blue-600/20",
   };
 
   const iconStyles = {
     danger: "text-red-600 bg-red-50",
-    primary: "text-blue-600 bg-blue-50",
+    primary: "text-blue-700 bg-blue-50",
   };
 
   return (
-    <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/40 backdrop-blur-[2px] animate-in fade-in duration-200">
-      <div className="bg-white w-full max-w-sm rounded-[24px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 border border-gray-100">
+    <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/40 backdrop-blur-[2px]">
+      <div className="bg-white w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden border border-slate-200/60">
         <div className="p-6">
           <div className="flex items-center gap-4 mb-4">
-            <div className={`p-3 rounded-2xl ${iconStyles[variant]}`}>
-              <AlertCircle size={24} />
+            <div className={`p-2.5 rounded-xl ${iconStyles[variant]}`}>
+              <AlertCircle size={22} />
             </div>
             <div>
-              <h3 className="text-lg font-black text-gray-900 tracking-tight leading-none">
+              <h3 className="text-lg font-semibold text-slate-900 leading-none">
                 {title}
               </h3>
-              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">
+              <p className="text-[10px] text-slate-400 font-medium uppercase tracking-wider mt-1">
                 Confirmation Required
               </p>
             </div>
           </div>
 
-          <p className="text-sm text-gray-500 font-medium leading-relaxed px-1">
+          <p className="text-sm text-slate-500 leading-relaxed">
             {message}
           </p>
         </div>
 
-        <div className="px-6 py-4 bg-gray-50/50 flex gap-3">
+        <div className="px-6 py-4 bg-slate-50/50 flex gap-3">
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 px-4 py-2.5 rounded-xl font-bold text-xs text-gray-500 bg-white hover:bg-gray-100 transition-all border border-gray-200"
+            className="flex-1 px-4 py-2.5 rounded-xl font-medium text-sm text-slate-600 bg-white hover:bg-slate-100 transition-all border border-slate-200"
           >
             {cancelText}
           </button>
@@ -61,7 +61,7 @@ export function ConfirmModal({
               onConfirm();
               onClose();
             }}
-            className={`flex-1 px-4 py-2.5 rounded-xl font-bold text-xs text-white shadow-lg transition-all active:scale-95 ${variantStyles[variant]}`}
+            className={`flex-1 px-4 py-2.5 rounded-xl font-medium text-sm text-white shadow-lg transition-all active:scale-[0.98] ${variantStyles[variant]}`}
           >
             {confirmText}
           </button>

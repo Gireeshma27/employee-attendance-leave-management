@@ -101,14 +101,13 @@ export function DatePicker({
       days.push(
         <div
           key={`prev-${i}`}
-          className="h-9 w-9 flex items-center justify-center text-gray-300 text-sm"
+          className="h-9 w-9 flex items-center justify-center text-slate-300 text-sm"
         >
           {dayNum}
         </div>,
       );
     }
 
-    // Days of current month
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const selected = value ? new Date(value) : null;
@@ -135,8 +134,8 @@ export function DatePicker({
               isSelected
                 ? "bg-blue-600 text-white font-semibold shadow-sm"
                 : isToday
-                  ? "text-blue-600 font-bold border border-blue-200"
-                  : "text-gray-700 hover:bg-gray-100 hover:text-blue-600"
+                  ? "text-blue-600 font-semibold border border-blue-200"
+                  : "text-slate-700 hover:bg-slate-100 hover:text-blue-600"
             }`}
         >
           {day}
@@ -151,7 +150,7 @@ export function DatePicker({
       days.push(
         <div
           key={`next-${i}`}
-          className="h-9 w-9 flex items-center justify-center text-gray-300 text-sm"
+          className="h-9 w-9 flex items-center justify-center text-slate-300 text-sm"
         >
           {i}
         </div>,
@@ -181,19 +180,19 @@ export function DatePicker({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg shadow-sm hover:border-gray-300 transition-all text-sm font-medium text-gray-700 min-w-[160px]"
+        className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl shadow-sm hover:border-slate-300 transition-all text-sm font-medium text-slate-700 min-w-[160px]"
       >
-        <CalendarIcon size={18} className="text-gray-400" />
+        <CalendarIcon size={18} className="text-slate-400" />
         {value ? (
           formatDisplayDate(value)
         ) : (
-          <span className="text-gray-400">{placeholder}</span>
+          <span className="text-slate-400">{placeholder}</span>
         )}
       </button>
 
       {isOpen && (
         <div
-          className={`absolute top-full mt-2 z-50 bg-white border border-gray-200 rounded-xl shadow-2xl p-4 w-[320px] animate-in fade-in zoom-in duration-200 ${
+          className={`absolute top-full mt-2 z-50 bg-white border border-slate-200 rounded-xl shadow-2xl p-4 w-[320px] animate-in fade-in zoom-in duration-200 ${
             align === "right"
               ? "right-0 origin-top-right"
               : "left-0 origin-top-left"
@@ -202,22 +201,22 @@ export function DatePicker({
           {/* Header */}
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-1 group cursor-pointer">
-              <span className="font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
+              <span className="font-semibold text-slate-900 group-hover:text-blue-600 transition-colors">
                 {monthNames[viewDate.getMonth()]}, {viewDate.getFullYear()}
               </span>
-              <ChevronRight size={14} className="text-gray-400 rotate-90" />
+              <ChevronRight size={14} className="text-slate-400 rotate-90" />
             </div>
             <div className="flex items-center gap-1">
               <button
                 onClick={handlePrevMonth}
-                className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-500 transition-colors"
+                className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-500 transition-colors"
                 title="Previous Month"
               >
                 <ChevronLeft size={18} className="rotate-90" />
               </button>
               <button
                 onClick={handleNextMonth}
-                className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-500 transition-colors"
+                className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-500 transition-colors"
                 title="Next Month"
               >
                 <ChevronLeft size={18} className="-rotate-90" />
@@ -230,7 +229,7 @@ export function DatePicker({
             {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((day) => (
               <div
                 key={day}
-                className="h-8 flex items-center justify-center text-xs font-semibold text-gray-400 uppercase"
+                className="h-8 flex items-center justify-center text-xs font-semibold text-slate-400 uppercase"
               >
                 {day}
               </div>
@@ -241,7 +240,7 @@ export function DatePicker({
           <div className="grid grid-cols-7 gap-y-1">{renderDays()}</div>
 
           {/* Footer Actions */}
-          <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
+          <div className="flex items-center justify-between mt-4 pt-4 border-t border-slate-100">
             <button
               onClick={handleClear}
               className="text-sm font-semibold text-blue-600 hover:text-blue-700 transition-colors"

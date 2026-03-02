@@ -42,25 +42,25 @@ export function Modal({
       {/* Modal Container */}
       <div className="flex items-center justify-center min-h-screen px-4 py-4">
         <div
-          className={`relative bg-white rounded-lg shadow-xl w-full max-w-2xl sm:max-w-lg transition-all duration-300 ${
+          className={`relative bg-white rounded-2xl shadow-2xl shadow-slate-200/50 w-full max-w-2xl sm:max-w-lg transition-all duration-300 border border-slate-200/60 ${
             isVisible ? "scale-100 opacity-100" : "scale-95 opacity-0"
           } ${className}`}
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-4 md:px-6 py-4 border-b border-gray-200">
-            <h2 className="text-base md:text-lg font-semibold text-gray-900 pr-4">
+          <div className="flex items-center justify-between px-5 md:px-6 py-4 border-b border-slate-100">
+            <h2 className="text-base md:text-lg font-semibold text-slate-900 pr-4">
               {title}
             </h2>
             <button
               onClick={handleClose}
-              className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+              className="flex-shrink-0 p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-all"
             >
-              <X size={24} />
+              <X size={20} />
             </button>
           </div>
 
           {/* Content */}
-          <div className="px-4 md:px-6 py-4 max-h-[calc(100vh-200px)] overflow-y-auto">
+          <div className="px-5 md:px-6 py-5 max-h-[calc(100vh-200px)] overflow-y-auto">
             {children}
           </div>
         </div>

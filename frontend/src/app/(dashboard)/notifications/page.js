@@ -97,9 +97,9 @@ const NotificationsPage = () => {
   const getColor = (type) => {
     switch (type) {
       case "LEAVE_REQUEST":
-        return "text-amber-600 bg-amber-50";
+        return "text-yellow-600 bg-yellow-50";
       case "LEAVE_RESPONSE":
-        return "text-emerald-600 bg-emerald-50";
+        return "text-green-600 bg-green-50";
       case "ATTENDANCE_UPDATE":
         return "text-blue-600 bg-blue-50";
       default:
@@ -123,7 +123,7 @@ const NotificationsPage = () => {
           <button
             onClick={handleMarkAllAsRead}
             disabled={notifications.filter((n) => !n.isRead).length === 0}
-            className="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-50 transition-all font-bold text-sm shadow-sm group disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-50 transition-all font-semibold text-sm shadow-sm group disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <CheckCircle2
               size={18}
@@ -134,11 +134,11 @@ const NotificationsPage = () => {
           <button
             onClick={handleClearAll}
             disabled={notifications.length === 0}
-            className="flex items-center gap-2 px-4 py-2.5 bg-rose-50 border border-rose-100 rounded-xl text-rose-600 hover:bg-rose-100 transition-all font-bold text-sm shadow-sm group disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center gap-2 px-4 py-2.5 bg-red-50 border border-red-100 rounded-xl text-red-600 hover:bg-red-100 transition-all font-semibold text-sm shadow-sm group disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Trash2
               size={18}
-              className="text-rose-400 group-hover:text-rose-600 transition-colors"
+              className="text-red-400 group-hover:text-red-600 transition-colors"
             />
             Clear all
           </button>
@@ -157,7 +157,7 @@ const NotificationsPage = () => {
             placeholder="Search notifications..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium"
+            className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 transition-all font-medium"
           />
         </div>
         <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 no-scrollbar">
@@ -209,7 +209,7 @@ const NotificationsPage = () => {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-1">
                       <h3
-                        className={`text-lg font-bold tracking-tight truncate ${!notification.isRead ? "text-slate-900" : "text-slate-700"}`}
+                        className={`text-lg font-semibold tracking-tight truncate ${!notification.isRead ? "text-slate-900" : "text-slate-700"}`}
                       >
                         {notification.title}
                       </h3>
@@ -241,7 +241,7 @@ const NotificationsPage = () => {
             <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6">
               <Bell className="text-slate-300" size={40} />
             </div>
-            <h3 className="text-xl font-bold text-slate-900 mb-2">
+            <h3 className="text-xl font-semibold text-slate-900 mb-2">
               No notifications found
             </h3>
             <p className="text-slate-500 font-medium">

@@ -197,7 +197,7 @@ export function EditEmployeeModal({ isOpen, onClose, employee, onSuccess }) {
       <form onSubmit={handleSubmit} className="space-y-4 md:space-y-5">
         {/* API Error */}
         {apiError && (
-          <div className="p-3 md:p-4 bg-red-50 border border-red-200 rounded-lg flex gap-2">
+          <div className="p-3 md:p-4 bg-red-50 border border-red-200/60 rounded-xl flex gap-2">
             <AlertCircle className="text-red-600 flex-shrink-0" size={18} />
             <p className="text-xs md:text-sm text-red-700">{apiError}</p>
           </div>
@@ -205,21 +205,21 @@ export function EditEmployeeModal({ isOpen, onClose, employee, onSuccess }) {
 
         {/* Employee ID (Read-only) */}
         <div>
-          <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-xs md:text-sm font-medium text-slate-700 mb-1">
             Employee ID{" "}
-            <span className="text-gray-500 text-xs">(Read-only)</span>
+            <span className="text-slate-500 text-xs">(Read-only)</span>
           </label>
           <Input
             type="text"
             value={employee.employeeId || "N/A"}
             disabled
-            className="bg-gray-50 cursor-not-allowed"
+            className="bg-slate-50 cursor-not-allowed"
           />
         </div>
 
         {/* Name */}
         <div>
-          <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-xs md:text-sm font-medium text-slate-700 mb-1">
             Name <span className="text-red-500">*</span>
           </label>
           <Input
@@ -239,7 +239,7 @@ export function EditEmployeeModal({ isOpen, onClose, employee, onSuccess }) {
 
         {/* Email ID */}
         <div>
-          <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-xs md:text-sm font-medium text-slate-700 mb-1">
             Email ID <span className="text-red-500">*</span>
           </label>
           <Input
@@ -259,7 +259,7 @@ export function EditEmployeeModal({ isOpen, onClose, employee, onSuccess }) {
 
         {/* Department */}
         <div>
-          <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-xs md:text-sm font-medium text-slate-700 mb-1">
             Department
           </label>
           {showCustomDepartment ? (
@@ -279,19 +279,19 @@ export function EditEmployeeModal({ isOpen, onClose, employee, onSuccess }) {
                     setCustomDepartment("");
                     setFormData((prev) => ({ ...prev, department: employee?.department || "" }));
                   }}
-                  className="px-3 py-2 text-xs md:text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
+                  className="px-3 py-2 text-xs md:text-sm text-slate-600 border border-slate-300 rounded-xl hover:bg-slate-50"
                 >
                   Cancel
                 </button>
               </div>
-              <p className="text-xs text-gray-500">Enter a custom department name</p>
+              <p className="text-xs text-slate-500">Enter a custom department name</p>
             </div>
           ) : (
             <select
               name="department"
               value={formData.department}
               onChange={handleChange}
-              className="w-full px-3 md:px-4 py-2 md:py-2.5 text-xs md:text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 md:px-4 py-2 md:py-2.5 text-xs md:text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900/10"
             >
               <option value="">Select Department</option>
               {departments.map((dept) => (
@@ -309,14 +309,14 @@ export function EditEmployeeModal({ isOpen, onClose, employee, onSuccess }) {
         {/* Role & Location */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-xs md:text-sm font-medium text-slate-700 mb-1">
               Role <span className="text-red-500">*</span>
             </label>
             <select
               name="role"
               value={formData.role}
               onChange={handleChange}
-              className="w-full px-3 md:px-4 py-2 md:py-2.5 text-xs md:text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 md:px-4 py-2 md:py-2.5 text-xs md:text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900/10"
             >
               <option value="EMPLOYEE">Employee</option>
               <option value="MANAGER">Manager</option>
@@ -325,14 +325,14 @@ export function EditEmployeeModal({ isOpen, onClose, employee, onSuccess }) {
           </div>
 
           <div>
-            <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-xs md:text-sm font-medium text-slate-700 mb-1">
               Office Location
             </label>
             <select
               name="officeId"
               value={formData.officeId}
               onChange={handleChange}
-              className="w-full px-3 md:px-4 py-2 md:py-2.5 text-xs md:text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 md:px-4 py-2 md:py-2.5 text-xs md:text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900/10"
             >
               <option value="">Select Location</option>
               {offices.map((off) => (
@@ -347,14 +347,14 @@ export function EditEmployeeModal({ isOpen, onClose, employee, onSuccess }) {
         {/* Manager & WFH Section */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-xs md:text-sm font-medium text-slate-700 mb-1">
               Reporting Manager
             </label>
             <select
               name="managerId"
               value={formData.managerId}
               onChange={handleChange}
-              className="w-full px-3 md:px-4 py-2 md:py-2.5 text-xs md:text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 md:px-4 py-2 md:py-2.5 text-xs md:text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900/10"
             >
               <option value="">Select Manager</option>
               {managers.map((mgr) => (
@@ -366,7 +366,7 @@ export function EditEmployeeModal({ isOpen, onClose, employee, onSuccess }) {
           </div>
 
           <div className="space-y-2">
-            <label className="block text-xs md:text-sm font-medium text-gray-700">
+            <label className="block text-xs md:text-sm font-medium text-slate-700">
               WFH Settings
             </label>
             <div className="flex items-center gap-4 py-2">
@@ -376,9 +376,9 @@ export function EditEmployeeModal({ isOpen, onClose, employee, onSuccess }) {
                   name="wfhAllowed"
                   checked={formData.wfhAllowed}
                   onChange={handleChange}
-                  className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-gray-300"
+                  className="w-4 h-4 rounded text-blue-600 focus:ring-slate-900/10 border-slate-300"
                 />
-                <span className="text-xs md:text-sm text-gray-700 font-medium">
+                <span className="text-xs md:text-sm text-slate-700 font-medium">
                   Allow WFH
                 </span>
               </label>
@@ -389,7 +389,7 @@ export function EditEmployeeModal({ isOpen, onClose, employee, onSuccess }) {
         {/* Status & WFH Days */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs md:text-sm font-medium text-gray-700 mb-3">
+            <label className="block text-xs md:text-sm font-medium text-slate-700 mb-3">
               Status
             </label>
             <div className="flex items-center gap-4">
@@ -404,7 +404,7 @@ export function EditEmployeeModal({ isOpen, onClose, employee, onSuccess }) {
                   }
                   className="w-4 h-4"
                 />
-                <span className="text-xs md:text-sm text-gray-700">Active</span>
+                <span className="text-xs md:text-sm text-slate-700">Active</span>
               </label>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
@@ -417,7 +417,7 @@ export function EditEmployeeModal({ isOpen, onClose, employee, onSuccess }) {
                   }
                   className="w-4 h-4"
                 />
-                <span className="text-xs md:text-sm text-gray-700">
+                <span className="text-xs md:text-sm text-slate-700">
                   Inactive
                 </span>
               </label>
@@ -426,7 +426,7 @@ export function EditEmployeeModal({ isOpen, onClose, employee, onSuccess }) {
 
           {formData.wfhAllowed && (
             <div>
-              <label className="block text-xs md:text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-xs md:text-sm font-medium text-slate-700 mb-1">
                 WFH Days Used (of 5)
               </label>
               <Input
@@ -441,17 +441,17 @@ export function EditEmployeeModal({ isOpen, onClose, employee, onSuccess }) {
                 max="5"
                 placeholder="0"
               />
-              <p className="text-xs text-gray-400 mt-1">Remaining: {5 - (formData.usedWFHDays || 0)} days</p>
+              <p className="text-xs text-slate-400 mt-1">Remaining: {5 - (formData.usedWFHDays || 0)} days</p>
             </div>
           )}
         </div>
 
         {/* Action Buttons */}
-        <div className="flex flex-col-reverse sm:flex-row gap-3 pt-4 md:pt-5 border-t border-gray-200">
+        <div className="flex flex-col-reverse sm:flex-row gap-3 pt-4 md:pt-5 border-t border-slate-200">
           <button
             type="button"
             onClick={handleClose}
-            className="flex-1 px-4 py-2 md:py-2.5 text-xs md:text-sm border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+            className="flex-1 px-4 py-2 md:py-2.5 text-xs md:text-sm border border-slate-300 text-slate-700 rounded-xl hover:bg-slate-50 transition-colors"
           >
             Cancel
           </button>
