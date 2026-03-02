@@ -2,6 +2,7 @@ import Attendance from "#models/attendance";
 import User from "#models/user";
 import Notification from "#models/notification";
 import { sendSuccess, sendError } from "#utils/api_response_fix";
+import { checkHolidayForDate } from "./holidaycontroller.js";
 
 /**
  * Helper: Calculate working duration from checkIn and checkOut times
@@ -45,6 +46,12 @@ const checkIn = async (req, res) => {
     const userId = req.user.id;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+
+    // Check if today is a holiday or blocked weekend
+    const holidayCheck = await checkHolidayForDate(today);
+    if (holidayCheck.isBlocked) {
+      return sendError(res, holidayCheck.message, "Bad Request", 400);
+    }
 
     const existingAttendance = await Attendance.findOne({
       userId,

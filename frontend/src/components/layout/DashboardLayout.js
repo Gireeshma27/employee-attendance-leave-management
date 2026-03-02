@@ -15,6 +15,7 @@ import {
   Search,
   Bell,
   Timer,
+  CalendarDays,
 } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
@@ -114,6 +115,7 @@ const DashboardLayout = ({ children, role = "employee" }) => {
       },
       { href: `/employee/attendance`, label: "Attendance", icon: Clock },
       { href: `/employee/leave`, label: "Leaves", icon: Calendar },
+      { href: `/employee/holidays`, label: "Holidays", icon: CalendarDays },
       { href: `/employee/profile`, label: "Profile", icon: Users },
     ];
 
@@ -121,6 +123,7 @@ const DashboardLayout = ({ children, role = "employee" }) => {
       { href: `/manager/dashboard`, label: "Dashboard", icon: LayoutDashboard },
       { href: `/manager/team-attendance`, label: "Attendance", icon: Clock },
       { href: `/manager/leave-approvals`, label: "Leaves", icon: Calendar },
+      { href: `/manager/holidays`, label: "Holidays", icon: CalendarDays },
     ];
 
     const adminLinks = [
@@ -129,6 +132,7 @@ const DashboardLayout = ({ children, role = "employee" }) => {
       { href: `/admin/timings`, label: "Timings", icon: Timer },
       { href: `/admin/attendance`, label: "Attendance", icon: Clock },
       { href: `/admin/leaves`, label: "Leaves", icon: Calendar },
+      { href: `/admin/holidays`, label: "Holidays", icon: CalendarDays },
       // GEOFENCING TEMPORARILY DISABLED
       // { href: `/admin/geofencing`, label: "Geofencing", icon: MapPin },
       { href: `/admin/reports`, label: "Reports", icon: BarChart3 },

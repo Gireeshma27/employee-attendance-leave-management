@@ -39,11 +39,24 @@ export default function LeavePage() {
     reason: "",
   });
   const [formError, setFormError] = useState("");
+  const [holidays, setHolidays] = useState([]);
   const toast = useToast();
 
   useEffect(() => {
     fetchLeaveData(pagination.currentPage);
+    fetchHolidays();
   }, [pagination.currentPage]);
+
+  const fetchHolidays = async () => {
+    try {
+      const response = await apiService.holiday.getAll();
+      if (response.success) {
+        setHolidays(response.data || []);
+      }
+    } catch (err) {
+      console.error("Error fetching holidays:", err);
+    }
+  };
 
   const fetchLeaveData = async (page = 1) => {
     try {
@@ -113,6 +126,45 @@ export default function LeavePage() {
     if (numberOfDays <= 0) {
       setFormError("To date must be after or equal to from date");
       return;
+    }
+
+    // Check if any selected date falls on a holiday (client-side pre-validation)
+    const FIXED_HOLIDAYS = [
+      { month: 1, day: 26, title: "Republic Day" },
+      { month: 8, day: 15, title: "Independence Day" },
+      { month: 10, day: 2, title: "Gandhi Jayanti" },
+    ];
+    if (holidays.length > 0 || FIXED_HOLIDAYS.length > 0) {
+      const from = new Date(formData.fromDate);
+      const to = new Date(formData.toDate);
+      const currentDate = new Date(from);
+      while (currentDate <= to) {
+        currentDate.setHours(0, 0, 0, 0);
+
+        // Check fixed public holidays
+        const fixedMatch = FIXED_HOLIDAYS.find(
+          (h) => h.month === currentDate.getMonth() + 1 && h.day === currentDate.getDate()
+        );
+        if (fixedMatch) {
+          setFormError("Selected date overlaps with company holiday");
+          return;
+        }
+
+        // Check festival/company holidays (date-range based)
+        const matchingHoliday = holidays.filter((h) => h.source === "DB").find((h) => {
+          const start = new Date(h.startDate);
+          const end = new Date(h.endDate);
+          start.setHours(0, 0, 0, 0);
+          end.setHours(0, 0, 0, 0);
+          return currentDate >= start && currentDate <= end;
+        });
+        if (matchingHoliday) {
+          setFormError("Selected date overlaps with company holiday");
+          return;
+        }
+
+        currentDate.setDate(currentDate.getDate() + 1);
+      }
     }
 
     try {
