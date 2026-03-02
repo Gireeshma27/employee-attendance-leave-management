@@ -150,6 +150,17 @@ const LoginPage = () => {
                 </div>
               </div>
             )}
+            {/* Logo in Card */}
+            <div className="text-center mb-8">
+              <div className="w-20 h-20 bg-white rounded-3xl mx-auto flex items-center justify-center shadow-xl shadow-blue-600/10 rotate-12 overflow-hidden ring-4 ring-white/50 border border-slate-100">
+                <img
+                  src="/logo.png"
+                  alt="AttendEase Logo"
+                  className="w-full h-full object-cover -rotate-12 scale-110"
+                />
+              </div>
+            </div>
+
             {/* Email Field */}
             <div>
               <label
@@ -158,15 +169,7 @@ const LoginPage = () => {
               >
                 Email Address
               </label>
-              <div className="text-center mb-10">
-                <div className="w-20 h-20 bg-white rounded-3xl mx-auto mb-6 flex items-center justify-center shadow-2xl shadow-blue-600/20 rotate-12 overflow-hidden ring-4 ring-white/10">
-                  <img
-                    src="/logo.png"
-                    alt="AttendEase Logo"
-                    className="w-full h-full object-cover -rotate-12 scale-110"
-                  />
-                </div>
-              </div>
+
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                   <Mail className="h-5 w-5 text-slate-400" />
