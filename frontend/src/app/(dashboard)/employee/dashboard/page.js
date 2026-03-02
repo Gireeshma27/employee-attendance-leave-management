@@ -10,6 +10,7 @@ import {
   AlertCircle,
   TrendingUp,
   ChevronRight,
+  CalendarDays,
 } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
@@ -28,6 +29,7 @@ const EmployeeDashboard = () => {
     total: 0,
   });
   const [error, setError] = useState(null);
+  const [upcomingHolidays, setUpcomingHolidays] = useState([]);
   const router = useRouter();
 
   const fetchDashboardData = useCallback(async () => {
@@ -35,13 +37,38 @@ const EmployeeDashboard = () => {
       setLoading(true);
       setError(null);
 
-      // Fetch profile and unified dashboard statistics
-      const [profileRes, dashboardRes] = await Promise.all([
+      // Fetch profile, dashboard statistics, and holidays in parallel
+      const [profileRes, dashboardRes, holidayRes] = await Promise.all([
         apiService.user.getProfile(),
         apiService.dashboard.getEmployeeStats(),
+        apiService.holiday.getAll(),
       ]);
 
       if (profileRes.success) setUser(profileRes.data);
+
+      // Derive upcoming holidays (next 3, from today onward)
+      if (holidayRes.success) {
+        const FIXED = [
+          { title: "Republic Day", month: 1, day: 26 },
+          { title: "Independence Day", month: 8, day: 15 },
+          { title: "Gandhi Jayanti", month: 10, day: 2 },
+        ];
+        const year = new Date().getFullYear();
+        const fixedList = FIXED.map(({ title, month, day }) => ({
+          title,
+          startDate: new Date(year, month - 1, day).toISOString(),
+          endDate: new Date(year, month - 1, day).toISOString(),
+          type: "PUBLIC_FIXED",
+        }));
+        const dbList = (holidayRes.data || []).filter((h) => h.source === "DB");
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const upcoming = [...fixedList, ...dbList]
+          .filter((h) => new Date(h.endDate) >= today)
+          .sort((a, b) => new Date(a.startDate) - new Date(b.startDate))
+          .slice(0, 3);
+        setUpcomingHolidays(upcoming);
+      }
 
       if (dashboardRes.success) {
         const { todayStatus, stats, recentAttendance } = dashboardRes.data;
@@ -144,6 +171,53 @@ const EmployeeDashboard = () => {
             color="red"
           />
         </div>
+
+        {/* Upcoming Holidays Widget */}
+        <Card className="overflow-hidden">
+          <CardHeader className="bg-slate-50/50 border-b border-slate-100 flex flex-row items-center justify-between">
+            <CardTitle className="text-base font-semibold text-slate-800 flex items-center gap-2">
+              <CalendarDays size={16} className="text-amber-500" />
+              Upcoming Holidays
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-4">
+            {upcomingHolidays.length === 0 ? (
+              <p className="text-sm text-slate-400 text-center py-2">No upcoming holidays</p>
+            ) : (
+              <div className="space-y-2">
+                {upcomingHolidays.map((h, i) => {
+                  const today = new Date();
+                  today.setHours(0, 0, 0, 0);
+                  const start = new Date(h.startDate);
+                  const end = new Date(h.endDate);
+                  start.setHours(0, 0, 0, 0);
+                  end.setHours(0, 0, 0, 0);
+                  const isToday = today >= start && today <= end;
+                  const typeColors = {
+                    PUBLIC_FIXED: "bg-green-50 text-green-700",
+                    FESTIVAL: "bg-amber-50 text-amber-700",
+                    COMPANY: "bg-blue-50 text-blue-700",
+                  };
+                  const colorClass = typeColors[h.type] || "bg-slate-50 text-slate-700";
+                  return (
+                    <div key={i} className={`flex items-center justify-between rounded-xl px-3 py-2 ${colorClass}`}>
+                      <div>
+                        {isToday ? (
+                          <p className="font-semibold text-sm">🎉 Today is {h.title}</p>
+                        ) : (
+                          <p className="font-medium text-sm">{h.title}</p>
+                        )}
+                        <p className="text-xs opacity-70 mt-0.5">
+                          {start.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Recent Attendance */}
         <Card className="overflow-hidden">

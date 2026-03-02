@@ -2,6 +2,8 @@ import Leave from "#models/leave";
 import User from "#models/user";
 import Notification from "#models/notification";
 import { sendSuccess, sendError } from "#utils/api_response_fix";
+import Holiday from "#models/holiday";
+import { checkFixedHolidayForDate } from "#utils/fixedPublicHolidays";
 
 const applyLeave = async (req, res) => {
   try {
@@ -27,6 +29,49 @@ const applyLeave = async (req, res) => {
         "Bad Request",
         400,
       );
+    }
+
+    // Check if any of the leave dates fall on a fixed or festival holiday
+    // Fetch DB holidays that overlap the leave date range in a single query
+    const overlappingDbHolidays = await Holiday.find({
+      startDate: { $lte: to },
+      endDate: { $gte: from },
+    }).lean();
+
+    const currentDate = new Date(from);
+    while (currentDate <= to) {
+      const checkDate = new Date(currentDate);
+      checkDate.setHours(0, 0, 0, 0);
+
+      // 1. Fixed public holiday check
+      const fixedCheck = checkFixedHolidayForDate(checkDate);
+      if (fixedCheck.isHoliday) {
+        return sendError(
+          res,
+          "Selected date overlaps with company holiday",
+          "Bad Request",
+          400,
+        );
+      }
+
+      // 2. Festival / Company holiday range check
+      const dbHoliday = overlappingDbHolidays.find((h) => {
+        const start = new Date(h.startDate);
+        start.setHours(0, 0, 0, 0);
+        const end = new Date(h.endDate);
+        end.setHours(0, 0, 0, 0);
+        return checkDate >= start && checkDate <= end;
+      });
+      if (dbHoliday) {
+        return sendError(
+          res,
+          "Selected date overlaps with company holiday",
+          "Bad Request",
+          400,
+        );
+      }
+
+      currentDate.setDate(currentDate.getDate() + 1);
     }
 
     const leave = await Leave.create({

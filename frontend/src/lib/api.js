@@ -506,6 +506,40 @@ class ApiService {
 
     delete: (id) => this.request(`/timings/${id}`, { method: "DELETE" }),
   };
+
+  /**
+   * Holiday Endpoints
+   */
+  holiday = {
+    getAll: () => this.request("/holidays", { method: "GET" }),
+
+    create: (data) =>
+      this.request("/holidays", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+
+    update: (id, data) =>
+      this.request(`/holidays/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+      }),
+
+    delete: (id) => this.request(`/holidays/${id}`, { method: "DELETE" }),
+  };
+
+  /**
+   * Weekend Config Endpoints
+   */
+  weekendConfig = {
+    get: () => this.request("/weekend-config", { method: "GET" }),
+
+    update: (data) =>
+      this.request("/weekend-config", {
+        method: "PUT",
+        body: JSON.stringify(data),
+      }),
+  };
 }
 
 export const apiService = new ApiService();

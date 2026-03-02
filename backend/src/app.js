@@ -14,6 +14,8 @@ import userRoutes from "./routes/userroutes.js";
 import dashboardRoutes from "./routes/dashboardroutes.js";
 import notificationRoutes from "./routes/notificationroutes.js";
 import timingRoutes from "./routes/timingroutes.js";
+import holidayRoutes from "./routes/holidayroutes.js";
+import weekendConfigRoutes from "./routes/weekendconfigroutes.js";
 // We'll import other routes as we refactor them
 
 const app = express();
@@ -46,6 +48,8 @@ app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/dashboard", dashboardRoutes);
 app.use("/api/v1/notifications", notificationRoutes);
 app.use("/api/v1/timings", timingRoutes);
+app.use("/api/v1/holidays", holidayRoutes);
+app.use("/api/v1/weekend-config", weekendConfigRoutes);
 
 // 404 Handler
 app.use((req, res) => {
