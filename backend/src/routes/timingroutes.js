@@ -7,6 +7,7 @@ import {
   deleteTiming,
   getTimingByDepartment,
   getLocations,
+  getTimingByLocationBranch,
 } from "../controllers/timingcontroller.js";
 import protect from "../middlewares/protectmiddleware.js";
 import isAdmin from "../middlewares/isadminmiddleware.js";
@@ -39,12 +40,14 @@ router.use(protect);
 // Admin-only routes
 router.get("/", isAdmin, getAllTimings);
 router.get("/locations", isAdmin, getLocations);
+
+// Routes accessible by all authenticated users (place before /:id)
+router.get("/by-location-branch", getTimingByLocationBranch);
+router.get("/department/:department", getTimingByDepartment);
+
 router.get("/:id", isAdmin, getTimingById);
 router.post("/", isAdmin, validateJoi(createTimingSchema), createTiming);
 router.patch("/:id", isAdmin, validateJoi(updateTimingSchema), updateTiming);
 router.delete("/:id", isAdmin, deleteTiming);
-
-// Route accessible by all authenticated users
-router.get("/department/:department", getTimingByDepartment);
 
 export default router;

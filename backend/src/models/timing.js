@@ -20,8 +20,9 @@ const timingSchema = new mongoose.Schema(
     },
     teamName: {
       type: String,
-      required: true,
+      required: false,
       trim: true,
+      default: "",
     },
     loginTime: {
       type: String,
@@ -57,6 +58,7 @@ const timingSchema = new mongoose.Schema(
 // Indexes for efficient querying
 timingSchema.index({ location: 1 });
 timingSchema.index({ location: 1, branch: 1 });
+timingSchema.index({ location: 1, branch: 1, isActive: 1 });
 timingSchema.index({ departments: 1 });
 timingSchema.index({ isActive: 1 });
 

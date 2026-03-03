@@ -16,8 +16,7 @@ export const createTimingSchema = Joi.object({
     "string.empty": "Branch name is required",
     "string.max": "Branch name must be less than 100 characters",
   }),
-  teamName: Joi.string().trim().min(1).max(100).required().messages({
-    "string.empty": "Team name is required",
+  teamName: Joi.string().trim().max(100).optional().allow("").messages({
     "string.max": "Team name must be less than 100 characters",
   }),
   loginTime: Joi.string()
@@ -55,8 +54,7 @@ export const updateTimingSchema = Joi.object({
     "string.empty": "Branch name cannot be empty",
     "string.max": "Branch name must be less than 100 characters",
   }),
-  teamName: Joi.string().trim().min(1).max(100).messages({
-    "string.empty": "Team name cannot be empty",
+  teamName: Joi.string().trim().max(100).optional().allow("").messages({
     "string.max": "Team name must be less than 100 characters",
   }),
   loginTime: Joi.string()

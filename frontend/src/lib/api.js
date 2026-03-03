@@ -492,6 +492,11 @@ class ApiService {
 
     getLocations: () => this.request("/timings/locations", { method: "GET" }),
 
+    getByLocationBranch: (location, branch) => {
+      const params = new URLSearchParams({ location, branch });
+      return this.request(`/timings/by-location-branch?${params.toString()}`, { method: "GET" });
+    },
+
     create: (data) =>
       this.request("/timings", {
         method: "POST",

@@ -1,6 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
+
+const formatTime = (time) => {
+  if (!time) return "";
+  const [hours, minutes] = time.split(":").map(Number);
+  const date = new Date();
+  date.setHours(hours, minutes, 0, 0);
+  return date.toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit", hour12: true });
+};
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -14,6 +22,9 @@ import {
   Users,
   Briefcase,
   Plus,
+  Clock,
+  MapPin,
+  Info,
 } from "lucide-react";
 import apiService from "@/lib/api";
 
@@ -25,6 +36,11 @@ export function AddEmployeeModal({ isOpen, onClose, onSuccess }) {
     department: "",
     password: "",
     confirmPassword: "",
+    location: "",
+    branch: "",
+    timingId: "",
+    loginTime: "",
+    logoutTime: "",
     officeId: "",
     managerId: "",
     wfhAllowed: false,
@@ -44,8 +60,12 @@ export function AddEmployeeModal({ isOpen, onClose, onSuccess }) {
   const [showCustomDepartment, setShowCustomDepartment] = useState(false);
   const [customDepartment, setCustomDepartment] = useState("");
 
+  const LOCATIONS = ["Bangalore", "Mysore", "Mangalore"];
+
   const [offices, setOffices] = useState([]);
   const [managers, setManagers] = useState([]);
+  const [timingLoading, setTimingLoading] = useState(false);
+  const [timingNotFound, setTimingNotFound] = useState(false);
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState(null);
@@ -59,6 +79,7 @@ export function AddEmployeeModal({ isOpen, onClose, onSuccess }) {
       setShowSuccess(false);
       setShowCustomDepartment(false);
       setCustomDepartment("");
+      setTimingNotFound(false);
     }
   }, [isOpen]);
 
@@ -71,7 +92,6 @@ export function AddEmployeeModal({ isOpen, onClose, onSuccess }) {
       ]);
       setOffices(officesRes.data || []);
       setManagers(managersRes.data?.records || []);
-      // Use fetched departments or fall back to defaults
       if (departmentsRes.data && departmentsRes.data.length > 0) {
         setDepartments(departmentsRes.data);
       }
@@ -79,6 +99,50 @@ export function AddEmployeeModal({ isOpen, onClose, onSuccess }) {
       console.error("Error fetching dependent data:", err);
     }
   };
+
+  // Auto-fetch timing when location + branch are both filled
+  useEffect(() => {
+    const loc = formData.location;
+    const br = formData.branch?.trim();
+    if (!loc || !br) {
+      setFormData((prev) => ({ ...prev, timingId: "", loginTime: "", logoutTime: "" }));
+      setTimingNotFound(false);
+      return;
+    }
+
+    let cancelled = false;
+    const fetchTiming = async () => {
+      setTimingLoading(true);
+      setTimingNotFound(false);
+      try {
+        const res = await apiService.timing.getByLocationBranch(loc, br);
+        if (cancelled) return;
+        if (res.data) {
+          setFormData((prev) => ({
+            ...prev,
+            timingId: res.data._id,
+            loginTime: res.data.loginTime,
+            logoutTime: res.data.logoutTime,
+          }));
+          setTimingNotFound(false);
+        } else {
+          setFormData((prev) => ({ ...prev, timingId: "", loginTime: "", logoutTime: "" }));
+          setTimingNotFound(true);
+        }
+      } catch {
+        if (!cancelled) setTimingNotFound(true);
+      } finally {
+        if (!cancelled) setTimingLoading(false);
+      }
+    };
+
+    // Small debounce for branch typing
+    const timer = setTimeout(fetchTiming, 400);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [formData.location, formData.branch]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -122,6 +186,10 @@ export function AddEmployeeModal({ isOpen, onClose, onSuccess }) {
       newErrors.email = "Email is required";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = "Invalid email format";
+    }
+
+    if (!formData.location) {
+      newErrors.location = "Office location is required";
     }
 
     if (!formData.department) {
@@ -172,6 +240,11 @@ export function AddEmployeeModal({ isOpen, onClose, onSuccess }) {
         department: "",
         password: "",
         confirmPassword: "",
+        location: "",
+        branch: "",
+        timingId: "",
+        loginTime: "",
+        logoutTime: "",
         officeId: "",
         managerId: "",
         wfhAllowed: false,
@@ -212,6 +285,11 @@ export function AddEmployeeModal({ isOpen, onClose, onSuccess }) {
       department: "",
       password: "",
       confirmPassword: "",
+      location: "",
+      branch: "",
+      timingId: "",
+      loginTime: "",
+      logoutTime: "",
       officeId: "",
       managerId: "",
       wfhAllowed: false,
@@ -223,6 +301,7 @@ export function AddEmployeeModal({ isOpen, onClose, onSuccess }) {
     setShowSuccess(false);
     setShowCustomDepartment(false);
     setCustomDepartment("");
+    setTimingNotFound(false);
     onClose();
   };
 
@@ -415,27 +494,90 @@ export function AddEmployeeModal({ isOpen, onClose, onSuccess }) {
             </div>
           </div>
 
-          {/* Office & Manager */}
+          {/* Location & Branch */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">
-                Office Location
+                Office Location <span className="text-red-500">*</span>
               </label>
               <select
-                name="officeId"
-                value={formData.officeId}
+                name="location"
+                value={formData.location}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900/10 text-sm"
+                className={`w-full px-3 py-2 border rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900/10 text-sm ${
+                  errors.location ? "border-red-500" : "border-slate-300"
+                }`}
               >
-                <option value="">Select Location (Optional)</option>
-                {offices.map((off) => (
-                  <option key={off._id} value={off._id}>
-                    {off.name}
+                <option value="">Select Location</option>
+                {LOCATIONS.map((loc) => (
+                  <option key={loc} value={loc}>
+                    {loc}
                   </option>
                 ))}
               </select>
+              {errors.location && (
+                <p className="text-sm text-red-600 mt-1">{errors.location}</p>
+              )}
             </div>
 
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">
+                Branch
+              </label>
+              <Input
+                type="text"
+                name="branch"
+                value={formData.branch}
+                onChange={handleChange}
+                placeholder="e.g., Main Office, IT Park"
+                disabled={!formData.location}
+              />
+            </div>
+          </div>
+
+          {/* Timing auto-fetch result */}
+          {formData.location && formData.branch?.trim() && (
+            <div>
+              {timingLoading ? (
+                <div className="flex items-center gap-2 p-3 bg-slate-50 rounded-xl border border-slate-200">
+                  <span className="w-4 h-4 border-2 border-slate-400 border-t-transparent rounded-full animate-spin"></span>
+                  <p className="text-sm text-slate-500">Fetching timing for this branch...</p>
+                </div>
+              ) : timingNotFound ? (
+                <div className="flex items-start gap-2 p-3 bg-yellow-50 border border-yellow-200 rounded-xl">
+                  <Info size={16} className="text-yellow-600 flex-shrink-0 mt-0.5" />
+                  <p className="text-sm text-yellow-700">
+                    No timing configured for this branch. Please configure it in the{" "}
+                    <span className="font-semibold">Timings</span> page first.
+                  </p>
+                </div>
+              ) : formData.loginTime ? (
+                <div className="grid grid-cols-2 gap-3 p-3 bg-blue-50 border border-blue-100 rounded-xl">
+                  <div>
+                    <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">
+                      Login Time
+                    </label>
+                    <div className="flex items-center gap-1.5">
+                      <Clock size={14} className="text-green-500" />
+                      <span className="font-mono text-sm font-semibold text-slate-700">{formatTime(formData.loginTime)}</span>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">
+                      Logout Time
+                    </label>
+                    <div className="flex items-center gap-1.5">
+                      <Clock size={14} className="text-red-400" />
+                      <span className="font-mono text-sm font-semibold text-slate-700">{formatTime(formData.logoutTime)}</span>
+                    </div>
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          )}
+
+          {/* Reporting Manager */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">
                 Reporting Manager

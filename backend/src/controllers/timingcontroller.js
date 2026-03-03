@@ -54,26 +54,34 @@ const createTiming = async (req, res) => {
   try {
     const { location, branch, teamName, loginTime, logoutTime, departments } = req.body;
 
-    // Check for duplicate timing (same location, branch, teamName)
+    // Normalise branch for case-insensitive duplicate detection
+    const normBranch = branch?.trim().toLowerCase();
+
+    // Check for duplicate timing (same location + branch + department overlap)
     const existingTiming = await Timing.findOne({
       location,
-      branch,
-      teamName,
+      $expr: { $eq: [{ $toLower: { $trim: { input: "$branch" } } }, normBranch] },
     });
 
     if (existingTiming) {
-      return sendError(
-        res,
-        "A timing with this location, branch, and team name already exists",
-        "Duplicate Entry",
-        400
+      // Check if any selected department already exists in that timing
+      const overlap = departments?.filter((d) =>
+        existingTiming.departments.includes(d)
       );
+      if (overlap && overlap.length > 0) {
+        return sendError(
+          res,
+          `A timing for location '${location}' and branch '${branch}' already has departments: ${overlap.join(", ")}`,
+          "Duplicate Entry",
+          400
+        );
+      }
     }
 
     const timing = new Timing({
       location,
-      branch,
-      teamName,
+      branch: branch?.trim(),
+      teamName: teamName?.trim() || "",
       loginTime,
       logoutTime,
       departments,
@@ -103,22 +111,30 @@ const updateTiming = async (req, res) => {
       return sendError(res, "Timing not found", "Not Found", 404);
     }
 
-    // If updating location, branch, or teamName, check for duplicates
-    if (updateData.location || updateData.branch || updateData.teamName) {
+    // If updating location or branch, check for department overlap
+    if (updateData.location || updateData.branch || updateData.departments) {
+      const targetLocation = updateData.location || timing.location;
+      const targetBranch = (updateData.branch || timing.branch)?.trim().toLowerCase();
+      const targetDepts = updateData.departments || timing.departments;
+
       const checkDuplicate = await Timing.findOne({
         _id: { $ne: id },
-        location: updateData.location || timing.location,
-        branch: updateData.branch || timing.branch,
-        teamName: updateData.teamName || timing.teamName,
+        location: targetLocation,
+        $expr: { $eq: [{ $toLower: { $trim: { input: "$branch" } } }, targetBranch] },
       });
 
       if (checkDuplicate) {
-        return sendError(
-          res,
-          "A timing with this location, branch, and team name already exists",
-          "Duplicate Entry",
-          400
+        const overlap = targetDepts.filter((d) =>
+          checkDuplicate.departments.includes(d)
         );
+        if (overlap.length > 0) {
+          return sendError(
+            res,
+            `Another timing at the same location+branch already has departments: ${overlap.join(", ")}`,
+            "Duplicate Entry",
+            400
+          );
+        }
       }
     }
 
@@ -181,16 +197,47 @@ const getTimingByDepartment = async (req, res) => {
 };
 
 /**
- * @desc    Get all unique locations
+ * @desc    Get all unique locations from existing timings
  * @route   GET /api/v1/timings/locations
  * @access  Private (Admin)
  */
 const getLocations = async (req, res) => {
   try {
-    const locations = ["Mysore", "Bangalore", "Mangalore"];
+    const locations = await Timing.distinct("location");
     return sendSuccess(res, "Locations retrieved successfully", locations);
   } catch (error) {
     return sendError(res, "Failed to retrieve locations", error.message);
+  }
+};
+
+/**
+ * @desc    Get timing by location + branch (case-insensitive, trimmed)
+ * @route   GET /api/v1/timings/by-location-branch?location=x&branch=y
+ * @access  Private
+ */
+const getTimingByLocationBranch = async (req, res) => {
+  try {
+    const { location, branch } = req.query;
+
+    if (!location || !branch) {
+      return sendError(res, "location and branch query params are required", "Bad Request", 400);
+    }
+
+    const normBranch = branch.trim().toLowerCase();
+
+    const timing = await Timing.findOne({
+      location,
+      $expr: { $eq: [{ $toLower: { $trim: { input: "$branch" } } }, normBranch] },
+      isActive: true,
+    });
+
+    if (!timing) {
+      return sendSuccess(res, "No timing configured for this location and branch", null);
+    }
+
+    return sendSuccess(res, "Timing retrieved successfully", timing);
+  } catch (error) {
+    return sendError(res, "Failed to retrieve timing", error.message);
   }
 };
 
@@ -202,4 +249,5 @@ export {
   deleteTiming,
   getTimingByDepartment,
   getLocations,
+  getTimingByLocationBranch,
 };
