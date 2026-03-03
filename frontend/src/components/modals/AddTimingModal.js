@@ -17,7 +17,6 @@ export function AddTimingModal({ isOpen, onClose, onSuccess, editingTiming = nul
   const [formData, setFormData] = useState({
     location: "",
     branch: "",
-    teamName: "",
     loginTime: "",
     logoutTime: "",
     departments: [],
@@ -29,8 +28,8 @@ export function AddTimingModal({ isOpen, onClose, onSuccess, editingTiming = nul
   const [showSuccess, setShowSuccess] = useState(false);
   const [createdTimingName, setCreatedTimingName] = useState("");
 
-  // Track which departments are already assigned to other timings
-  const [assignedDepartments, setAssignedDepartments] = useState([]);
+  // Track existing timings to check location+branch conflicts per-department
+  const [existingTimings, setExistingTimings] = useState([]);
 
   useEffect(() => {
     if (isOpen) {
@@ -42,7 +41,6 @@ export function AddTimingModal({ isOpen, onClose, onSuccess, editingTiming = nul
         setFormData({
           location: editingTiming.location || "",
           branch: editingTiming.branch || "",
-          teamName: editingTiming.teamName || "",
           loginTime: editingTiming.loginTime || "",
           logoutTime: editingTiming.logoutTime || "",
           departments: editingTiming.departments || [],
@@ -51,7 +49,6 @@ export function AddTimingModal({ isOpen, onClose, onSuccess, editingTiming = nul
         setFormData({
           location: "",
           branch: "",
-          teamName: "",
           loginTime: "",
           logoutTime: "",
           departments: [],
@@ -66,18 +63,25 @@ export function AddTimingModal({ isOpen, onClose, onSuccess, editingTiming = nul
     try {
       const response = await apiService.timing.getAll({ isActive: true });
       if (response.success && response.data) {
-        // Get all departments already assigned, excluding current timing if editing
-        const assigned = new Set();
-        response.data.forEach((timing) => {
-          if (!editingTiming || timing._id !== editingTiming._id) {
-            timing.departments.forEach((dept) => assigned.add(dept));
-          }
-        });
-        setAssignedDepartments([...assigned]);
+        setExistingTimings(response.data);
       }
     } catch (err) {
       console.error("Error fetching existing timings:", err);
     }
+  };
+
+  // Returns true if `dept` is already used by another timing with the same location + branch
+  const isConflictingDept = (dept) => {
+    if (!formData.location || !formData.branch?.trim()) return false;
+    const normBranch = formData.branch.trim().toLowerCase();
+    return existingTimings.some((timing) => {
+      if (editingTiming && timing._id === editingTiming._id) return false;
+      return (
+        timing.location === formData.location &&
+        timing.branch?.trim().toLowerCase() === normBranch &&
+        timing.departments.includes(dept)
+      );
+    });
   };
 
   const handleChange = (e) => {
@@ -117,13 +121,13 @@ export function AddTimingModal({ isOpen, onClose, onSuccess, editingTiming = nul
 
   // Check if a department should be disabled
   const isDepartmentDisabled = (dept) => {
-    // If already selected, don't disable
+    // If already selected in this form, don't disable (allow deselect)
     if (formData.departments.includes(dept)) return false;
 
-    // If department is assigned to another timing, disable
-    if (assignedDepartments.includes(dept)) return true;
+    // Disable if already assigned to another timing with same location + branch
+    if (isConflictingDept(dept)) return true;
 
-    // If we've reached max selections, disable remaining
+    // Disable if max 5 departments already selected in current form
     if (formData.departments.length >= (ALL_DEPARTMENTS.length - MAX_DEPARTMENT_GROUPS)) {
       return true;
     }
@@ -142,10 +146,6 @@ export function AddTimingModal({ isOpen, onClose, onSuccess, editingTiming = nul
       newErrors.branch = "Branch is required";
     }
 
-    if (!formData.teamName.trim()) {
-      newErrors.teamName = "Team name is required";
-    }
-
     if (!formData.loginTime) {
       newErrors.loginTime = "Login time is required";
     }
@@ -156,6 +156,14 @@ export function AddTimingModal({ isOpen, onClose, onSuccess, editingTiming = nul
 
     if (formData.departments.length === 0) {
       newErrors.departments = "At least one department must be selected";
+    }
+
+    // Frontend duplicate check: prevent submitting a dept already used at same location+branch
+    if (formData.location && formData.branch?.trim()) {
+      const conflicting = formData.departments.filter((d) => isConflictingDept(d));
+      if (conflicting.length > 0) {
+        newErrors.departments = `These departments are already assigned to ${formData.location} / ${formData.branch}: ${conflicting.join(", ")}`;
+      }
     }
 
     // Validate time format (HH:mm)
@@ -185,10 +193,10 @@ export function AddTimingModal({ isOpen, onClose, onSuccess, editingTiming = nul
     try {
       if (isEditMode) {
         await apiService.timing.update(editingTiming._id, formData);
-        setCreatedTimingName(`${formData.teamName} (${formData.location})`);
+        setCreatedTimingName(`${formData.branch} — ${formData.location}`);
       } else {
         await apiService.timing.create(formData);
-        setCreatedTimingName(`${formData.teamName} (${formData.location})`);
+        setCreatedTimingName(`${formData.branch} — ${formData.location}`);
       }
 
       setShowSuccess(true);
@@ -197,7 +205,6 @@ export function AddTimingModal({ isOpen, onClose, onSuccess, editingTiming = nul
       setFormData({
         location: "",
         branch: "",
-        teamName: "",
         loginTime: "",
         logoutTime: "",
         departments: [],
@@ -221,7 +228,6 @@ export function AddTimingModal({ isOpen, onClose, onSuccess, editingTiming = nul
     setFormData({
       location: "",
       branch: "",
-      teamName: "",
       loginTime: "",
       logoutTime: "",
       departments: [],
@@ -295,41 +301,22 @@ export function AddTimingModal({ isOpen, onClose, onSuccess, editingTiming = nul
             )}
           </div>
 
-          {/* Branch & Team Name */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                Branch <span className="text-red-500">*</span>
-              </label>
-              <Input
-                type="text"
-                name="branch"
-                value={formData.branch}
-                onChange={handleChange}
-                placeholder="e.g., Main Office, IT Park"
-                className={errors.branch ? "border-red-500" : ""}
-              />
-              {errors.branch && (
-                <p className="text-sm text-red-600 mt-1">{errors.branch}</p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                Team Name <span className="text-red-500">*</span>
-              </label>
-              <Input
-                type="text"
-                name="teamName"
-                value={formData.teamName}
-                onChange={handleChange}
-                placeholder="e.g., Morning Shift, Day Team"
-                className={errors.teamName ? "border-red-500" : ""}
-              />
-              {errors.teamName && (
-                <p className="text-sm text-red-600 mt-1">{errors.teamName}</p>
-              )}
-            </div>
+          {/* Branch */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">
+              Branch <span className="text-red-500">*</span>
+            </label>
+            <Input
+              type="text"
+              name="branch"
+              value={formData.branch}
+              onChange={handleChange}
+              placeholder="e.g., Main Office, IT Park"
+              className={errors.branch ? "border-red-500" : ""}
+            />
+            {errors.branch && (
+              <p className="text-sm text-red-600 mt-1">{errors.branch}</p>
+            )}
           </div>
         </div>
 
@@ -389,9 +376,9 @@ export function AddTimingModal({ isOpen, onClose, onSuccess, editingTiming = nul
 
           <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
             <p className="text-xs text-slate-500 mb-3">
-              Select departments for this timing. Maximum {ALL_DEPARTMENTS.length - MAX_DEPARTMENT_GROUPS} departments can be assigned per timing group.
-              {assignedDepartments.length > 0 && (
-                <span className="text-yellow-600"> Grayed out departments are already assigned to other timings.</span>
+              Select departments for this timing. Maximum {ALL_DEPARTMENTS.length - MAX_DEPARTMENT_GROUPS} departments per group.
+              {formData.location && formData.branch?.trim() && (
+                <span className="text-yellow-600"> Grayed out departments are already assigned to <strong>{formData.location} / {formData.branch}</strong> in another timing.</span>
               )}
             </p>
 
@@ -399,7 +386,7 @@ export function AddTimingModal({ isOpen, onClose, onSuccess, editingTiming = nul
               {ALL_DEPARTMENTS.map((dept) => {
                 const isSelected = formData.departments.includes(dept);
                 const isDisabled = isDepartmentDisabled(dept);
-                const isAssigned = assignedDepartments.includes(dept);
+                const isConflicting = isConflictingDept(dept);
 
                 return (
                   <label
@@ -423,7 +410,7 @@ export function AddTimingModal({ isOpen, onClose, onSuccess, editingTiming = nul
                     />
                     <span className="text-sm font-medium truncate">
                       {dept}
-                      {isAssigned && !isSelected && " ✓"}
+                      {isConflicting && !isSelected && " ✗"}
                     </span>
                   </label>
                 );

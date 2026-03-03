@@ -10,6 +10,14 @@ import { useState, useEffect } from "react";
 import apiService from "@/lib/api";
 import { AddTimingModal } from "@/components/modals/AddTimingModal";
 
+const formatTime = (time) => {
+  if (!time) return "";
+  const [hours, minutes] = time.split(":").map(Number);
+  const date = new Date();
+  date.setHours(hours, minutes, 0, 0);
+  return date.toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit", hour12: true });
+};
+
 export default function TimingsPage() {
   const [timings, setTimings] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -83,7 +91,6 @@ export default function TimingsPage() {
     if (!searchTerm) return true;
     const search = searchTerm.toLowerCase();
     return (
-      timing.teamName?.toLowerCase().includes(search) ||
       timing.branch?.toLowerCase().includes(search) ||
       timing.location?.toLowerCase().includes(search) ||
       timing.departments?.some((d) => d.toLowerCase().includes(search))
@@ -245,7 +252,6 @@ export default function TimingsPage() {
                       <tr className="text-slate-500 font-semibold uppercase tracking-wider text-xs">
                         <th className="py-4 px-6 whitespace-nowrap">Location</th>
                         <th className="py-4 px-6 whitespace-nowrap">Branch</th>
-                        <th className="py-4 px-6 whitespace-nowrap">Team Name</th>
                         <th className="py-4 px-6 whitespace-nowrap">Login Time</th>
                         <th className="py-4 px-6 whitespace-nowrap">Logout Time</th>
                         <th className="py-4 px-6 whitespace-nowrap">Departments</th>
@@ -269,18 +275,15 @@ export default function TimingsPage() {
                           </td>
                           <td className="py-4 px-6 text-slate-600 whitespace-nowrap">{timing.branch}</td>
                           <td className="py-4 px-6 whitespace-nowrap">
-                            <span className="font-medium text-slate-900">{timing.teamName}</span>
-                          </td>
-                          <td className="py-4 px-6 whitespace-nowrap">
                             <div className="flex items-center gap-1.5">
                               <Clock size={14} className="text-green-500" />
-                              <span className="font-mono text-sm font-medium text-slate-700">{timing.loginTime}</span>
+                              <span className="font-mono text-sm font-medium text-slate-700">{formatTime(timing.loginTime)}</span>
                             </div>
                           </td>
                           <td className="py-4 px-6 whitespace-nowrap">
                             <div className="flex items-center gap-1.5">
                               <Clock size={14} className="text-red-500" />
-                              <span className="font-mono text-sm font-medium text-slate-700">{timing.logoutTime}</span>
+                              <span className="font-mono text-sm font-medium text-slate-700">{formatTime(timing.logoutTime)}</span>
                             </div>
                           </td>
                           <td className="py-4 px-6">
@@ -370,7 +373,7 @@ export default function TimingsPage() {
         onClose={() => setDeleteConfirm({ isOpen: false, timing: null })}
         onConfirm={handleDeleteConfirm}
         title="Delete Timing"
-        message={`Are you sure you want to delete the timing "${deleteConfirm.timing?.teamName}" at ${deleteConfirm.timing?.location}? This action cannot be undone.`}
+        message={`Are you sure you want to delete the timing for '${deleteConfirm.timing?.branch}' at ${deleteConfirm.timing?.location}? This action cannot be undone.`}
         confirmText="Delete"
         confirmVariant="danger"
       />
