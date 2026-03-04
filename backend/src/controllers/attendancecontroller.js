@@ -134,7 +134,7 @@ const checkIn = async (req, res) => {
       });
     }
 
-    // Notify Admins about late check-in ONLY
+    // Notify Admins and Manager about late check-in ONLY
     if (isLate) {
       try {
         const admins = await User.find({ role: "ADMIN" });
@@ -147,16 +147,29 @@ const checkIn = async (req, res) => {
           hour12: true,
         });
 
+        const notifPayload = {
+          sender: userId,
+          type: "ATTENDANCE_UPDATE",
+          title: "Late Punch-in Alert",
+          message: `${user.name} has punched in LATE at ${istTime} (Scheduled: ${timingDetails?.loginTime}).`,
+          relatedId: attendance._id,
+        };
+
+        // Notify all admins
         const notificationPromises = admins.map((admin) =>
-          Notification.create({
-            recipient: admin._id,
-            sender: userId,
-            type: "ATTENDANCE_UPDATE",
-            title: "Late Punch-in Alert",
-            message: `${user.name} has punched in LATE at ${istTime} (Scheduled: ${timingDetails?.loginTime}).`,
-            relatedId: attendance._id,
-          }),
+          Notification.create({ recipient: admin._id, ...notifPayload }),
         );
+
+        // Notify the employee's assigned manager (if any and not already an admin)
+        if (user.managerId) {
+          const adminIds = new Set(admins.map((a) => a._id.toString()));
+          if (!adminIds.has(user.managerId.toString())) {
+            notificationPromises.push(
+              Notification.create({ recipient: user.managerId, ...notifPayload }),
+            );
+          }
+        }
+
         await Promise.all(notificationPromises);
       } catch (notifError) {
         console.error(
@@ -166,7 +179,7 @@ const checkIn = async (req, res) => {
       }
     }
 
-    return sendSuccess(res, "Check-in successful", attendance);
+    return sendSuccess(res, "Check-in successful", { ...attendance.toObject(), isLate });
   } catch (error) {
     return sendError(res, "Check-in failed", error.message);
   }
