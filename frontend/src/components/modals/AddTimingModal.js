@@ -86,6 +86,21 @@ export function AddTimingModal({ isOpen, onClose, onSuccess, editingTiming = nul
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+
+    // Auto-calculate logout time when login time changes (logout = login + 9 hours)
+    if (name === "loginTime") {
+      if (value) {
+        const [hours, minutes] = value.split(":").map(Number);
+        const logoutHours = (hours + 9) % 24;
+        const logoutTime = `${logoutHours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`;
+        setFormData((prev) => ({ ...prev, loginTime: value, logoutTime }));
+        setErrors((prev) => ({ ...prev, loginTime: "", logoutTime: "" }));
+      } else {
+        setFormData((prev) => ({ ...prev, loginTime: value }));
+      }
+      return;
+    }
+
     setFormData((prev) => ({ ...prev, [name]: value }));
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: "" }));
@@ -358,6 +373,7 @@ export function AddTimingModal({ isOpen, onClose, onSuccess, editingTiming = nul
               {errors.logoutTime && (
                 <p className="text-sm text-red-600 mt-1">{errors.logoutTime}</p>
               )}
+              <p className="text-xs text-slate-400 mt-1">Auto-set to login + 9 hrs. Edit if needed.</p>
             </div>
           </div>
         </div>

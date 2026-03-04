@@ -20,6 +20,14 @@ const getAllUsers = async (req, res) => {
       ];
     }
 
+    // Allow manager to filter their own team, or admin can pass managerId query
+    const { managerId } = req.query;
+    if (managerId) filter.managerId = managerId;
+    // If the requester is a MANAGER (not admin), auto-scope to their team
+    if (req.user.role === "MANAGER" && !managerId) {
+      filter.managerId = req.user.id;
+    }
+
     const totalRecords = await User.countDocuments(filter);
     const users = await User.find(filter)
       .select("-password")
@@ -188,7 +196,7 @@ const createUser = async (req, res) => {
 const updateUser = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, email, role, isActive, officeId, managerId } = req.body;
+    const { name, email, role, isActive, officeId, managerId, phone, location, branch, timingId, department } = req.body;
 
     const user = await User.findById(id);
     if (!user) return sendError(res, "User not found", "Not Found", 404);
@@ -206,7 +214,15 @@ const updateUser = async (req, res) => {
       isActive,
       officeId,
       managerId,
+      phone,
+      location: location?.trim(),
+      branch: branch?.trim(),
+      timingId: timingId || undefined,
+      department,
     };
+
+    // Remove undefined keys so mongoose doesn't overwrite with undefined
+    Object.keys(updateData).forEach((k) => updateData[k] === undefined && delete updateData[k]);
 
     const updatedUser = await User.findByIdAndUpdate(id, updateData, {
       new: true,
