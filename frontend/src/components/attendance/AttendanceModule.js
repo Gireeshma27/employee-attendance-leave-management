@@ -14,6 +14,7 @@ import {
 import { useState, useEffect } from "react";
 import apiService from "@/lib/api";
 import { SuccessModal } from "@/components/ui/SuccessModal";
+import { useToast } from "@/components/ui/Toast";
 import {
   formatTime,
   getActiveDuration,
@@ -36,6 +37,7 @@ import {
  *  - Centralized duration calculation via shared utilities
  */
 export default function AttendanceModule({ role = "employee" }) {
+  const toast = useToast();
   const [loading, setLoading] = useState(true);
   const [todayAttendance, setTodayAttendance] = useState(null);
   const [attendanceHistory, setAttendanceHistory] = useState([]);
@@ -126,6 +128,14 @@ export default function AttendanceModule({ role = "employee" }) {
           setAttendanceHistory(historyData.data || []);
         });
         fetchUserProfile();
+
+        // Show late-login toast if backend flagged it
+        if (response.data?.isLate) {
+          toast.warning(
+            "Late Login Detected",
+            "You logged in after the allowed time.",
+          );
+        }
       }
 
       setSuccessConfig({
