@@ -176,6 +176,7 @@ class ApiService {
         params.append("isActive", filters.isActive);
       if (filters.page) params.append("page", filters.page);
       if (filters.limit) params.append("limit", filters.limit);
+      if (filters.managerId) params.append("managerId", filters.managerId);
       const query = params.toString();
       return this.request(`/users${query ? "?" + query : ""}`, {
         method: "GET",

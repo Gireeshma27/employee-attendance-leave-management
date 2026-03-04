@@ -4,21 +4,40 @@ import { useState, useEffect } from "react";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Clock, Info, Phone } from "lucide-react";
 import apiService from "@/lib/api";
+
+const LOCATIONS = ["Bangalore", "Mysore", "Mangalore"];
+
+const formatTime = (time) => {
+  if (!time) return "";
+  const [hours, minutes] = time.split(":").map(Number);
+  const date = new Date();
+  date.setHours(hours, minutes, 0, 0);
+  return date.toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit", hour12: true });
+};
 
 export function EditEmployeeModal({ isOpen, onClose, employee, onSuccess }) {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
+    phone: "",
     role: "EMPLOYEE",
     department: "",
     isActive: true,
     officeId: "",
     managerId: "",
+    location: "",
+    branch: "",
+    timingId: "",
+    loginTime: "",
+    logoutTime: "",
     wfhAllowed: false,
     usedWFHDays: 0,
   });
+
+  const [timingLoading, setTimingLoading] = useState(false);
+  const [timingNotFound, setTimingNotFound] = useState(false);
 
   // Default departments as fallback
   const DEFAULT_DEPARTMENTS = ["Administration", "HR", "Engineering", "Design", "Marketing"];
@@ -38,11 +57,17 @@ export function EditEmployeeModal({ isOpen, onClose, employee, onSuccess }) {
       setFormData({
         name: employee.name || "",
         email: employee.email || "",
+        phone: employee.phone || "",
         role: employee.role || "EMPLOYEE",
         department: employee.department || "",
         isActive: employee.isActive ?? true,
         officeId: employee.officeId || "",
         managerId: employee.managerId || "",
+        location: employee.location || "",
+        branch: employee.branch || "",
+        timingId: employee.timingId?._id || employee.timingId || "",
+        loginTime: employee.timingId?.loginTime || "",
+        logoutTime: employee.timingId?.logoutTime || "",
         wfhAllowed: employee.wfhAllowed || false,
         usedWFHDays: employee.usedWFHDays || 0,
       });
@@ -50,9 +75,52 @@ export function EditEmployeeModal({ isOpen, onClose, employee, onSuccess }) {
       setApiError(null);
       setShowCustomDepartment(false);
       setCustomDepartment("");
+      setTimingNotFound(false);
       fetchDependentData();
     }
   }, [employee, isOpen]);
+
+  // Auto-fetch timing when location + branch are both filled
+  useEffect(() => {
+    const loc = formData.location;
+    const br = formData.branch?.trim();
+    if (!loc || !br) {
+      setTimingNotFound(false);
+      return;
+    }
+
+    let cancelled = false;
+    const fetchTiming = async () => {
+      setTimingLoading(true);
+      setTimingNotFound(false);
+      try {
+        const res = await apiService.timing.getByLocationBranch(loc, br);
+        if (cancelled) return;
+        if (res.data) {
+          setFormData((prev) => ({
+            ...prev,
+            timingId: res.data._id,
+            loginTime: res.data.loginTime,
+            logoutTime: res.data.logoutTime,
+          }));
+          setTimingNotFound(false);
+        } else {
+          setFormData((prev) => ({ ...prev, timingId: "", loginTime: "", logoutTime: "" }));
+          setTimingNotFound(true);
+        }
+      } catch {
+        if (!cancelled) setTimingNotFound(true);
+      } finally {
+        if (!cancelled) setTimingLoading(false);
+      }
+    };
+
+    const timer = setTimeout(fetchTiming, 400);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [formData.location, formData.branch]);
 
   const fetchDependentData = async () => {
     try {
@@ -139,14 +207,18 @@ export function EditEmployeeModal({ isOpen, onClose, employee, onSuccess }) {
     setIsLoading(true);
 
     try {
-      // 1. General Info Update (including department)
+      // 1. General Info Update (including all editable fields)
       await apiService.user.update(employee._id, {
         name: formData.name,
         email: formData.email,
+        phone: formData.phone,
         role: formData.role,
         department: formData.department,
         isActive: formData.isActive,
         managerId: formData.managerId,
+        location: formData.location,
+        branch: formData.branch,
+        timingId: formData.timingId || undefined,
       });
 
       // 2. Location Assignment
@@ -217,24 +289,41 @@ export function EditEmployeeModal({ isOpen, onClose, employee, onSuccess }) {
           />
         </div>
 
-        {/* Name */}
-        <div>
-          <label className="block text-xs md:text-sm font-medium text-slate-700 mb-1">
-            Name <span className="text-red-500">*</span>
-          </label>
-          <Input
-            type="text"
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-            placeholder="Enter employee name"
-            className={errors.name ? "border-red-500" : ""}
-          />
-          {errors.name && (
-            <p className="text-xs md:text-sm text-red-600 mt-1">
-              {errors.name}
-            </p>
-          )}
+        {/* Name & Phone */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-xs md:text-sm font-medium text-slate-700 mb-1">
+              Name <span className="text-red-500">*</span>
+            </label>
+            <Input
+              type="text"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              placeholder="Enter employee name"
+              className={errors.name ? "border-red-500" : ""}
+            />
+            {errors.name && (
+              <p className="text-xs md:text-sm text-red-600 mt-1">{errors.name}</p>
+            )}
+          </div>
+
+          <div>
+            <label className="block text-xs md:text-sm font-medium text-slate-700 mb-1">
+              Phone
+            </label>
+            <div className="relative">
+              <Phone size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <Input
+                type="tel"
+                name="phone"
+                value={formData.phone}
+                onChange={handleChange}
+                placeholder="e.g. 9876543210"
+                className="pl-8"
+              />
+            </div>
+          </div>
         </div>
 
         {/* Email ID */}
@@ -256,6 +345,76 @@ export function EditEmployeeModal({ isOpen, onClose, employee, onSuccess }) {
             </p>
           )}
         </div>
+
+        {/* Office Location & Branch */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-xs md:text-sm font-medium text-slate-700 mb-1">
+              Office Location
+            </label>
+            <select
+              name="location"
+              value={formData.location}
+              onChange={handleChange}
+              className="w-full px-3 md:px-4 py-2 md:py-2.5 text-xs md:text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900/10"
+            >
+              <option value="">Select Location</option>
+              {LOCATIONS.map((loc) => (
+                <option key={loc} value={loc}>{loc}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-xs md:text-sm font-medium text-slate-700 mb-1">
+              Branch Name
+            </label>
+            <Input
+              type="text"
+              name="branch"
+              value={formData.branch}
+              onChange={handleChange}
+              placeholder="e.g., Main Office, IT Park"
+              disabled={!formData.location}
+            />
+          </div>
+        </div>
+
+        {/* Assigned Timing (auto-fetched) */}
+        {formData.location && formData.branch?.trim() && (
+          <div>
+            {timingLoading ? (
+              <div className="flex items-center gap-2 p-3 bg-slate-50 rounded-xl border border-slate-200">
+                <span className="w-4 h-4 border-2 border-slate-400 border-t-transparent rounded-full animate-spin"></span>
+                <p className="text-xs md:text-sm text-slate-500">Fetching assigned timing...</p>
+              </div>
+            ) : timingNotFound ? (
+              <div className="flex items-start gap-2 p-3 bg-yellow-50 border border-yellow-200 rounded-xl">
+                <Info size={15} className="text-yellow-600 flex-shrink-0 mt-0.5" />
+                <p className="text-xs md:text-sm text-yellow-700">
+                  No timing configured for this branch. Configure it in the <span className="font-semibold">Timings</span> page.
+                </p>
+              </div>
+            ) : formData.loginTime ? (
+              <div className="grid grid-cols-2 gap-3 p-3 bg-blue-50 border border-blue-100 rounded-xl">
+                <div>
+                  <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Login Time</label>
+                  <div className="flex items-center gap-1.5">
+                    <Clock size={13} className="text-green-500" />
+                    <span className="font-mono text-xs md:text-sm font-semibold text-slate-700">{formatTime(formData.loginTime)}</span>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Logout Time</label>
+                  <div className="flex items-center gap-1.5">
+                    <Clock size={13} className="text-red-400" />
+                    <span className="font-mono text-xs md:text-sm font-semibold text-slate-700">{formatTime(formData.logoutTime)}</span>
+                  </div>
+                </div>
+              </div>
+            ) : null}
+          </div>
+        )}
 
         {/* Department */}
         <div>
@@ -306,7 +465,7 @@ export function EditEmployeeModal({ isOpen, onClose, employee, onSuccess }) {
           )}
         </div>
 
-        {/* Role & Location */}
+        {/* Role */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-xs md:text-sm font-medium text-slate-700 mb-1">
@@ -321,25 +480,6 @@ export function EditEmployeeModal({ isOpen, onClose, employee, onSuccess }) {
               <option value="EMPLOYEE">Employee</option>
               <option value="MANAGER">Manager</option>
               <option value="ADMIN">Admin</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-xs md:text-sm font-medium text-slate-700 mb-1">
-              Office Location
-            </label>
-            <select
-              name="officeId"
-              value={formData.officeId}
-              onChange={handleChange}
-              className="w-full px-3 md:px-4 py-2 md:py-2.5 text-xs md:text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-900/10"
-            >
-              <option value="">Select Location</option>
-              {offices.map((off) => (
-                <option key={off._id} value={off._id}>
-                  {off.name}
-                </option>
-              ))}
             </select>
           </div>
         </div>

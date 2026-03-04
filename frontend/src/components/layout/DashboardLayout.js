@@ -123,6 +123,7 @@ const DashboardLayout = ({ children, role = "employee" }) => {
       { href: `/manager/dashboard`, label: "Dashboard", icon: LayoutDashboard },
       { href: `/manager/team-attendance`, label: "Attendance", icon: Clock },
       { href: `/manager/leave-approvals`, label: "Leaves", icon: Calendar },
+      { href: `/manager/employees`, label: "My Team", icon: Users },
       { href: `/manager/holidays`, label: "Holidays", icon: CalendarDays },
     ];
 
