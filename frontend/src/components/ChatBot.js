@@ -10,13 +10,7 @@ import { MessageCircle, X, Send, Bot, User, ChevronRight } from "lucide-react";
 const ROUTE_MAP = {
   admin: [
     {
-      keywords: ["add employee", "new employee", "create employee"],
-      label: "Add Employee",
-      route: "/admin/employees/add",
-      quickAction: true,
-    },
-    {
-      keywords: ["employees", "employee list", "staff"],
+      keywords: ["add employee", "new employee", "create employee", "employees", "employee list", "staff"],
       label: "Employees",
       route: "/admin/employees",
       quickAction: true,
