@@ -21,6 +21,7 @@ import {
   formatDuration,
   getStatusVariant,
 } from "@/utils/attendance";
+import { formatDate } from "@/utils/formatDate";
 
 /**
  * Reusable Attendance Module — shared across Employee, Manager, and Admin dashboards.
@@ -90,9 +91,9 @@ export default function AttendanceModule({ role = "employee" }) {
       setLoading(true);
       const historyData = await apiService.attendance.getMyAttendance();
 
-      const todayStr = new Date().toLocaleDateString();
+      const todayStr = new Date().toISOString().split('T')[0];
       const todayRecord = historyData.data?.find((r) => {
-        return new Date(r.date).toLocaleDateString() === todayStr;
+        return new Date(r.date).toISOString().split('T')[0] === todayStr;
       });
 
       setTodayAttendance(todayRecord || null);
@@ -482,11 +483,7 @@ export default function AttendanceModule({ role = "employee" }) {
                   >
                     <td className="px-5 py-3.5 whitespace-nowrap">
                       <p className="text-sm font-medium text-slate-800">
-                        {new Date(record.date).toLocaleDateString("en-US", {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                        })}
+                        {formatDate(record.date)}
                       </p>
                     </td>
                     <td className="px-5 py-3.5 text-sm font-medium text-slate-500 hidden sm:table-cell">

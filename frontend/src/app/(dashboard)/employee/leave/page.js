@@ -6,10 +6,12 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Modal } from "@/components/ui/Modal";
-import { Plus, Calendar } from "lucide-react";
+import { ConfirmModal } from "@/components/ui/ConfirmModal";
+import { Plus, Calendar, X } from "lucide-react";
 import { useState, useEffect } from "react";
 import apiService from "@/lib/api";
 import { useToast } from "@/components/ui/Toast";
+import { formatDate } from "@/utils/formatDate";
 
 const LEAVE_TYPE_MAP = {
   CL: "Casual Leave",
@@ -40,6 +42,8 @@ export default function LeavePage() {
   });
   const [formError, setFormError] = useState("");
   const [holidays, setHolidays] = useState([]);
+  const [cancelLeaveId, setCancelLeaveId] = useState(null);
+  const [isCancelling, setIsCancelling] = useState(false);
   const toast = useToast();
 
   useEffect(() => {
@@ -196,6 +200,22 @@ export default function LeavePage() {
     setFormData({ leaveType: "", fromDate: "", toDate: "", reason: "" });
   };
 
+  const handleCancelLeave = async () => {
+    if (!cancelLeaveId) return;
+    try {
+      setIsCancelling(true);
+      await apiService.leave.cancel(cancelLeaveId);
+      toast.success("Leave Cancelled", "Your leave request has been cancelled.");
+      setCancelLeaveId(null);
+      await fetchLeaveData(1);
+      setPagination((prev) => ({ ...prev, currentPage: 1 }));
+    } catch (err) {
+      toast.error("Cancellation Failed", err.message || "Unable to cancel leave request.");
+    } finally {
+      setIsCancelling(false);
+    }
+  };
+
   const getStatusBadgeVariant = (status) => {
     const statusLower = status?.toLowerCase();
     if (statusLower === "approved") return "success";
@@ -306,6 +326,7 @@ export default function LeavePage() {
                       Reason
                     </th>
                     <th className="text-left px-5 py-3.5">Status</th>
+                    <th className="text-center px-5 py-3.5">Action</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -319,21 +340,10 @@ export default function LeavePage() {
                           {LEAVE_TYPE_MAP[leave.leaveType] || leave.leaveType}
                         </td>
                         <td className="px-5 py-3.5 text-slate-500 hidden md:table-cell">
-                          {new Date(leave.fromDate).toLocaleDateString(
-                            "en-US",
-                            {
-                              month: "short",
-                              day: "numeric",
-                              year: "numeric",
-                            },
-                          )}
+                          {formatDate(leave.fromDate)}
                         </td>
                         <td className="px-5 py-3.5 text-slate-500 hidden md:table-cell">
-                          {new Date(leave.toDate).toLocaleDateString("en-US", {
-                            month: "short",
-                            day: "numeric",
-                            year: "numeric",
-                          })}
+                          {formatDate(leave.toDate)}
                         </td>
                         <td
                           className="px-5 py-3.5 text-slate-500 hidden lg:table-cell max-w-[200px] truncate"
@@ -349,12 +359,25 @@ export default function LeavePage() {
                             {leave.status}
                           </Badge>
                         </td>
+                        <td className="px-5 py-3.5 text-center">
+                          {leave.status === 'Pending' ? (
+                            <button
+                              onClick={() => setCancelLeaveId(leave._id)}
+                              className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 rounded-lg transition-colors"
+                              title="Cancel this leave request"
+                            >
+                              <X size={12} /> Cancel
+                            </button>
+                          ) : (
+                            <span className="text-xs text-slate-300">—</span>
+                          )}
+                        </td>
                       </tr>
                     ))
                   ) : (
                     <tr>
                       <td
-                        colSpan="5"
+                        colSpan="6"
                         className="px-6 py-12 text-center text-slate-400"
                       >
                         No leave applications found. Click "Apply Leave" to
@@ -405,8 +428,7 @@ export default function LeavePage() {
         </Card>
 
         {/* Apply Leave Modal */}
-        <Modal isOpen={showModal} onClose={closeModal} title="Apply for Leave">
-          {formError && (
+        <Modal isOpen={showModal} onClose={closeModal} title="Apply for Leave">          {formError && (
             <div className="bg-red-50 border border-red-200 rounded-xl p-3 mb-4">
               <p className="text-red-600 text-sm">{formError}</p>
             </div>
@@ -490,6 +512,18 @@ export default function LeavePage() {
             </div>
           </form>
         </Modal>
+
+        {/* Cancel Leave Confirmation */}
+        <ConfirmModal
+          isOpen={!!cancelLeaveId}
+          onClose={() => setCancelLeaveId(null)}
+          onConfirm={handleCancelLeave}
+          title="Cancel Leave Request"
+          message="Are you sure you want to cancel this leave request? This action cannot be undone."
+          confirmText={isCancelling ? "Cancelling..." : "Yes, Cancel Leave"}
+          cancelText="Keep Request"
+          variant="danger"
+        />
       </div>
     </DashboardLayout>
   );

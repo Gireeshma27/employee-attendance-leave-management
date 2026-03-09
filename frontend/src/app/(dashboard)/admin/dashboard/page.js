@@ -15,9 +15,13 @@ import {
   Database,
   ShieldCheck,
   Zap,
+  Settings,
+  ChevronRight,
 } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
 import apiService from "@/lib/api";
+import { formatTime } from "@/utils/formatDate";
 
 const AdminDashboard = () => {
   const [data, setData] = useState(null);
@@ -107,11 +111,7 @@ const AdminDashboard = () => {
           </div>
           <div className="flex items-center gap-3">
             <span className="text-xs text-slate-400 font-medium">
-              Last updated:{" "}
-              {new Date().toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
+              Last updated: {formatTime(new Date())}
             </span>
             <button
               onClick={fetchDashboardData}
@@ -274,10 +274,7 @@ const AdminDashboard = () => {
                       </p>
                       <p className="text-xs text-slate-400 mt-0.5">
                         {mounted && log.time
-                          ? new Date(log.time).toLocaleTimeString([], {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })
+                          ? formatTime(log.time)
                           : "--:--"}
                       </p>
                     </div>
@@ -307,8 +304,41 @@ const AdminDashboard = () => {
             </div>
           </Card>
 
-          {/* System Status */}
+          {/* System Status + Quick Actions */}
           <div className="space-y-6">
+            {/* Quick Admin Actions Card */}
+            <Card className="overflow-hidden">
+              <CardHeader className="pb-2 bg-slate-50/50 border-b border-slate-100">
+                <CardTitle className="text-base">Quick Actions</CardTitle>
+              </CardHeader>
+              <div className="space-y-2 p-2">
+                {[
+                  { href: "/admin/leaves", label: "Review Leave Requests", badge: summary?.pendingLeaves || 0, badgeVariant: "warning", icon: Calendar },
+                  { href: "/admin/employees", label: "Manage Employees", badge: summary?.totalEmployees || 0, badgeVariant: "default", icon: Users },
+                  { href: "/admin/settings", label: "System Settings", badge: null, badgeVariant: null, icon: Settings },
+                ].map(({ href, label, badge, badgeVariant, icon: Icon }) => (
+                  <Link
+                    key={href}
+                    href={href}
+                    className="flex items-center justify-between px-3 py-3 rounded-xl hover:bg-slate-50 transition-colors group"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center text-slate-500 group-hover:bg-blue-50 group-hover:text-blue-600 transition-colors">
+                        <Icon size={15} />
+                      </div>
+                      <span className="text-sm font-medium text-slate-700 group-hover:text-slate-900">{label}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {badge !== null && (
+                        <Badge variant={badgeVariant} className="text-xs">{badge}</Badge>
+                      )}
+                      <ChevronRight size={14} className="text-slate-300 group-hover:text-slate-500" />
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </Card>
+
             <Card className="overflow-hidden">
               <CardHeader className="pb-2 bg-slate-50/50 border-b border-slate-100">
                 <CardTitle className="text-base">

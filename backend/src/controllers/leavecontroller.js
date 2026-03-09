@@ -4,6 +4,7 @@ import Notification from "#models/notification";
 import { sendSuccess, sendError } from "#utils/api_response_fix";
 import Holiday from "#models/holiday";
 import { checkFixedHolidayForDate } from "#utils/fixedPublicHolidays";
+import { formatDate } from "#utils/dateFormat";
 
 const applyLeave = async (req, res) => {
   try {
@@ -106,7 +107,7 @@ const applyLeave = async (req, res) => {
             sender: userId,
             type: "LEAVE_REQUEST",
             title: "New Leave Request",
-            message: `${populatedLeave.userId.name} has requested ${numberOfDays} days of leave from ${new Date(from).toLocaleDateString()} to ${new Date(to).toLocaleDateString()}.`,
+            message: `${populatedLeave.userId.name} has requested ${numberOfDays} days of leave from ${formatDate(from)} to ${formatDate(to)}.`,
             relatedId: leave._id,
           }),
         );
@@ -125,7 +126,7 @@ const applyLeave = async (req, res) => {
           sender: userId,
           type: "LEAVE_REQUEST",
           title: "New Leave Request",
-          message: `${populatedLeave.userId.name} has requested ${numberOfDays} days of leave from ${new Date(from).toLocaleDateString()} to ${new Date(to).toLocaleDateString()}.`,
+          message: `${populatedLeave.userId.name} has requested ${numberOfDays} days of leave from ${formatDate(from)} to ${formatDate(to)}.`,
           relatedId: leave._id,
         }),
       );
@@ -269,7 +270,7 @@ const approveLeave = async (req, res) => {
           sender: approverId,
           type: "LEAVE_RESPONSE",
           title: "Leave Request Approved",
-          message: `Your leave request from ${new Date(leave.fromDate).toLocaleDateString()} to ${new Date(leave.toDate).toLocaleDateString()} has been approved by ${approverLabel} ${approver?.name || ""}.`,
+          message: `Your leave request from ${formatDate(leave.fromDate)} to ${formatDate(leave.toDate)} has been approved by ${approverLabel} ${approver?.name || ""}.`,
           relatedId: leave._id,
         }),
       ];
@@ -286,7 +287,7 @@ const approveLeave = async (req, res) => {
             sender: approverId,
             type: "LEAVE_RESPONSE",
             title: "Leave Request Approved",
-            message: `${populatedLeave.userId.name}'s leave request from ${new Date(leave.fromDate).toLocaleDateString()} to ${new Date(leave.toDate).toLocaleDateString()} has been approved by ${approverLabel} ${approver?.name || ""}.`,
+            message: `${populatedLeave.userId.name}'s leave request from ${formatDate(leave.fromDate)} to ${formatDate(leave.toDate)} has been approved by ${approverLabel} ${approver?.name || ""}.`,
             relatedId: leave._id,
           }),
         );
@@ -348,7 +349,7 @@ const rejectLeave = async (req, res) => {
           sender: approverId,
           type: "LEAVE_RESPONSE",
           title: "Leave Request Rejected",
-          message: `Your leave request from ${new Date(leave.fromDate).toLocaleDateString()} to ${new Date(leave.toDate).toLocaleDateString()} has been rejected by ${approverLabel} ${approver?.name || ""}. Reason: ${rejectionReason}`,
+          message: `Your leave request from ${formatDate(leave.fromDate)} to ${formatDate(leave.toDate)} has been rejected by ${approverLabel} ${approver?.name || ""}. Reason: ${rejectionReason}`,
           relatedId: leave._id,
         }),
       ];
@@ -365,7 +366,7 @@ const rejectLeave = async (req, res) => {
             sender: approverId,
             type: "LEAVE_RESPONSE",
             title: "Leave Request Rejected",
-            message: `${populatedLeave.userId.name}'s leave request from ${new Date(leave.fromDate).toLocaleDateString()} to ${new Date(leave.toDate).toLocaleDateString()} has been rejected by ${approverLabel} ${approver?.name || ""}.`,
+            message: `${populatedLeave.userId.name}'s leave request from ${formatDate(leave.fromDate)} to ${formatDate(leave.toDate)} has been rejected by ${approverLabel} ${approver?.name || ""}.`,
             relatedId: leave._id,
           }),
         );

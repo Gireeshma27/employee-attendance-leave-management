@@ -7,18 +7,9 @@ import { Input } from "@/components/ui/Input";
 import { Users, Search, MapPin, Clock, Briefcase } from "lucide-react";
 import { useState, useEffect } from "react";
 import apiService from "@/lib/api";
+import { formatHHmm } from "@/utils/formatDate";
 
-const formatTime = (time) => {
-  if (!time) return "";
-  const [hours, minutes] = time.split(":").map(Number);
-  const date = new Date();
-  date.setHours(hours, minutes, 0, 0);
-  return date.toLocaleTimeString("en-IN", {
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-  });
-};
+const formatTime = (time) => formatHHmm(time);
 
 export default function ManagerEmployeesPage() {
   const [employees, setEmployees] = useState([]);

@@ -6,16 +6,12 @@ import {
   getFixedHolidaysForYear,
   checkFixedHolidayForDate,
 } from "#utils/fixedPublicHolidays";
+import { formatDateRange } from "#utils/dateFormat";
 
 /**
  * Format a date range string for notification messages.
  */
-const fmtRange = (start, end) => {
-  const opts = { month: "short", day: "numeric" };
-  const s = new Date(start).toLocaleDateString("en-US", opts);
-  const e = new Date(end).toLocaleDateString("en-US", opts);
-  return s === e ? s : `${s} - ${e}`;
-};
+const fmtRange = (start, end) => formatDateRange(start, end);
 
 /**
  * Send a SYSTEM notification to all employees and managers.

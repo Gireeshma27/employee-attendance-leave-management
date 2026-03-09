@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import apiService from "@/lib/api";
+import { formatDate, formatTime } from "@/utils/formatDate";
 
 /**
  * Manager Dashboard — Team Size bug fix: also fetches team attendance
@@ -145,11 +146,7 @@ const ManagerDashboard = () => {
           </div>
           <div className="flex items-center gap-3">
             <span className="text-xs text-slate-400 font-medium">
-              Last updated:{" "}
-              {new Date().toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
+              Last updated: {formatTime(new Date())}
             </span>
             <button
               onClick={fetchDashboardData}
@@ -230,7 +227,7 @@ const ManagerDashboard = () => {
                           <p className="font-medium text-sm">{h.title}</p>
                         )}
                         <p className="text-xs opacity-70 mt-0.5">
-                          {start.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                          {formatDate(start)}
                         </p>
                       </div>
                     </div>

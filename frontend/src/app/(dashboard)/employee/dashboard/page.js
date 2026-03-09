@@ -15,6 +15,7 @@ import {
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import apiService from "@/lib/api";
+import { formatDate, formatTime } from "@/utils/formatDate";
 
 const EmployeeDashboard = () => {
   const [loading, setLoading] = useState(true);
@@ -208,7 +209,7 @@ const EmployeeDashboard = () => {
                           <p className="font-medium text-sm">{h.title}</p>
                         )}
                         <p className="text-xs opacity-70 mt-0.5">
-                          {start.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                          {formatDate(start)}
                         </p>
                       </div>
                     </div>
@@ -249,34 +250,16 @@ const EmployeeDashboard = () => {
                         className="hover:bg-slate-50/50 transition-colors"
                       >
                         <td className="px-5 py-3.5 text-slate-800 font-medium">
-                          {new Date(record.date).toLocaleDateString("en-US", {
-                            month: "short",
-                            day: "numeric",
-                            year: "numeric",
-                          })}
+                          {formatDate(record.date)}
                         </td>
                         <td className="px-5 py-3.5 text-slate-500">
                           {record.checkInTime
-                            ? new Date(record.checkInTime).toLocaleTimeString(
-                                "en-US",
-                                {
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                  hour12: true,
-                                },
-                              )
+                            ? formatTime(record.checkInTime)
                             : "-"}
                         </td>
                         <td className="px-5 py-3.5 text-slate-500 hidden sm:table-cell">
                           {record.checkOutTime
-                            ? new Date(record.checkOutTime).toLocaleTimeString(
-                                "en-US",
-                                {
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                  hour12: true,
-                                },
-                              )
+                            ? formatTime(record.checkOutTime)
                             : "-"}
                         </td>
                         <td className="px-5 py-3.5 text-slate-700 font-medium">

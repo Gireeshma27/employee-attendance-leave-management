@@ -26,14 +26,21 @@ export function DatePicker({
     return d.toISOString().split("T")[0];
   };
 
-  // Helper to format date for display (MM-DD-YYYY)
+  // Helper to format date for display (DD/MM/YYYY — Indian format)
   const formatDisplayDate = (date) => {
     if (!date) return "";
-    const d = new Date(date);
+    // Parse YYYY-MM-DD strings as local time to avoid UTC offset shifts
+    let d;
+    if (typeof date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      const [y, m, dy] = date.split("-").map(Number);
+      d = new Date(y, m - 1, dy);
+    } else {
+      d = new Date(date);
+    }
     const day = String(d.getDate()).padStart(2, "0");
     const month = String(d.getMonth() + 1).padStart(2, "0");
     const year = d.getFullYear();
-    return `${month}-${day}-${year}`;
+    return `${day}/${month}/${year}`;
   };
 
   useEffect(() => {

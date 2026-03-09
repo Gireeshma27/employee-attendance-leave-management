@@ -546,6 +546,19 @@ class ApiService {
         body: JSON.stringify(data),
       }),
   };
+
+  /**
+   * System Settings Endpoints (Admin-configurable defaults)
+   */
+  settings = {
+    get: () => this.request("/settings", { method: "GET" }),
+
+    update: (data) =>
+      this.request("/settings", {
+        method: "PUT",
+        body: JSON.stringify(data),
+      }),
+  };
 }
 
 export const apiService = new ApiService();

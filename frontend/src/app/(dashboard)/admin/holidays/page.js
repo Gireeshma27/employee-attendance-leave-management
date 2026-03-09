@@ -19,6 +19,7 @@ import {
 import { useState, useEffect } from "react";
 import apiService from "@/lib/api";
 import { useToast } from "@/components/ui/Toast";
+import { formatDate } from "@/utils/formatDate";
 
 // Fixed public holidays â€” static display only, no DB
 const FIXED_PUBLIC_HOLIDAYS = [
@@ -45,14 +46,6 @@ const getTypeLabel = (type) => {
   if (type === "COMPANY") return "Company";
   return type;
 };
-
-const formatDate = (dateStr) =>
-  new Date(dateStr).toLocaleDateString("en-US", {
-    weekday: "short",
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
 
 const getTotalDays = (startDate, endDate) => {
   const start = new Date(startDate);

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
+import { formatDate } from "@/utils/formatDate";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Input } from "@/components/ui/Input";
@@ -339,11 +340,7 @@ export default function AttendancePage() {
             <div>
               <h2 className="text-base font-semibold text-slate-900">
                 Attendance for{" "}
-                {new Date(dateFilter).toLocaleDateString("en-US", {
-                  month: "short",
-                  day: "2-digit",
-                  year: "numeric",
-                })}
+                {formatDate(dateFilter)}
               </h2>
             </div>
             <p className="text-sm text-slate-500">
