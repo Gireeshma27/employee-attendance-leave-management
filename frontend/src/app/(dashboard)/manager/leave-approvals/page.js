@@ -9,6 +9,7 @@ import { AlertCircle, Clock, CheckCircle, XCircle } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import apiService from '@/lib/api';
 import { useToast } from '@/components/ui/Toast';
+import { formatDate } from '@/utils/formatDate';
 
 export default function LeaveApprovalsPage() {
   const [leaveRequests, setLeaveRequests] = useState([]);
@@ -176,8 +177,8 @@ export default function LeaveApprovalsPage() {
                         </h3>
                         <p className="text-sm text-slate-600 mt-1">{request.leaveType}</p>
                         <p className="text-xs text-slate-400 mt-1">
-                          {new Date(request.fromDate).toLocaleDateString()} to{' '}
-                          {new Date(request.toDate).toLocaleDateString()} ({request.numberOfDays} days)
+                          {formatDate(request.fromDate)} to{' '}
+                          {formatDate(request.toDate)} ({request.numberOfDays} days)
                         </p>
                       </div>
                       <Badge variant="warning" dot className="flex-shrink-0 self-start">Pending</Badge>

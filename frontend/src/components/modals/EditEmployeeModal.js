@@ -6,16 +6,11 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { AlertCircle, Clock, Info, Phone } from "lucide-react";
 import apiService from "@/lib/api";
+import { formatHHmm } from "@/utils/formatDate";
 
 const LOCATIONS = ["Bangalore", "Mysore", "Mangalore"];
 
-const formatTime = (time) => {
-  if (!time) return "";
-  const [hours, minutes] = time.split(":").map(Number);
-  const date = new Date();
-  date.setHours(hours, minutes, 0, 0);
-  return date.toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit", hour12: true });
-};
+const formatTime = (time) => formatHHmm(time);
 
 export function EditEmployeeModal({ isOpen, onClose, employee, onSuccess }) {
   const [formData, setFormData] = useState({
@@ -346,7 +341,7 @@ export function EditEmployeeModal({ isOpen, onClose, employee, onSuccess }) {
           )}
         </div>
 
-        {/* Office Location & Branch */}
+        {/* Office Location & Sub-Office */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className="block text-xs md:text-sm font-medium text-slate-700 mb-1">
@@ -367,7 +362,7 @@ export function EditEmployeeModal({ isOpen, onClose, employee, onSuccess }) {
 
           <div>
             <label className="block text-xs md:text-sm font-medium text-slate-700 mb-1">
-              Branch Name
+              Sub-Office / Building
             </label>
             <Input
               type="text"

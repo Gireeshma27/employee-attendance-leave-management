@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import apiService from "@/lib/api";
 import { useRouter } from "next/navigation";
+import { formatDateTime } from "@/utils/formatDate";
 
 const NotificationsPage = () => {
   const router = useRouter();
@@ -214,7 +215,7 @@ const NotificationsPage = () => {
                         {notification.title}
                       </h3>
                       <span className="text-xs font-semibold text-slate-400 whitespace-nowrap ml-4">
-                        {new Date(notification.createdAt).toLocaleString()}
+                        {formatDateTime(notification.createdAt)}
                       </span>
                     </div>
                     <p

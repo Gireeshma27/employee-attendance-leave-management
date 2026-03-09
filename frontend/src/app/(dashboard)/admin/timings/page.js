@@ -9,14 +9,9 @@ import { Plus, Pencil, Trash2, Clock, MapPin, Users, Building } from "lucide-rea
 import { useState, useEffect } from "react";
 import apiService from "@/lib/api";
 import { AddTimingModal } from "@/components/modals/AddTimingModal";
+import { formatHHmm } from "@/utils/formatDate";
 
-const formatTime = (time) => {
-  if (!time) return "";
-  const [hours, minutes] = time.split(":").map(Number);
-  const date = new Date();
-  date.setHours(hours, minutes, 0, 0);
-  return date.toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit", hour12: true });
-};
+const formatTime = (time) => formatHHmm(time);
 
 export default function TimingsPage() {
   const [timings, setTimings] = useState([]);

@@ -16,11 +16,14 @@ import {
   Bell,
   Timer,
   CalendarDays,
+  Settings,
 } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import apiService from "@/lib/api";
 import { getTheme } from "@/constants/theme";
+import { formatTime } from "@/utils/formatDate";
+import ChatBot from "@/components/ChatBot";
 
 /**
  * @description Master layout for all dashboard pages, including Sidebar and Topbar.
@@ -137,6 +140,7 @@ const DashboardLayout = ({ children, role = "employee" }) => {
       // GEOFENCING TEMPORARILY DISABLED
       // { href: `/admin/geofencing`, label: "Geofencing", icon: MapPin },
       { href: `/admin/reports`, label: "Reports", icon: BarChart3 },
+      { href: `/admin/settings`, label: "Settings", icon: Settings },
     ];
 
     const lowerRole = role?.toLowerCase();
@@ -354,12 +358,7 @@ const DashboardLayout = ({ children, role = "employee" }) => {
                                     {notif.message}
                                   </p>
                                   <p className="text-[10px] text-slate-400 mt-2 font-medium">
-                                    {new Date(
-                                      notif.createdAt,
-                                    ).toLocaleTimeString([], {
-                                      hour: "2-digit",
-                                      minute: "2-digit",
-                                    })}
+                                    {formatTime(notif.createdAt)}
                                   </p>
                                 </div>
                               </div>
@@ -452,6 +451,9 @@ const DashboardLayout = ({ children, role = "employee" }) => {
           </div>
         </main>
       </div>
+
+      {/* Floating ChatBot – visible on all dashboard pages */}
+      <ChatBot role={role} />
     </div>
   );
 };

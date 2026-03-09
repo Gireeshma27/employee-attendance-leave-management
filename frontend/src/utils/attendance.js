@@ -2,20 +2,9 @@
  * Centralized attendance duration utilities.
  * Used by Employee, Manager, and Admin dashboards for consistent calculations.
  */
+import { formatTime } from "@/utils/formatDate";
 
-/**
- * Format a date object to "HH:MM AM/PM" string
- * @param {Date|string|null} date
- * @returns {string} Formatted time or "-- : --"
- */
-export const formatTime = (date) => {
-  if (!date) return "-- : --";
-  return new Date(date).toLocaleTimeString("en-US", {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: true,
-  });
-};
+export { formatTime };
 
 /**
  * Calculate active/working duration between two timestamps.

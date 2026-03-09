@@ -1,14 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { formatHHmm } from "@/utils/formatDate";
 
-const formatTime = (time) => {
-  if (!time) return "";
-  const [hours, minutes] = time.split(":").map(Number);
-  const date = new Date();
-  date.setHours(hours, minutes, 0, 0);
-  return date.toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit", hour12: true });
-};
+const formatTime = (time) => formatHHmm(time);
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -85,15 +80,26 @@ export function AddEmployeeModal({ isOpen, onClose, onSuccess }) {
 
   const fetchDependentData = async () => {
     try {
-      const [officesRes, managersRes, departmentsRes] = await Promise.all([
+      const [officesRes, managersRes, departmentsRes, settingsRes] = await Promise.all([
         apiService.office.getAll(),
         apiService.user.getAll({ role: "MANAGER" }),
         apiService.user.getDepartments(),
+        apiService.settings.get(),
       ]);
       setOffices(officesRes.data || []);
       setManagers(managersRes.data?.records || []);
       if (departmentsRes.data && departmentsRes.data.length > 0) {
         setDepartments(departmentsRes.data);
+      }
+      // Apply system defaults to the form
+      if (settingsRes.success && settingsRes.data) {
+        const s = settingsRes.data;
+        setFormData((prev) => ({
+          ...prev,
+          role: s.defaultRole || prev.role,
+          wfhAllowed: s.defaultWFHAllowed ?? prev.wfhAllowed,
+          usedWFHDays: prev.usedWFHDays,
+        }));
       }
     } catch (err) {
       console.error("Error fetching dependent data:", err);
@@ -522,7 +528,7 @@ export function AddEmployeeModal({ isOpen, onClose, onSuccess }) {
 
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">
-                Branch
+                Sub-Office / Building
               </label>
               <Input
                 type="text"

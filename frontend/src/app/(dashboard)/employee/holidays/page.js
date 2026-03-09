@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/Badge";
 import { CalendarDays, ShieldCheck, Calendar } from "lucide-react";
 import { useState, useEffect } from "react";
 import apiService from "@/lib/api";
+import { formatDate } from "@/utils/formatDate";
 
 // Fixed public holidays — mirrors backend utility
 const FIXED_PUBLIC_HOLIDAYS = [
@@ -21,14 +22,6 @@ const getFixedHolidaysForCurrentYear = () => {
     return { title, startDate: date.toISOString(), endDate: date.toISOString(), type: "PUBLIC_FIXED" };
   });
 };
-
-const formatDate = (dateStr) =>
-  new Date(dateStr).toLocaleDateString("en-US", {
-    weekday: "short",
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
 
 const getTotalDays = (startDate, endDate) => {
   const diff = Math.round(

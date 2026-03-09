@@ -4,6 +4,7 @@ import Leave from "#models/leave";
 import Timing from "#models/timing";
 import { sendSuccess, sendError } from "#utils/api_response_fix";
 import ExcelJS from "exceljs";
+import { formatDate, formatTime, formatDateRange } from "#utils/dateFormat";
 
 const getAdminReportData = async (req, res) => {
   try {
@@ -301,15 +302,15 @@ const exportToExcel = async (req, res) => {
     // Add data rows from attendance records
     attendanceRecords.forEach((record) => {
       worksheet.addRow({
-        date: record.date ? new Date(record.date).toLocaleDateString() : "-",
+        date: record.date ? formatDate(record.date) : "-",
         name: record.userId?.name || "-",
         email: record.userId?.email || "-",
         department: record.userId?.department || "-",
         checkInTime: record.checkInTime
-          ? new Date(record.checkInTime).toLocaleTimeString()
+          ? formatTime(record.checkInTime)
           : "-",
         checkOutTime: record.checkOutTime
-          ? new Date(record.checkOutTime).toLocaleTimeString()
+          ? formatTime(record.checkOutTime)
           : "-",
         workingHours: record.workingHours || "-",
         status: record.status || "-",
@@ -334,7 +335,7 @@ const exportToExcel = async (req, res) => {
           while (currentDate <= endLeaveDate) {
             if (currentDate >= start && currentDate <= end) {
               worksheet.addRow({
-                date: currentDate.toLocaleDateString(),
+                date: formatDate(currentDate),
                 name: employee.name || "-",
                 email: employee.email || "-",
                 department: employee.department || "-",
@@ -358,7 +359,7 @@ const exportToExcel = async (req, res) => {
         // This employee has no attendance and no approved leave - mark as Absent
         // Add one summary row for the period
         worksheet.addRow({
-          date: `${start.toLocaleDateString()} - ${end.toLocaleDateString()}`,
+          date: formatDateRange(start, end),
           name: employee.name || "-",
           email: employee.email || "-",
           department: employee.department || "-",
